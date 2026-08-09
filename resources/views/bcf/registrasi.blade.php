@@ -55,7 +55,7 @@
             z-index: -1;
             background: linear-gradient(180deg, rgba(2, 31, 86, .22), transparent 45%, rgba(2, 28, 83, .38));
         }
-        .bcf-ambient-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: .28; pointer-events: none; }
+        .bcf-ambient-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: .52; pointer-events: none; }
         .bcf-brand, .bcf-hero-inner, .bcf-scroll { z-index: 1; }
         .bcf-brand, .bcf-hero-inner, .bcf-scroll { position: relative; }
         .bcf-brand { position: absolute; }
@@ -67,7 +67,7 @@
         .bcf-hero-logo { display: block; width: min(560px, 84vw); max-height: 390px; object-fit: contain; margin: 30px auto 18px; filter: drop-shadow(0 12px 18px rgba(0, 27, 83, .24)); }
         .bcf-hero h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: .9; letter-spacing: -.08em; margin: 24px 0 18px; font-weight: 800; }
         .bcf-hero h1 em { color: var(--bcf-cyan); font-style: normal; }
-        .bcf-hero p { max-width: 650px; margin: 0 auto; font-size: clamp(.92rem, 2vw, 1.15rem); color: rgba(255, 215, 0, .95); font-weight: 700; }
+        .bcf-hero p { max-width: 650px; margin: 0 auto; font-size: clamp(.85rem, 2vw, 1rem); color: rgba(255, 215, 0, .95); font-weight: 700; }
         .bcf-hero-slogan { letter-spacing: .01em; }
         .bcf-hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 42px; }
         .bcf-btn { border: 0; border-radius: 12px; min-width: 190px; padding: 15px 22px; font-weight: 800; letter-spacing: .03em; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
@@ -352,7 +352,7 @@
                     ambientCanvas.width = width * ratio;
                     ambientCanvas.height = height * ratio;
                     context.setTransform(ratio, 0, 0, ratio, 0, 0);
-                    const total = Math.min(42, Math.max(20, Math.floor(width / 34)));
+                    const total = Math.min(78, Math.max(32, Math.floor(width / 18)));
                     particles = Array.from({ length: total }, () => ({
                         x: Math.random() * width,
                         y: Math.random() * height,
@@ -373,13 +373,28 @@
                     context.save();
                     context.translate(centerX, centerY);
                     context.rotate(time * .000035);
-                    context.strokeStyle = `rgba(105, 201, 235, ${.08 + pulse * .04})`;
-                    context.lineWidth = 1;
-                    context.setLineDash([3, 12]);
+                    context.strokeStyle = `rgba(164, 226, 248, ${.14 + pulse * .08})`;
+                    context.lineWidth = 1.3;
+                    context.setLineDash([4, 10]);
                     context.beginPath();
                     context.ellipse(0, 0, Math.min(width, height) * .27, Math.min(width, height) * .43, 0, 0, Math.PI * 2);
                     context.stroke();
                     context.restore();
+
+                    const glows = [
+                        [width * .16, height * .25, 'rgba(105, 201, 235, .16)'],
+                        [width * .84, height * .34, 'rgba(255, 215, 0, .1)'],
+                        [width * .5, height * .78, 'rgba(105, 201, 235, .12)'],
+                    ];
+                    glows.forEach(([x, y, color]) => {
+                        const gradient = context.createRadialGradient(x, y, 0, x, y, Math.min(width, height) * .2);
+                        gradient.addColorStop(0, color);
+                        gradient.addColorStop(1, 'rgba(105, 201, 235, 0)');
+                        context.fillStyle = gradient;
+                        context.beginPath();
+                        context.arc(x, y, Math.min(width, height) * .2, 0, Math.PI * 2);
+                        context.fill();
+                    });
 
                     particles.forEach((particle, index) => {
                         particle.x += particle.speedX;
@@ -389,17 +404,32 @@
                         if (particle.y < -10) particle.y = height + 10;
                         if (particle.y > height + 10) particle.y = -10;
 
-                        const glow = .35 + Math.sin(time * .001 + particle.phase) * .12;
+                        const glow = .58 + Math.sin(time * .001 + particle.phase) * .18;
                         context.beginPath();
                         context.fillStyle = particle.gold ? `rgba(255, 215, 0, ${glow})` : `rgba(105, 201, 235, ${glow})`;
                         context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
                         context.fill();
 
+                        if (particle.gold || index % 11 === 0) {
+                            context.save();
+                            context.translate(particle.x, particle.y);
+                            context.rotate(time * .0005 + particle.phase);
+                            context.strokeStyle = particle.gold ? `rgba(255, 231, 112, ${glow * .7})` : `rgba(190, 239, 255, ${glow * .55})`;
+                            context.lineWidth = .8;
+                            context.beginPath();
+                            context.moveTo(-5, 0);
+                            context.lineTo(5, 0);
+                            context.moveTo(0, -5);
+                            context.lineTo(0, 5);
+                            context.stroke();
+                            context.restore();
+                        }
+
                         particles.slice(index + 1).forEach(other => {
                             const distance = Math.hypot(particle.x - other.x, particle.y - other.y);
                             if (distance < 115) {
                                 context.beginPath();
-                                context.strokeStyle = `rgba(175, 225, 247, ${.055 * (1 - distance / 115)})`;
+                                context.strokeStyle = `rgba(191, 233, 250, ${.12 * (1 - distance / 115)})`;
                                 context.moveTo(particle.x, particle.y);
                                 context.lineTo(other.x, other.y);
                                 context.stroke();
