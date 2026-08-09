@@ -55,6 +55,10 @@
             z-index: -1;
             background: linear-gradient(180deg, rgba(2, 31, 86, .22), transparent 45%, rgba(2, 28, 83, .38));
         }
+        .bcf-ambient-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: .28; pointer-events: none; }
+        .bcf-brand, .bcf-hero-inner, .bcf-scroll { z-index: 1; }
+        .bcf-brand, .bcf-hero-inner, .bcf-scroll { position: relative; }
+        .bcf-brand { position: absolute; }
         .bcf-hero-inner { width: min(1120px, calc(100% - 40px)); margin: auto; text-align: center; padding: 112px 0 92px; }
         .bcf-brand { position: absolute; top: 28px; left: max(28px, 5%); color: #fff; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 1.15rem; text-align: left; }
         .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .76rem; letter-spacing: .18em; margin-top: 10px; }
@@ -204,6 +208,7 @@
 @section('content')
     <main class="bcf-page">
         <section class="bcf-hero" aria-label="BCF Registration">
+            <canvas id="bcfAmbientCanvas" class="bcf-ambient-canvas" aria-hidden="true"></canvas>
             <div class="bcf-brand">BRI <span>Branch Office Palembang Sriwijaya</span></div>
             <div class="bcf-hero-inner">
                 <div class="bcf-hero-copy">
@@ -329,6 +334,88 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const ambientCanvas = document.getElementById('bcfAmbientCanvas');
+            const ambientHero = document.querySelector('.bcf-hero');
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (ambientCanvas && ambientHero && !reducedMotion) {
+                const context = ambientCanvas.getContext('2d');
+                let particles = [];
+                let width = 0;
+                let height = 0;
+                let animationFrame;
+
+                const resizeAmbient = function () {
+                    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+                    width = ambientHero.clientWidth;
+                    height = ambientHero.clientHeight;
+                    ambientCanvas.width = width * ratio;
+                    ambientCanvas.height = height * ratio;
+                    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                    const total = Math.min(42, Math.max(20, Math.floor(width / 34)));
+                    particles = Array.from({ length: total }, () => ({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.8 + .6,
+                        speedX: (Math.random() - .5) * .16,
+                        speedY: (Math.random() - .5) * .12,
+                        phase: Math.random() * Math.PI * 2,
+                        gold: Math.random() > .72,
+                    }));
+                };
+
+                const drawAmbient = function (time) {
+                    context.clearRect(0, 0, width, height);
+                    const pulse = (Math.sin(time * .0007) + 1) / 2;
+                    const centerX = width * .5;
+                    const centerY = height * .5;
+
+                    context.save();
+                    context.translate(centerX, centerY);
+                    context.rotate(time * .000035);
+                    context.strokeStyle = `rgba(105, 201, 235, ${.08 + pulse * .04})`;
+                    context.lineWidth = 1;
+                    context.setLineDash([3, 12]);
+                    context.beginPath();
+                    context.ellipse(0, 0, Math.min(width, height) * .27, Math.min(width, height) * .43, 0, 0, Math.PI * 2);
+                    context.stroke();
+                    context.restore();
+
+                    particles.forEach((particle, index) => {
+                        particle.x += particle.speedX;
+                        particle.y += particle.speedY;
+                        if (particle.x < -10) particle.x = width + 10;
+                        if (particle.x > width + 10) particle.x = -10;
+                        if (particle.y < -10) particle.y = height + 10;
+                        if (particle.y > height + 10) particle.y = -10;
+
+                        const glow = .35 + Math.sin(time * .001 + particle.phase) * .12;
+                        context.beginPath();
+                        context.fillStyle = particle.gold ? `rgba(255, 215, 0, ${glow})` : `rgba(105, 201, 235, ${glow})`;
+                        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                        context.fill();
+
+                        particles.slice(index + 1).forEach(other => {
+                            const distance = Math.hypot(particle.x - other.x, particle.y - other.y);
+                            if (distance < 115) {
+                                context.beginPath();
+                                context.strokeStyle = `rgba(175, 225, 247, ${.055 * (1 - distance / 115)})`;
+                                context.moveTo(particle.x, particle.y);
+                                context.lineTo(other.x, other.y);
+                                context.stroke();
+                            }
+                        });
+                    });
+
+                    animationFrame = window.requestAnimationFrame(drawAmbient);
+                };
+
+                resizeAmbient();
+                window.addEventListener('resize', resizeAmbient, { passive: true });
+                animationFrame = window.requestAnimationFrame(drawAmbient);
+                window.addEventListener('pagehide', () => window.cancelAnimationFrame(animationFrame), { once: true });
+            }
+
             const picker = document.getElementById('select_pekerja_create');
             if (window.jQuery && jQuery.fn.select2) {
                 jQuery(picker).select2({
