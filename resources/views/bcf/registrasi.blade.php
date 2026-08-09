@@ -135,7 +135,11 @@
             .bcf-brand { top: 20px; left: 20px; }
             .bcf-hero-inner { width: min(100% - 28px, 540px); }
             .bcf-hero h1 { font-size: clamp(3rem, 18vw, 5rem); }
-            .bcf-stats { grid-template-columns: 1fr; }
+            .bcf-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; padding: 8px 4px; background: #fff; border: 1px solid #e1e9f3; border-radius: 14px; box-shadow: 0 8px 22px rgba(18, 59, 108, .06); }
+            .bcf-stat { min-width: 0; border: 0; border-right: 1px solid #e6edf5; border-radius: 0; box-shadow: none; padding: 10px 6px; text-align: center; }
+            .bcf-stat:last-child { border-right: 0; }
+            .bcf-stat strong { font-size: 1.25rem; }
+            .bcf-stat span { display: block; font-size: .68rem; line-height: 1.2; }
             .bcf-row { align-items: flex-start; flex-wrap: wrap; }
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
@@ -194,8 +198,7 @@
                                 <option value="">-- Pilih nama peserta --</option>
                                 @foreach ($bcfWorkers as $worker)
                                     @php $isRegistered = in_array($worker['nama'], $registeredNames, true); @endphp
-                                    @php $isUnavailable = blank($worker['pn']); @endphp
-                                    <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?? '' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered || $isUnavailable)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'belum sinkron' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
+                                    <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?: 'Non PN' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'Non PN' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
                                 @endforeach
                             </select>
                             <div class="bcf-help mt-2">Ketik nama atau PN pada kolom pencarian, lalu klik hasil peserta yang sesuai.</div>
@@ -267,12 +270,12 @@
                     document.getElementById('create_ukuran').value = '';
                     return;
                 }
-                document.getElementById('create_pn').value = option.dataset.pn || 'PN belum sinkron';
+                document.getElementById('create_pn').value = option.dataset.pn || 'Non PN';
                 document.getElementById('create_jabatan').value = option.dataset.jabatan || '-';
                 document.getElementById('create_unit_kerja').value = option.dataset.uker || '-';
                 document.getElementById('create_ukuran').value = option.dataset.ukuran || '-';
                 document.getElementById('selectedWorkerName').textContent = option.textContent.split(' — ')[0];
-                document.getElementById('selectedWorkerSummary').textContent = `${option.dataset.pn || 'PN belum sinkron'} · ${option.dataset.jabatan || 'Jabatan belum tersedia'} · ${option.dataset.uker || 'Unit kerja belum tersedia'}`;
+                document.getElementById('selectedWorkerSummary').textContent = `${option.dataset.pn || 'Non PN'} · ${option.dataset.jabatan || 'Jabatan belum tersedia'} · ${option.dataset.uker || 'Unit kerja belum tersedia'}`;
                 feedback.hidden = false;
             };
 

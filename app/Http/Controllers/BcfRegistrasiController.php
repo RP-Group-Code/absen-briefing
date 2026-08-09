@@ -68,10 +68,6 @@ class BcfRegistrasiController extends Controller
             throw ValidationException::withMessages(['nama' => 'Nama peserta tidak ditemukan pada data BCF 2026.']);
         }
 
-        if (blank($worker['pn'])) {
-            throw ValidationException::withMessages(['nama' => 'PN peserta belum ditemukan di data pegawai sistem. Silakan hubungi admin.']);
-        }
-
         if (BcfRegistrasi::where('nama', $worker['nama'])->exists()) {
             throw ValidationException::withMessages(['nama' => 'Peserta ini sudah melakukan registrasi.']);
         }
@@ -85,7 +81,7 @@ class BcfRegistrasiController extends Controller
 
         BcfRegistrasi::create([
             'nama' => $worker['nama'],
-            'pn' => $worker['pn'],
+            'pn' => $worker['pn'] ?: 'Non PN',
             'unit_kerja' => $worker['uker'],
             'warna' => $team['warna'],
             'nourut' => $nourut,
