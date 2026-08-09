@@ -358,8 +358,8 @@
                         x: Math.random() * width,
                         y: Math.random() * height,
                         radius: Math.random() * 2.2 + .7,
-                        speedX: (Math.random() - .5) * .16,
-                        speedY: (Math.random() - .5) * .12,
+                        speedX: (Math.random() - .5) * .28,
+                        speedY: (Math.random() - .5) * .2,
                         phase: Math.random() * Math.PI * 2,
                         gold: Math.random() > .48,
                     }));
@@ -368,8 +368,8 @@
                         x: Math.random() * width,
                         y: Math.random() * height,
                         size: Math.random() * 12 + 7,
-                        speedX: (Math.random() - .5) * .12,
-                        speedY: (Math.random() - .5) * .08,
+                        speedX: (Math.random() - .5) * .22,
+                        speedY: (Math.random() - .5) * .14,
                         rotation: Math.random() * Math.PI,
                         phase: Math.random() * Math.PI * 2,
                         kind: index % 3,
@@ -384,7 +384,7 @@
 
                     context.save();
                     context.translate(centerX, centerY);
-                    context.rotate(time * .000035);
+                    context.rotate(time * .00006);
                     context.strokeStyle = `rgba(190, 234, 250, ${.2 + pulse * .1})`;
                     context.lineWidth = 1.7;
                     context.setLineDash([5, 9]);
@@ -412,7 +412,7 @@
                     ornaments.forEach((ornament, index) => {
                         ornament.x += ornament.speedX;
                         ornament.y += ornament.speedY;
-                        ornament.rotation += .0015 + Math.sin(time * .0005 + ornament.phase) * .0005;
+                        ornament.rotation += .0025 + Math.sin(time * .0007 + ornament.phase) * .0008;
                         if (ornament.x < -30) ornament.x = width + 30;
                         if (ornament.x > width + 30) ornament.x = -30;
                         if (ornament.y < -30) ornament.y = height + 30;
