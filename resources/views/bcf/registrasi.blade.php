@@ -82,12 +82,20 @@
         .bcf-input, .bcf-select { min-height: 48px; border-radius: 10px; border: 1px solid #d8e2ee; padding: 10px 13px; color: var(--bcf-ink); box-shadow: none !important; }
         .bcf-input:focus, .bcf-select:focus { border-color: var(--bcf-cyan); outline: 3px solid rgba(105, 201, 235, .18); }
         .bcf-picker .select2-container { width: 100% !important; }
-        .bcf-picker .select2-container .select2-selection--single { height: 48px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 9px 13px; }
-        .bcf-picker .select2-container .select2-selection__rendered { color: var(--bcf-ink); line-height: 28px; }
-        .bcf-picker .select2-container .select2-selection__arrow { height: 46px; right: 10px; }
-        .bcf-picker .select2-container--open .select2-selection--single { border-color: var(--bcf-cyan); }
-        .bcf-picker .select2-dropdown { border-color: #d8e2ee; box-shadow: 0 12px 24px rgba(18, 59, 108, .12); }
+        .bcf-picker .select2-container .select2-selection--single { height: 48px !important; background: #fff !important; border: 1px solid #d8e2ee !important; border-radius: 10px !important; padding: 9px 13px !important; }
+        .bcf-picker .select2-container .select2-selection__rendered { color: var(--bcf-ink) !important; line-height: 28px !important; padding-left: 0 !important; }
+        .bcf-picker .select2-container .select2-selection__placeholder { color: #71819a !important; }
+        .bcf-picker .select2-container .select2-selection__arrow { height: 46px !important; right: 10px !important; }
+        .bcf-picker .select2-container .select2-selection__arrow b { border-color: #71819a transparent transparent !important; }
+        .bcf-picker .select2-container--open .select2-selection--single { border-color: var(--bcf-cyan) !important; }
+        .bcf-picker .select2-dropdown { border-color: #d8e2ee !important; box-shadow: 0 12px 24px rgba(18, 59, 108, .12) !important; }
+        .bcf-picker .select2-search--dropdown::before { content: 'Ketik nama atau PN peserta'; display: block; color: #71819a; font-size: .76rem; font-weight: 700; margin: 0 0 6px 2px; }
+        .bcf-picker .select2-search--dropdown .select2-search__field { background: #fff !important; color: var(--bcf-ink) !important; border: 1px solid #cdd9e8 !important; }
+        .bcf-picker .select2-search--dropdown .select2-search__field::placeholder { color: #8a98ab !important; }
         .bcf-picker .select2-results__option { padding: 10px 13px; }
+        .bcf-selection-feedback { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #b9e4f1; border-radius: 10px; padding: 11px 13px; margin-top: 13px; color: var(--bcf-blue-deep); font-size: .83rem; }
+        .bcf-selection-feedback[hidden] { display: none; }
+        .bcf-selection-feedback i { color: #28a879; font-size: 1.1rem; }
         .bcf-picker { background: #edf8fd; border: 1px dashed #8dd5ed; border-radius: 12px; padding: 15px; margin-bottom: 22px; }
         .bcf-picker label { color: var(--bcf-blue-deep); }
         .bcf-help { color: var(--bcf-muted); font-size: .78rem; }
@@ -190,7 +198,8 @@
                                     <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?? '' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered || $isUnavailable)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'belum sinkron' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
                                 @endforeach
                             </select>
-                            <div class="bcf-help mt-2">Data peserta diambil dari referensi BCF 2026. Pilih nama satu kali untuk melihat pembagian team.</div>
+                            <div class="bcf-help mt-2">Ketik nama atau PN pada kolom pencarian, lalu klik hasil peserta yang sesuai.</div>
+                            <div id="selectedWorkerFeedback" class="bcf-selection-feedback" hidden><i class="fa-solid fa-circle-check"></i><span>Peserta terpilih: <strong id="selectedWorkerName">-</strong><br><span id="selectedWorkerSummary">PN - Jabatan - Unit Kerja</span></span></div>
                         </div>
 
                         <div class="row g-3">
@@ -247,14 +256,31 @@
                 });
             }
 
-            picker?.addEventListener('change', function () {
-                const option = this.options[this.selectedIndex];
-                if (!option?.value) return;
+            const syncWorkerDetails = function () {
+                const option = picker.options[picker.selectedIndex];
+                const feedback = document.getElementById('selectedWorkerFeedback');
+                if (!option?.value) {
+                    feedback.hidden = true;
+                    document.getElementById('create_pn').value = '';
+                    document.getElementById('create_jabatan').value = '';
+                    document.getElementById('create_unit_kerja').value = '';
+                    document.getElementById('create_ukuran').value = '';
+                    return;
+                }
                 document.getElementById('create_pn').value = option.dataset.pn || 'PN belum sinkron';
                 document.getElementById('create_jabatan').value = option.dataset.jabatan || '-';
                 document.getElementById('create_unit_kerja').value = option.dataset.uker || '-';
                 document.getElementById('create_ukuran').value = option.dataset.ukuran || '-';
-            });
+                document.getElementById('selectedWorkerName').textContent = option.textContent.split(' — ')[0];
+                document.getElementById('selectedWorkerSummary').textContent = `${option.dataset.pn || 'PN belum sinkron'} · ${option.dataset.jabatan || 'Jabatan belum tersedia'} · ${option.dataset.uker || 'Unit kerja belum tersedia'}`;
+                feedback.hidden = false;
+            };
+
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery(picker).on('change', syncWorkerDetails);
+            } else {
+                picker?.addEventListener('change', syncWorkerDetails);
+            }
 
             const createForm = document.getElementById('createBcfForm');
             const assignmentModal = document.getElementById('assignmentBcfModal');
