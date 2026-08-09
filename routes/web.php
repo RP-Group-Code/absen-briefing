@@ -10,7 +10,7 @@ use App\Http\Controllers\InputAbsenController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PegawaiController;
 use App\Models\Pegawai;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,9 +22,12 @@ use Illuminate\Support\Facades\Auth;
 | be assigned to the "web" m®ddleware group. Make something great!
 |
 */
-Route::get('/', fn() => Auth::check()
-    ? redirect()->route('dashboard')
-    : redirect()->route('login')
+
+Route::get(
+    '/',
+    fn() => Auth::check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login')
 );
 
 
@@ -42,14 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/dashboard/pegawai-kanca/{kanca}', [PegawaiController::class, 'updateKanca'])->name('pegawai.kanca.update');
     Route::delete('/dashboard/pegawai-kanca/{kanca}', [PegawaiController::class, 'destroyKanca'])->name('pegawai.kanca.destroy');
     Route::get('/pegawai/import', [ImportPegawaiController::class, 'index'])->name('pegawai.import');
-    Route::post('/pegawai/import',[ImportPegawaiController::class, 'store'])->name('pegawai.import.store');
-    Route::get('/pegawai/import/template',[ImportPegawaiController::class, 'template'])->name('pegawai.import.template');
+    Route::post('/pegawai/import', [ImportPegawaiController::class, 'store'])->name('pegawai.import.store');
+    Route::get('/pegawai/import/template', [ImportPegawaiController::class, 'template'])->name('pegawai.import.template');
     Route::get('/delete-absen/{id}', [InputAbsenController::class, 'destroy'])->name('Delete-Absen');
-
-    Route::get('/bcf-registrasi', [BcfRegistrasiController::class, 'index'])->name('bcf.registrasi.index');
-    Route::post('/bcf-registrasi', [BcfRegistrasiController::class, 'store'])->name('bcf.registrasi.store');
-    Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
-    Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
 });
 
 Route::middleware('guest')->group(function () {
@@ -64,3 +62,9 @@ Route::post('/absen-briefing-kanca/status', [InputAbsenController::class, 'saveK
 
 Route::get('/pegawai/by-unit/{uker_id}', [InputAbsenController::class, 'getPegawaiByUnit']);
 Route::post('/submit/absen/briefing', [InputAbsenController::class, 'store'])->name('submit.absen');
+
+
+Route::get('/bcf-registrasi', [BcfRegistrasiController::class, 'index'])->name('bcf.registrasi.index');
+Route::post('/bcf-registrasi', [BcfRegistrasiController::class, 'store'])->name('bcf.registrasi.store');
+Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
+Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
