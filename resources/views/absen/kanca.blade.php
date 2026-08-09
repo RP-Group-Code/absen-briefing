@@ -55,7 +55,7 @@
                 </div>
 
                 <div class="control-group control-nav">
-                    <label class="mini-label">Navigasi Divisi</label>
+                    <label class="mini-label">Nav Divisi</label>
                     <div class="nav-wrap">
                         <button type="button" class="ctl ctl-nav" id="divisionPrevBtn" title="Divisi Sebelumnya">
                             <i class="fa-solid fa-chevron-left"></i>
