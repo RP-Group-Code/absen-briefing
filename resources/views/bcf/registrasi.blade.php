@@ -60,6 +60,7 @@
         .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .68rem; letter-spacing: .2em; margin-top: 4px; }
         .bcf-hero-copy { max-width: 650px; margin: 0 auto; color: #fff; }
         .bcf-kicker { display: inline-flex; padding: 8px 17px; border-radius: 999px; background: rgba(105, 201, 235, .95); color: var(--bcf-blue-deep); font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+        .bcf-hero-logo { display: block; width: min(560px, 84vw); max-height: 390px; object-fit: contain; margin: 22px auto 18px; filter: drop-shadow(0 12px 18px rgba(0, 27, 83, .24)); }
         .bcf-hero h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: .9; letter-spacing: -.08em; margin: 24px 0 18px; font-weight: 800; }
         .bcf-hero h1 em { color: var(--bcf-cyan); font-style: normal; }
         .bcf-hero p { max-width: 470px; margin: 0 auto; font-size: 1.05rem; color: rgba(255,255,255,.84); }
@@ -94,8 +95,8 @@
         .bcf-picker .select2-search--dropdown .select2-search__field::placeholder { color: #8a98ab !important; }
         .bcf-picker .select2-results__option { padding: 10px 13px; }
         .bcf-picker-mode { display: flex; justify-content: flex-end; margin-top: 10px; }
-        .bcf-manual-toggle { border: 0; background: transparent; color: var(--bcf-blue-deep); font-size: .8rem; font-weight: 800; padding: 3px 0; text-decoration: underline; }
-        .bcf-manual-toggle:hover { color: var(--bcf-blue); }
+        .bcf-manual-toggle { display: inline-flex; align-items: center; border: 1px solid #8dd5ed; border-radius: 8px; background: #fff; color: var(--bcf-blue-deep); font-size: .76rem; font-weight: 800; line-height: 1; padding: 8px 11px; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+        .bcf-manual-toggle:hover { border-color: var(--bcf-blue); background: #edf8fd; transform: translateY(-1px); }
         .bcf-selection-feedback { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #b9e4f1; border-radius: 10px; padding: 11px 13px; margin-top: 13px; color: var(--bcf-blue-deep); font-size: .83rem; }
         .bcf-selection-feedback[hidden] { display: none; }
         .bcf-selection-feedback i { color: #28a879; font-size: 1.1rem; }
@@ -122,11 +123,11 @@
         .bcf-action.delete { color: #d85c59; }
         .bcf-empty { color: var(--bcf-muted); text-align: center; padding: 30px 20px; }
         .bcf-table-wrap { padding: 0 28px 28px; overflow-x: auto; }
-        .bcf-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--bcf-ink); font-size: .86rem; }
+        .bcf-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--bcf-ink); font-size: .82rem; }
         .bcf-table th { background: #f4f8fc; color: var(--bcf-muted); font-size: .72rem; font-weight: 800; letter-spacing: .06em; padding: 12px 14px; text-transform: uppercase; white-space: nowrap; }
         .bcf-table th:first-child { border-radius: 10px 0 0 10px; }
         .bcf-table th:last-child { border-radius: 0 10px 10px 0; }
-        .bcf-table td { border-bottom: 1px solid #e7eef6; padding: 13px 14px; vertical-align: middle; }
+        .bcf-table td { border-bottom: 1px solid #e7eef6; padding: 11px 12px; vertical-align: middle; }
         .bcf-table tbody tr:last-child td { border-bottom: 0; }
         .bcf-table tbody tr:hover { background: #f8fbfe; }
         .bcf-table .bcf-table-name { font-weight: 800; }
@@ -159,6 +160,7 @@
         @media (max-width: 700px) {
             .bcf-brand { top: 20px; left: 20px; }
             .bcf-hero-inner { width: min(100% - 28px, 540px); }
+            .bcf-hero-logo { width: min(430px, 88vw); max-height: 270px; margin-top: 18px; }
             .bcf-hero h1 { font-size: clamp(3rem, 18vw, 5rem); }
             .bcf-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; padding: 8px 4px; background: #fff; border: 1px solid #e1e9f3; border-radius: 14px; box-shadow: 0 8px 22px rgba(18, 59, 108, .06); }
             .bcf-stat { min-width: 0; border: 0; border-right: 1px solid #e6edf5; border-radius: 0; box-shadow: none; padding: 10px 6px; text-align: center; }
@@ -169,10 +171,16 @@
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
             .bcf-card-head, .bcf-form-body { padding-left: 18px; padding-right: 18px; }
-            .bcf-table-wrap { padding: 0 10px 14px; }
-            .bcf-table { min-width: 620px; table-layout: auto; font-size: .64rem; }
-            .bcf-table th { font-size: .56rem; padding: 8px 5px; }
-            .bcf-table td { padding: 8px 5px; }
+            .bcf-section#peserta .bcf-card-head { padding-top: 18px; padding-bottom: 16px; }
+            .bcf-section#peserta .bcf-card-head h2 { font-size: 1.2rem; margin-bottom: 4px; }
+            .bcf-section#peserta .bcf-card-head p { font-size: .74rem; }
+            .bcf-table-wrap { padding: 0 8px 10px; }
+            .bcf-table-toolbar { margin-bottom: 8px; }
+            .bcf-table-search input { height: 36px; font-size: .72rem; padding-left: 34px; }
+            .bcf-table-search i { left: 11px; }
+            .bcf-table { min-width: 560px; table-layout: fixed; font-size: .6rem; }
+            .bcf-table th { font-size: .53rem; padding: 7px 4px; }
+            .bcf-table td { padding: 7px 4px; }
             .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 28%; }
             .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 20%; }
             .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 18%; }
@@ -194,7 +202,7 @@
             <div class="bcf-hero-inner">
                 <div class="bcf-hero-copy">
                     <span class="bcf-kicker">BCF 2026</span>
-                    <h1>BRILiaN<br><em>Culture Fest</em></h1>
+                    <img class="bcf-hero-logo" src="{{ asset('images/bcf-logo0.png') }}" alt="BRILiaN Culture Fest 2026">
                     <p>Registrasi peserta untuk Branch Office Palembang Sriwijaya. Silakan pilih menu yang ingin Anda gunakan.</p>
                     <div class="bcf-hero-actions">
                         <a class="bcf-btn bcf-btn-primary" href="#registrasi"><i class="fa-solid fa-pen-to-square me-2"></i>REGISTRASI</a>
@@ -232,7 +240,7 @@
                         @csrf
                         <div class="bcf-picker">
                             <div id="dropdownEntryWrap">
-                                <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari Nama Peserta <span class="bcf-required">*</span></label>
+                                <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari Nama / PN Peserta <span class="bcf-required">*</span></label>
                                 <select id="select_pekerja_create" name="nama" class="form-select bcf-select mt-1" required>
                                     <option value="">-- Pilih Nama Anda --</option>
                                     @foreach ($bcfWorkers as $worker)
