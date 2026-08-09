@@ -59,7 +59,7 @@
         .bcf-brand { position: absolute; top: 30px; left: 5%; color: #fff; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
         .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .68rem; letter-spacing: .2em; margin-top: 4px; }
         .bcf-hero-copy { max-width: 650px; margin: 0 auto; color: #fff; }
-        .bcf-kicker { display: inline-flex; padding: 8px 17px; border-radius: 999px; background: rgba(255, 215, 0); color: var(--bcf-blue-deep); font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+        .bcf-kicker { display: inline-flex; padding: 8px 17px; border-radius: 999px; background: rgba(105, 201, 235, .95); color: rgba(255, 215, 0, .95); font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
         .bcf-hero-logo { display: block; width: min(560px, 84vw); max-height: 390px; object-fit: contain; margin: 22px auto 18px; filter: drop-shadow(0 12px 18px rgba(0, 27, 83, .24)); }
         .bcf-hero h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: .9; letter-spacing: -.08em; margin: 24px 0 18px; font-weight: 800; }
         .bcf-hero h1 em { color: var(--bcf-cyan); font-style: normal; }
