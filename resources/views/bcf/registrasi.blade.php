@@ -171,7 +171,7 @@
                         <h2>Form Registrasi Peserta</h2>
                         <p>Isi data peserta dengan benar. Kolom bertanda <span class="bcf-required">*</span> wajib diisi.</p>
                     </div>
-                    <form action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
+                    <form id="createBcfForm" action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
                         @csrf
                         <div class="bcf-picker">
                             <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Pilih Nama Peserta <span class="bcf-required">*</span></label>
@@ -218,7 +218,7 @@
     </main>
 
     <div class="modal fade bcf-assignment-modal" id="assignmentBcfModal" tabindex="-1" aria-labelledby="assignmentBcfModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignmentBcfModalLabel"><i class="fa-solid fa-circle-check me-2"></i>Data Team Peserta</h5></div><div class="modal-body"><p class="assignment-lead mb-0">Nama berhasil dipilih. Berikut pembagian team peserta:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong id="assignment_nourut">{{ $nextNoUrut }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong id="assignment_warna">{{ $nextTeam['warna'] ?? '-' }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong id="assignment_team">{{ $nextTeam['team'] ?? 'Kuota penuh' }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong id="assignment_pic">{{ $nextTeam['penanggung_jawab'] ?? '-' }}</strong></div></div><div class="modal-footer"><button type="button" class="bcf-submit" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-right me-2"></i>Lanjutkan</button></div></div></div>
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignmentBcfModalLabel"><i class="fa-solid fa-circle-check me-2"></i>Konfirmasi Registrasi</h5></div><div class="modal-body"><p class="assignment-lead mb-0">Data team peserta akan disimpan sebagai berikut:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong id="assignment_nourut">{{ $nextNoUrut }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong id="assignment_warna">{{ $nextTeam['warna'] ?? '-' }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong id="assignment_team">{{ $nextTeam['team'] ?? 'Kuota penuh' }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong id="assignment_pic">{{ $nextTeam['penanggung_jawab'] ?? '-' }}</strong></div></div><div class="modal-footer"><button type="button" id="confirmAssignmentButton" class="bcf-submit"><i class="fa-solid fa-check me-2"></i>Konfirmasi &amp; Simpan</button></div></div></div>
     </div>
 
     <div class="modal fade bcf-modal" id="editBcfModal" tabindex="-1" aria-hidden="true">
@@ -236,7 +236,26 @@
                 document.getElementById('create_jabatan').value = option.dataset.jabatan || '-';
                 document.getElementById('create_unit_kerja').value = option.dataset.uker || '-';
                 document.getElementById('create_ukuran').value = option.dataset.ukuran || '-';
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('assignmentBcfModal')).show();
+            });
+
+            const createForm = document.getElementById('createBcfForm');
+            const assignmentModal = document.getElementById('assignmentBcfModal');
+            const confirmAssignmentButton = document.getElementById('confirmAssignmentButton');
+            let formReadyToSubmit = false;
+
+            createForm?.addEventListener('submit', function (event) {
+                if (formReadyToSubmit) return;
+                event.preventDefault();
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return;
+                }
+                bootstrap.Modal.getOrCreateInstance(assignmentModal).show();
+            });
+
+            confirmAssignmentButton?.addEventListener('click', function () {
+                formReadyToSubmit = true;
+                createForm.submit();
             });
 
             document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {
