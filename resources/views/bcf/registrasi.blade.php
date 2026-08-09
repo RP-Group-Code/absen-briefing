@@ -106,6 +106,16 @@
         .bcf-modal .modal-content { border: 0; border-radius: 18px; }
         .bcf-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; }
         .bcf-modal .btn-close { filter: brightness(0) invert(1); }
+        .bcf-assignment-modal .modal-content { border: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(8, 45, 103, .25); }
+        .bcf-assignment-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; padding: 24px 26px; }
+        .bcf-assignment-modal .modal-body { padding: 26px; }
+        .bcf-assignment-modal .modal-footer { border: 0; padding: 0 26px 26px; }
+        .bcf-assignment-modal .assignment-lead { color: var(--bcf-muted); margin-bottom: 20px; }
+        .bcf-assignment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .bcf-assignment-item { background: var(--bcf-soft); border: 1px solid #e0e9f4; border-radius: 13px; padding: 15px; }
+        .bcf-assignment-item small { display: block; color: var(--bcf-muted); font-size: .73rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+        .bcf-assignment-item strong { color: var(--bcf-blue-deep); font-size: 1.05rem; }
+        .bcf-assignment-note { background: #edf8fd; color: var(--bcf-blue-deep); border-radius: 10px; padding: 12px 14px; font-size: .82rem; margin-top: 15px; }
         @media (max-width: 700px) {
             .bcf-brand { top: 20px; left: 20px; }
             .bcf-hero-inner { width: min(100% - 28px, 540px); }
@@ -115,6 +125,7 @@
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
             .bcf-card-head, .bcf-form-body, .bcf-list { padding-left: 18px; padding-right: 18px; }
+            .bcf-assignment-grid { grid-template-columns: 1fr; }
         }
     </style>
 @endpush
@@ -163,24 +174,21 @@
                     <form action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
                         @csrf
                         <div class="bcf-picker">
-                            <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Pilih dari Data Pekerja</label>
-                            <select id="select_pekerja_create" class="form-select bcf-select mt-1">
-                                <option value="">-- Pilih pekerja untuk mengisi otomatis --</option>
-                                @foreach ($pegawais as $p)
-                                    @php $pUkerFormatted = optional($p->uker)->kode_uker ? '( ' . $p->uker->kode_uker . ' ) - ' . $p->uker->nama : (optional($p->uker)->nama ?? ''); @endphp
-                                    <option value="{{ $p->id }}" data-nama="{{ $p->nama }}" data-pn="{{ $p->pn }}" data-unit="{{ $pUkerFormatted }}">{{ $p->nama }} (PN: {{ $p->pn }}){{ $pUkerFormatted ? ' — ' . $pUkerFormatted : '' }}</option>
+                            <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Pilih Nama Peserta <span class="bcf-required">*</span></label>
+                            <select id="select_pekerja_create" name="nama" class="form-select bcf-select mt-1" required>
+                                <option value="">-- Pilih nama peserta --</option>
+                                @foreach ($bcfWorkers as $worker)
+                                    @php $isRegistered = in_array($worker['nama'], $registeredNames, true); @endphp
+                                    <option value="{{ $worker['nama'] }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered)>{{ $worker['nama'] }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
                                 @endforeach
                             </select>
-                            <div class="bcf-help mt-2">Nama, PN, dan unit kerja akan terisi otomatis jika tersedia.</div>
+                            <div class="bcf-help mt-2">Data peserta diambil dari referensi BCF 2026. Pilih nama satu kali untuk melihat pembagian team.</div>
                         </div>
 
                         <div class="row g-3">
-                            <div class="col-md-6"><label for="create_nama" class="bcf-label">Nama Lengkap <span class="bcf-required">*</span></label><input id="create_nama" name="nama" class="form-control bcf-input" value="{{ old('nama') }}" required></div>
-                            <div class="col-md-6"><label for="create_pn" class="bcf-label">PN (Personal Number) <span class="bcf-required">*</span></label><input id="create_pn" name="pn" class="form-control bcf-input" value="{{ old('pn') }}" required></div>
-                            <div class="col-12"><label for="create_unit_kerja" class="bcf-label">Unit Kerja <span class="bcf-required">*</span></label><select id="create_unit_kerja" name="unit_kerja" class="form-select bcf-select" required><option value="">-- Pilih Unit Kerja --</option>@foreach ($ukers as $uk) @php $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama; @endphp<option value="{{ $ukerFormatted }}" @selected(old('unit_kerja') === $ukerFormatted)>{{ $ukerFormatted }}</option>@endforeach</select></div>
-                            <div class="col-md-4"><label for="create_nourut" class="bcf-label">No Urut</label><input id="create_nourut" type="number" min="1" name="nourut" class="form-control bcf-input" value="{{ old('nourut') }}" placeholder="Otomatis"></div>
-                            <div class="col-md-4"><label for="create_team" class="bcf-label">Team</label><input id="create_team" name="team" class="form-control bcf-input" value="{{ old('team') }}" placeholder="Contoh: Team A"></div>
-                            <div class="col-md-4"><label for="create_warna" class="bcf-label">Warna <span class="bcf-required">*</span></label><select id="create_warna" name="warna" class="form-select bcf-select" required>@foreach ($warnaOptions as $w)<option value="{{ $w }}" @selected(old('warna', 'Biru Muda') === $w)>{{ $w }}</option>@endforeach</select></div>
+                            <div class="col-md-6"><label for="create_jabatan" class="bcf-label">Jabatan</label><input id="create_jabatan" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
+                            <div class="col-md-6"><label for="create_unit_kerja" class="bcf-label">Unit Kerja</label><input id="create_unit_kerja" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
+                            <div class="col-md-6"><label for="create_ukuran" class="bcf-label">Ukuran Baju</label><input id="create_ukuran" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
                         </div>
                         <div class="d-flex justify-content-end mt-4"><button type="submit" class="bcf-submit"><i class="fa-solid fa-check me-2"></i>Simpan Registrasi</button></div>
                     </form>
@@ -196,7 +204,9 @@
                             <div class="bcf-row">
                                 <div class="bcf-person"><strong>{{ $row->nama }}</strong><small>{{ $row->pn }} · {{ $row->unit_kerja }}</small></div>
                                 <div class="bcf-meta"><span class="bcf-number">{{ $row->nourut ?: '-' }}</span><span>{{ $row->team ?: 'Tanpa team' }}</span><span class="bcf-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></div>
-                                <div class="bcf-actions"><button type="button" class="bcf-action btn-edit-bcf" title="Edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}" data-team="{{ $row->team }}"><i class="fa-solid fa-pen"></i></button><form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST" class="form-delete-bcf" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="bcf-action delete" title="Hapus"><i class="fa-solid fa-trash"></i></button></form></div>
+                                @auth
+                                    <div class="bcf-actions"><button type="button" class="bcf-action btn-edit-bcf" title="Edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}" data-team="{{ $row->team }}"><i class="fa-solid fa-pen"></i></button><form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST" class="form-delete-bcf" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="bcf-action delete" title="Hapus"><i class="fa-solid fa-trash"></i></button></form></div>
+                                @endauth
                             </div>
                         @empty
                             <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
@@ -206,6 +216,10 @@
             </section>
         </div>
     </main>
+
+    <div class="modal fade bcf-assignment-modal" id="assignmentBcfModal" tabindex="-1" aria-labelledby="assignmentBcfModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignmentBcfModalLabel"><i class="fa-solid fa-circle-check me-2"></i>Data Team Peserta</h5></div><div class="modal-body"><p class="assignment-lead mb-0">Nama berhasil dipilih. Berikut pembagian team peserta:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong id="assignment_nourut">{{ $nextNoUrut }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong id="assignment_warna">{{ $nextTeam['warna'] ?? '-' }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong id="assignment_team">{{ $nextTeam['team'] ?? 'Kuota penuh' }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong id="assignment_pic">{{ $nextTeam['penanggung_jawab'] ?? '-' }}</strong></div></div><div class="modal-footer"><button type="button" class="bcf-submit" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-right me-2"></i>Lanjutkan</button></div></div></div>
+    </div>
 
     <div class="modal fade bcf-modal" id="editBcfModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="editBcfForm" method="POST">@csrf @method('PUT')<div class="modal-header"><h5 class="modal-title">Edit Data Peserta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-6"><label class="bcf-label">Nama Lengkap</label><input id="edit_nama" name="nama" class="form-control bcf-input" required></div><div class="col-md-6"><label class="bcf-label">PN</label><input id="edit_pn" name="pn" class="form-control bcf-input" required></div><div class="col-12"><label class="bcf-label">Unit Kerja</label><select id="edit_unit_kerja" name="unit_kerja" class="form-select bcf-select" required><option value="">-- Pilih Unit Kerja --</option>@foreach ($ukers as $uk) @php $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama; @endphp<option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>@endforeach</select></div><div class="col-md-4"><label class="bcf-label">No Urut</label><input id="edit_nourut" type="number" min="1" name="nourut" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Team</label><input id="edit_team" name="team" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Warna</label><select id="edit_warna" name="warna" class="form-select bcf-select" required>@foreach ($warnaOptions as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></div></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="bcf-submit">Update Data</button></div></form></div></div>
@@ -219,10 +233,10 @@
             picker?.addEventListener('change', function () {
                 const option = this.options[this.selectedIndex];
                 if (!option?.value) return;
-                document.getElementById('create_nama').value = option.dataset.nama || '';
-                document.getElementById('create_pn').value = option.dataset.pn || '';
-                const unit = document.getElementById('create_unit_kerja');
-                [...unit.options].forEach(item => { item.selected = item.value === (option.dataset.unit || ''); });
+                document.getElementById('create_jabatan').value = option.dataset.jabatan || '-';
+                document.getElementById('create_unit_kerja').value = option.dataset.uker || '-';
+                document.getElementById('create_ukuran').value = option.dataset.ukuran || '-';
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('assignmentBcfModal')).show();
             });
 
             document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {
