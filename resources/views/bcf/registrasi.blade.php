@@ -93,6 +93,9 @@
         .bcf-picker .select2-search--dropdown .select2-search__field { background: #fff !important; color: var(--bcf-ink) !important; border: 1px solid #cdd9e8 !important; }
         .bcf-picker .select2-search--dropdown .select2-search__field::placeholder { color: #8a98ab !important; }
         .bcf-picker .select2-results__option { padding: 10px 13px; }
+        .bcf-picker-mode { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .bcf-manual-toggle { border: 0; background: transparent; color: var(--bcf-blue-deep); font-size: .8rem; font-weight: 800; padding: 3px 0; text-decoration: underline; }
+        .bcf-manual-toggle:hover { color: var(--bcf-blue); }
         .bcf-selection-feedback { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #b9e4f1; border-radius: 10px; padding: 11px 13px; margin-top: 13px; color: var(--bcf-blue-deep); font-size: .83rem; }
         .bcf-selection-feedback[hidden] { display: none; }
         .bcf-selection-feedback i { color: #28a879; font-size: 1.1rem; }
@@ -132,6 +135,14 @@
         .bcf-table-team { font-weight: 700; color: var(--bcf-blue-deep); }
         .bcf-table-color { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
         .bcf-table-number { display: inline-grid; min-width: 30px; height: 28px; place-items: center; border-radius: 8px; background: #eaf3ff; color: var(--bcf-blue-deep); font-weight: 800; }
+        .bcf-table-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+        .bcf-table-search { position: relative; width: min(360px, 100%); }
+        .bcf-table-search i { position: absolute; top: 50%; left: 13px; color: var(--bcf-muted); transform: translateY(-50%); pointer-events: none; }
+        .bcf-table-search input { width: 100%; height: 42px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 8px 13px 8px 38px; color: var(--bcf-ink); outline: none; }
+        .bcf-table-search input:focus { border-color: var(--bcf-cyan); box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); }
+        .bcf-table-search input::placeholder { color: #8996a8; }
+        .bcf-table-empty-search { color: var(--bcf-muted); font-size: .84rem; padding: 18px; text-align: center; }
+        .bcf-table-empty-search[hidden] { display: none; }
         .bcf-modal .modal-content { border: 0; border-radius: 18px; }
         .bcf-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; }
         .bcf-modal .btn-close { filter: brightness(0) invert(1); }
@@ -159,9 +170,9 @@
             .bcf-actions { margin-left: auto; }
             .bcf-card-head, .bcf-form-body { padding-left: 18px; padding-right: 18px; }
             .bcf-table-wrap { padding: 0 10px 14px; }
-            .bcf-table { table-layout: fixed; font-size: .68rem; }
-            .bcf-table th { font-size: .59rem; padding: 9px 5px; }
-            .bcf-table td { padding: 9px 5px; }
+            .bcf-table { min-width: 620px; table-layout: auto; font-size: .64rem; }
+            .bcf-table th { font-size: .56rem; padding: 8px 5px; }
+            .bcf-table td { padding: 8px 5px; }
             .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 28%; }
             .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 20%; }
             .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 18%; }
@@ -220,14 +231,21 @@
                     <form id="createBcfForm" action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
                         @csrf
                         <div class="bcf-picker">
-                            <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Pilih Nama Peserta <span class="bcf-required">*</span></label>
-                            <select id="select_pekerja_create" name="nama" class="form-select bcf-select mt-1" required>
-                                <option value="">-- Pilih nama peserta --</option>
-                                @foreach ($bcfWorkers as $worker)
-                                    @php $isRegistered = in_array($worker['nama'], $registeredNames, true); @endphp
-                                    <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?: 'Non PN' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'Non PN' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
-                                @endforeach
-                            </select>
+                            <div id="dropdownEntryWrap">
+                                <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari Nama Peserta <span class="bcf-required">*</span></label>
+                                <select id="select_pekerja_create" name="nama" class="form-select bcf-select mt-1" required>
+                                    <option value="">-- Pilih Nama Anda --</option>
+                                    @foreach ($bcfWorkers as $worker)
+                                        @php $isRegistered = in_array($worker['nama'], $registeredNames, true); @endphp
+                                        <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?: 'Non PN' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'Non PN' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div id="manualEntryWrap" hidden>
+                                <label for="create_nama_manual" class="bcf-label"><i class="fa-solid fa-keyboard me-2"></i>Nama Peserta Manual <span class="bcf-required">*</span></label>
+                                <input id="create_nama_manual" class="form-control bcf-input mt-1" placeholder="Ketik nama peserta" disabled>
+                            </div>
+                            <div class="bcf-picker-mode"><button type="button" id="manualEntryToggle" class="bcf-manual-toggle">Isi nama manual</button></div>
                             <div class="bcf-help mt-2">Ketik nama atau PN pada kolom pencarian, lalu klik hasil peserta yang sesuai.</div>
                             <div id="selectedWorkerFeedback" class="bcf-selection-feedback" hidden><i class="fa-solid fa-circle-check"></i><span>Peserta terpilih: <strong id="selectedWorkerName">-</strong><br><span id="selectedWorkerSummary">PN - Jabatan - Unit Kerja</span></span></div>
                         </div>
@@ -244,15 +262,21 @@
             </section>
 
             <section id="peserta" class="bcf-section">
-                <div class="bcf-card">
+                <div class="bcf-card p-0 m-0">
                     <div class="bcf-card-head"><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>
                     <div class="bcf-table-wrap">
+                        <div class="bcf-table-toolbar">
+                            <label class="bcf-table-search" for="participantSearch">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" id="participantSearch" placeholder="Cari nama, team, warna, no urut, atau uker..." autocomplete="off">
+                            </label>
+                        </div>
                         @forelse ($registrasi as $row)
                             @php $hexColor = $colorHexMap[$row->warna] ?? '#55c7ed'; @endphp
                             @if ($loop->first)
                                 <table class="bcf-table">
                                     <thead><tr><th>Nama</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th>@auth<th>Aksi</th>@endauth</tr></thead>
-                                    <tbody>
+                                    <tbody id="participantTableBody">
                             @endif
                                         <tr>
                                             <td class="bcf-table-name" title="{{ $row->nama }}">{{ $row->nama }}</td>
@@ -267,6 +291,7 @@
                             @if ($loop->last)
                                     </tbody>
                                 </table>
+                                <div id="participantSearchEmpty" class="bcf-table-empty-search" hidden>Data peserta tidak ditemukan.</div>
                             @endif
                         @empty
                             <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
@@ -324,6 +349,56 @@
                 picker?.addEventListener('change', syncWorkerDetails);
             }
 
+            const dropdownEntryWrap = document.getElementById('dropdownEntryWrap');
+            const manualEntryWrap = document.getElementById('manualEntryWrap');
+            const manualEntryToggle = document.getElementById('manualEntryToggle');
+            const manualNameInput = document.getElementById('create_nama_manual');
+            let manualMode = false;
+
+            const showManualDetails = function () {
+                const value = manualNameInput.value.trim();
+                const feedback = document.getElementById('selectedWorkerFeedback');
+                document.getElementById('create_pn').value = value ? 'Non PN' : '';
+                document.getElementById('create_jabatan').value = value ? 'Input Manual' : '';
+                document.getElementById('create_unit_kerja').value = value ? 'Input Manual' : '';
+                document.getElementById('create_ukuran').value = value ? '-' : '';
+                document.getElementById('selectedWorkerName').textContent = value || '-';
+                document.getElementById('selectedWorkerSummary').textContent = 'Non PN · Input Manual';
+                feedback.hidden = !value;
+            };
+
+            manualEntryToggle?.addEventListener('click', function () {
+                manualMode = !manualMode;
+                dropdownEntryWrap.hidden = manualMode;
+                manualEntryWrap.hidden = !manualMode;
+                manualNameInput.disabled = !manualMode;
+                manualNameInput.required = manualMode;
+                picker.disabled = manualMode;
+                picker.required = !manualMode;
+
+                if (manualMode) {
+                    picker.removeAttribute('name');
+                    manualNameInput.name = 'nama';
+                    manualEntryToggle.textContent = 'Kembali ke daftar peserta';
+                    if (window.jQuery && jQuery.fn.select2) {
+                        jQuery(picker).val(null).trigger('change.select2');
+                    } else {
+                        picker.value = '';
+                    }
+                    manualNameInput.focus();
+                    showManualDetails();
+                } else {
+                    manualNameInput.removeAttribute('name');
+                    picker.name = 'nama';
+                    manualNameInput.value = '';
+                    manualEntryToggle.textContent = 'Isi nama manual';
+                    document.getElementById('selectedWorkerFeedback').hidden = true;
+                    showManualDetails();
+                }
+            });
+
+            manualNameInput?.addEventListener('input', showManualDetails);
+
             const createForm = document.getElementById('createBcfForm');
             const assignmentModal = document.getElementById('assignmentBcfModal');
             const confirmAssignmentButton = document.getElementById('confirmAssignmentButton');
@@ -342,6 +417,24 @@
             confirmAssignmentButton?.addEventListener('click', function () {
                 formReadyToSubmit = true;
                 createForm.submit();
+            });
+
+            const participantSearch = document.getElementById('participantSearch');
+            const participantRows = document.querySelectorAll('#participantTableBody tr');
+            const participantSearchEmpty = document.getElementById('participantSearchEmpty');
+            participantSearch?.addEventListener('input', function () {
+                const keyword = this.value.trim().toLowerCase();
+                let visibleRows = 0;
+
+                participantRows.forEach(row => {
+                    const matches = row.textContent.toLowerCase().includes(keyword);
+                    row.hidden = !matches;
+                    if (matches) visibleRows++;
+                });
+
+                if (participantSearchEmpty) {
+                    participantSearchEmpty.hidden = visibleRows > 0 || keyword === '';
+                }
             });
 
             document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {

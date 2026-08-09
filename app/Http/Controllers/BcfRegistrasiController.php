@@ -63,9 +63,15 @@ class BcfRegistrasiController extends Controller
             'nama.required' => 'Nama wajib diisi.',
         ]);
 
-        $worker = collect($this->bcfWorkersWithSystemData())->firstWhere('nama', $validated['nama']);
+        $worker = collect($this->bcfWorkersWithSystemData())
+            ->first(fn (array $item) => $this->normalize($item['nama']) === $this->normalize($validated['nama']));
+
         if (!$worker) {
-            throw ValidationException::withMessages(['nama' => 'Nama peserta tidak ditemukan pada data BCF 2026.']);
+            $worker = [
+                'nama' => trim($validated['nama']),
+                'pn' => null,
+                'uker' => 'Input Manual',
+            ];
         }
 
         if (BcfRegistrasi::where('nama', $worker['nama'])->exists()) {
