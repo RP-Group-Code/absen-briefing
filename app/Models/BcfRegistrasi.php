@@ -15,12 +15,12 @@ class BcfRegistrasi extends Model
         'nama',
         'pn',
         'unit_kerja',
-        'tanggal',
-        'keterangan',
-        'status',
+        'warna',
+        'nourut',
+        'team',
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'nourut' => 'integer',
     ];
 }

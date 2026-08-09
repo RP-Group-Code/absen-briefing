@@ -14,10 +14,20 @@ return new class extends Migration {
             $table->id();
             $table->string('nama');
             $table->string('pn');
-            $table->string('unit_kerja')->nullable();
-            $table->date('tanggal');
-            $table->text('keterangan')->nullable();
-            $table->string('status')->default('Pending');
+            $table->string('unit_kerja');
+            $table->enum('warna', [
+                'Ungu',
+                'Hitam',
+                'Biru Tua',
+                'Biru Muda',
+                'Putih',
+                'Kuning',
+                'Merah',
+                'Hijau',
+                'Orange'
+            ])->default('Biru Muda');
+            $table->integer('nourut')->default(0);
+            $table->string('team')->nullable();
             $table->timestamps();
         });
     }

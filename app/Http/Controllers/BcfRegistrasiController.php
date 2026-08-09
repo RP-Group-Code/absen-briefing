@@ -3,16 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Models\BcfRegistrasi;
+use App\Models\Pegawai;
+use App\Models\Uker;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class BcfRegistrasiController extends Controller
 {
+    public const WARNA_OPTIONS = [
+        'Ungu',
+        'Hitam',
+        'Biru Tua',
+        'Biru Muda',
+        'Putih',
+        'Kuning',
+        'Merah',
+        'Hijau',
+        'Orange',
+    ];
+
     public function index()
     {
-        $registrasi = BcfRegistrasi::orderBy('created_at', 'desc')->get();
+        $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('bcf.registrasi', compact('registrasi'));
+        $pegawais = Pegawai::with('uker:id,nama,kode_uker')
+            ->orderBy('nama', 'asc')
+            ->get(['id', 'uker_id', 'nama', 'pn']);
+
+        $ukers = Uker::orderBy('nama', 'asc')->get(['id', 'nama', 'kode_uker']);
+        $warnaOptions = self::WARNA_OPTIONS;
+
+        return view('bcf.registrasi', compact('registrasi', 'pegawais', 'ukers', 'warnaOptions'));
     }
 
     public function store(Request $request)
@@ -20,17 +44,21 @@ class BcfRegistrasiController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'pn' => 'required|string|max:100',
-            'unit_kerja' => 'nullable|string|max:255',
-            'tanggal' => 'required|date',
-            'keterangan' => 'nullable|string',
-            'status' => 'required|string|max:50',
+            'unit_kerja' => 'required|string|max:255',
+            'warna' => ['required', Rule::in(self::WARNA_OPTIONS)],
+            'nourut' => 'nullable|integer',
+            'team' => 'nullable|string|max:100',
         ], [
             'nama.required' => 'Nama wajib diisi.',
             'pn.required' => 'PN wajib diisi.',
-            'tanggal.required' => 'Tanggal wajib diisi.',
-            'tanggal.date' => 'Format tanggal tidak valid.',
-            'status.required' => 'Status wajib dipilih.',
+            'unit_kerja.required' => 'Unit kerja wajib dipilih.',
+            'warna.required' => 'Warna wajib dipilih.',
+            'warna.in' => 'Pilihan warna tidak valid.',
         ]);
+
+        if (is_null($validated['nourut'])) {
+            $validated['nourut'] = (BcfRegistrasi::max('nourut') ?? 0) + 1;
+        }
 
         BcfRegistrasi::create($validated);
 
@@ -46,15 +74,16 @@ class BcfRegistrasiController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'pn' => 'required|string|max:100',
-            'unit_kerja' => 'nullable|string|max:255',
-            'tanggal' => 'required|date',
-            'keterangan' => 'nullable|string',
-            'status' => 'required|string|max:50',
+            'unit_kerja' => 'required|string|max:255',
+            'warna' => ['required', Rule::in(self::WARNA_OPTIONS)],
+            'nourut' => 'nullable|integer',
+            'team' => 'nullable|string|max:100',
         ], [
             'nama.required' => 'Nama wajib diisi.',
             'pn.required' => 'PN wajib diisi.',
-            'tanggal.required' => 'Tanggal wajib diisi.',
-            'status.required' => 'Status wajib dipilih.',
+            'unit_kerja.required' => 'Unit kerja wajib dipilih.',
+            'warna.required' => 'Warna wajib dipilih.',
+            'warna.in' => 'Pilihan warna tidak valid.',
         ]);
 
         $bcf->update($validated);

@@ -59,28 +59,14 @@
             color: #fff;
         }
 
-        .badge-status-pending {
-            background-color: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-        }
-
-        .badge-status-disetujui {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-        }
-
-        .badge-status-ditolak {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-
-        .badge-status-selesai {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.4);
+        .color-preview-badge {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .action-group {
@@ -121,12 +107,26 @@
     </style>
 @endpush
 
+@php
+    $colorHexMap = [
+        'Ungu' => '#8b5cf6',
+        'Hitam' => '#1e293b',
+        'Biru Tua' => '#1e3a8a',
+        'Biru Muda' => '#38bdf8',
+        'Putih' => '#ffffff',
+        'Kuning' => '#eab308',
+        'Merah' => '#ef4444',
+        'Hijau' => '#10b981',
+        'Orange' => '#f97316',
+    ];
+@endphp
+
 @section('content')
     <div class="container-fluid px-3 px-md-4 py-4">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
                 <h5 class="mb-1 fw-bold text-white"><i class="bi bi-file-earmark-text me-2"></i>BCF Registrasi</h5>
-                <small class="text-muted">Kelola data pendaftaran dan registrasi BCF.</small>
+                <small class="text-muted">Kelola data pendaftaran BCF, nomor urut, team, dan unit kerja.</small>
             </div>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBcfModal">
                 <i class="fa-solid fa-plus me-1"></i> Tambah Registrasi
@@ -138,38 +138,38 @@
                 <table class="myTable table table-hover mb-0 display">
                     <thead class="table-light">
                         <tr>
-                            <th width="50">#</th>
+                            <th width="70">No Urut</th>
+                            <th width="120">Warna</th>
                             <th>Nama</th>
                             <th>PN</th>
                             <th>Unit Kerja</th>
-                            <th>Tanggal</th>
-                            <th>Status</th>
-                            <th>Keterangan</th>
+                            <th>Team</th>
                             <th width="110">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($registrasi as $index => $row)
+                        @forelse ($registrasi as $row)
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td class="fw-semibold">{{ $row->nama }}</td>
-                                <td><code>{{ $row->pn }}</code></td>
-                                <td>{{ $row->unit_kerja ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($row->tanggal)->format('d M Y') }}</td>
                                 <td>
-                                    @php
-                                        $statusClass = match (strtolower($row->status)) {
-                                            'disetujui' => 'badge-status-disetujui',
-                                            'ditolak' => 'badge-status-ditolak',
-                                            'selesai' => 'badge-status-selesai',
-                                            default => 'badge-status-pending',
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $statusClass }} px-2 py-1">
-                                        {{ $row->status }}
+                                    <span class="badge bg-secondary px-2 py-1 fs-6">
+                                        {{ $row->nourut }}
                                     </span>
                                 </td>
-                                <td>{{ Str::limit($row->keterangan ?? '-', 40) }}</td>
+                                <td>
+                                    @php
+                                        $hexColor = $colorHexMap[$row->warna] ?? '#38bdf8';
+                                    @endphp
+                                    <span class="color-preview-badge" style="background-color: {{ $hexColor }};" title="{{ $row->warna }}"></span>
+                                    <span class="fw-medium ms-1 text-white">{{ $row->warna }}</span>
+                                </td>
+                                <td class="fw-semibold">{{ $row->nama }}</td>
+                                <td><code>{{ $row->pn }}</code></td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">
+                                        {{ $row->unit_kerja }}
+                                    </span>
+                                </td>
+                                <td>{{ $row->team ?? '-' }}</td>
                                 <td>
                                     <div class="action-group">
                                         <button type="button" class="act-btn e btn-edit-bcf"
@@ -177,9 +177,9 @@
                                             data-nama="{{ $row->nama }}"
                                             data-pn="{{ $row->pn }}"
                                             data-unit="{{ $row->unit_kerja }}"
-                                            data-tanggal="{{ \Carbon\Carbon::parse($row->tanggal)->format('Y-m-d') }}"
-                                            data-status="{{ $row->status }}"
-                                            data-keterangan="{{ $row->keterangan }}">
+                                            data-warna="{{ $row->warna }}"
+                                            data-nourut="{{ $row->nourut }}"
+                                            data-team="{{ $row->team }}">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
 
@@ -213,34 +213,70 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="create_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                            <input type="text" name="nama" id="create_nama" class="form-control" placeholder="Masukkan nama lengkap" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="create_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
-                            <input type="text" name="pn" id="create_pn" class="form-control" placeholder="Masukkan PN" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="create_unit_kerja" class="form-label">Unit Kerja / Bagian</label>
-                            <input type="text" name="unit_kerja" id="create_unit_kerja" class="form-control" placeholder="Contoh: Operational / Marketing">
-                        </div>
-                        <div class="mb-3">
-                            <label for="create_tanggal" class="form-label">Tanggal Registrasi <span class="text-danger">*</span></label>
-                            <input type="date" name="tanggal" id="create_tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="create_status" class="form-label">Status <span class="text-danger">*</span></label>
-                            <select name="status" id="create_status" class="form-select" required>
-                                <option value="Pending" selected>Pending</option>
-                                <option value="Disetujui">Disetujui</option>
-                                <option value="Ditolak">Ditolak</option>
-                                <option value="Selesai">Selesai</option>
+                        {{-- Quick Search Pekerja --}}
+                        <div class="mb-3 p-2 rounded" style="background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.3);">
+                            <label for="select_pekerja_create" class="form-label text-info small fw-bold">
+                                <i class="bi bi-search me-1"></i> Pilih dari Data Pekerja (Otomatis Isi)
+                            </label>
+                            <select id="select_pekerja_create" class="form-select form-select-sm">
+                                <option value="">-- Pilih Pekerja --</option>
+                                @foreach ($pegawais as $p)
+                                    @php
+                                        $pUkerFormatted = optional($p->uker)->kode_uker
+                                            ? '( ' . $p->uker->kode_uker . ' ) - ' . $p->uker->nama
+                                            : (optional($p->uker)->nama ?? '');
+                                    @endphp
+                                    <option value="{{ $p->id }}"
+                                        data-nama="{{ $p->nama }}"
+                                        data-pn="{{ $p->pn }}"
+                                        data-unit="{{ $pUkerFormatted }}">
+                                        {{ $p->nama }} (PN: {{ $p->pn }}) {{ $pUkerFormatted ? ' — ' . $pUkerFormatted : '' }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" name="nama" id="create_nama" class="form-control" placeholder="Masukkan nama" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="create_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
+                                <input type="text" name="pn" id="create_pn" class="form-control" placeholder="Masukkan PN" required>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label for="create_keterangan" class="form-label">Keterangan</label>
-                            <textarea name="keterangan" id="create_keterangan" class="form-control" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
+                            <label for="create_unit_kerja" class="form-label">Unit Kerja <span class="text-danger">*</span></label>
+                            <select name="unit_kerja" id="create_unit_kerja" class="form-select" required>
+                                <option value="">-- Pilih Unit Kerja --</option>
+                                @foreach ($ukers as $uk)
+                                    @php
+                                        $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama;
+                                    @endphp
+                                    <option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="create_nourut" class="form-label">No Urut</label>
+                                <input type="number" name="nourut" id="create_nourut" class="form-control" placeholder="1" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="create_team" class="form-label">Team</label>
+                                <input type="text" name="team" id="create_team" class="form-control" placeholder="Contoh: Team A">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="create_warna" class="form-label">Warna <span class="text-danger">*</span></label>
+                                <select name="warna" id="create_warna" class="form-select" required>
+                                    @foreach ($warnaOptions as $w)
+                                        <option value="{{ $w }}" {{ $w === 'Biru Muda' ? 'selected' : '' }}>{{ $w }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -264,34 +300,47 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="edit_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                            <input type="text" name="nama" id="edit_nama" class="form-control" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" name="nama" id="edit_nama" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
+                                <input type="text" name="pn" id="edit_pn" class="form-control" required>
+                            </div>
                         </div>
+
                         <div class="mb-3">
-                            <label for="edit_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
-                            <input type="text" name="pn" id="edit_pn" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_unit_kerja" class="form-label">Unit Kerja / Bagian</label>
-                            <input type="text" name="unit_kerja" id="edit_unit_kerja" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_tanggal" class="form-label">Tanggal Registrasi <span class="text-danger">*</span></label>
-                            <input type="date" name="tanggal" id="edit_tanggal" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status <span class="text-danger">*</span></label>
-                            <select name="status" id="edit_status" class="form-select" required>
-                                <option value="Pending">Pending</option>
-                                <option value="Disetujui">Disetujui</option>
-                                <option value="Ditolak">Ditolak</option>
-                                <option value="Selesai">Selesai</option>
+                            <label for="edit_unit_kerja" class="form-label">Unit Kerja <span class="text-danger">*</span></label>
+                            <select name="unit_kerja" id="edit_unit_kerja" class="form-select" required>
+                                <option value="">-- Pilih Unit Kerja --</option>
+                                @foreach ($ukers as $uk)
+                                    @php
+                                        $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama;
+                                    @endphp
+                                    <option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>
+                                @endforeach
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_keterangan" class="form-label">Keterangan</label>
-                            <textarea name="keterangan" id="edit_keterangan" class="form-control" rows="3"></textarea>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="edit_nourut" class="form-label">No Urut</label>
+                                <input type="number" name="nourut" id="edit_nourut" class="form-control" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="edit_team" class="form-label">Team</label>
+                                <input type="text" name="team" id="edit_team" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="edit_warna" class="form-label">Warna <span class="text-danger">*</span></label>
+                                <select name="warna" id="edit_warna" class="form-select" required>
+                                    @foreach ($warnaOptions as $w)
+                                        <option value="{{ $w }}">{{ $w }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -307,15 +356,37 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill from select pekerja (Data Pekerja)
+            const selectPekerja = document.getElementById('select_pekerja_create');
+            if (selectPekerja) {
+                selectPekerja.addEventListener('change', function() {
+                    const selectedOpt = this.options[this.selectedIndex];
+                    if (selectedOpt && selectedOpt.value !== '') {
+                        document.getElementById('create_nama').value = selectedOpt.dataset.nama || '';
+                        document.getElementById('create_pn').value = selectedOpt.dataset.pn || '';
+                        const unitKerja = selectedOpt.dataset.unit || '';
+                        if (unitKerja) {
+                            const unitSelect = document.getElementById('create_unit_kerja');
+                            for (let i = 0; i < unitSelect.options.length; i++) {
+                                if (unitSelect.options[i].value === unitKerja) {
+                                    unitSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             // Handle Edit Modal populate
             const editButtons = document.querySelectorAll('.btn-edit-bcf');
             const editForm = document.getElementById('editBcfForm');
             const editNama = document.getElementById('edit_nama');
             const editPn = document.getElementById('edit_pn');
             const editUnit = document.getElementById('edit_unit_kerja');
-            const editTanggal = document.getElementById('edit_tanggal');
-            const editStatus = document.getElementById('edit_status');
-            const editKeterangan = document.getElementById('edit_keterangan');
+            const editWarna = document.getElementById('edit_warna');
+            const editNourut = document.getElementById('edit_nourut');
+            const editTeam = document.getElementById('edit_team');
 
             editButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -324,9 +395,9 @@
                     editNama.value = this.dataset.nama || '';
                     editPn.value = this.dataset.pn || '';
                     editUnit.value = this.dataset.unit || '';
-                    editTanggal.value = this.dataset.tanggal || '';
-                    editStatus.value = this.dataset.status || 'Pending';
-                    editKeterangan.value = this.dataset.keterangan || '';
+                    editWarna.value = this.dataset.warna || 'Biru Muda';
+                    editNourut.value = this.dataset.nourut || '';
+                    editTeam.value = this.dataset.team || '';
 
                     const editModal = new bootstrap.Modal(document.getElementById('editBcfModal'));
                     editModal.show();
