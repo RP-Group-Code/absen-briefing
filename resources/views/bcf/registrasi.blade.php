@@ -201,9 +201,9 @@
             <div class="bcf-brand">BRI <span>Branch Office Palembang Sriwijaya</span></div>
             <div class="bcf-hero-inner">
                 <div class="bcf-hero-copy">
-                    <span class="bcf-kicker pt-4">“BCF SRIWIJAYA 2026”</span>
+                    <span class="bcf-kicker">BCF SRIWIJAYA 2026</span>
                     <img class="bcf-hero-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="BRILiaN Culture Fest 2026">
-                    <span class="bcf-kicker pt-4">“BCF SRIWIJAYA 2026”</span>
+                    <span>“The Golden Dynasty of Sriwijaya: Rise of the Royals”</span>
                     
                     <div class="bcf-hero-actions">
                         <a class="bcf-btn bcf-btn-primary" href="#registrasi"><i class="fa-solid fa-pen-to-square me-2"></i>REGISTRASI</a>
