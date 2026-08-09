@@ -81,6 +81,13 @@
         .bcf-required { color: #dc5c55; }
         .bcf-input, .bcf-select { min-height: 48px; border-radius: 10px; border: 1px solid #d8e2ee; padding: 10px 13px; color: var(--bcf-ink); box-shadow: none !important; }
         .bcf-input:focus, .bcf-select:focus { border-color: var(--bcf-cyan); outline: 3px solid rgba(105, 201, 235, .18); }
+        .bcf-picker .select2-container { width: 100% !important; }
+        .bcf-picker .select2-container .select2-selection--single { height: 48px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 9px 13px; }
+        .bcf-picker .select2-container .select2-selection__rendered { color: var(--bcf-ink); line-height: 28px; }
+        .bcf-picker .select2-container .select2-selection__arrow { height: 46px; right: 10px; }
+        .bcf-picker .select2-container--open .select2-selection--single { border-color: var(--bcf-cyan); }
+        .bcf-picker .select2-dropdown { border-color: #d8e2ee; box-shadow: 0 12px 24px rgba(18, 59, 108, .12); }
+        .bcf-picker .select2-results__option { padding: 10px 13px; }
         .bcf-picker { background: #edf8fd; border: 1px dashed #8dd5ed; border-radius: 12px; padding: 15px; margin-bottom: 22px; }
         .bcf-picker label { color: var(--bcf-blue-deep); }
         .bcf-help { color: var(--bcf-muted); font-size: .78rem; }
@@ -179,7 +186,8 @@
                                 <option value="">-- Pilih nama peserta --</option>
                                 @foreach ($bcfWorkers as $worker)
                                     @php $isRegistered = in_array($worker['nama'], $registeredNames, true); @endphp
-                                    <option value="{{ $worker['nama'] }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered)>{{ $worker['nama'] }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
+                                    @php $isUnavailable = blank($worker['pn']); @endphp
+                                    <option value="{{ $worker['nama'] }}" data-pn="{{ $worker['pn'] ?? '' }}" data-jabatan="{{ $worker['jabatan'] }}" data-uker="{{ $worker['uker'] }}" data-ukuran="{{ $worker['ukuran'] }}" @disabled($isRegistered || $isUnavailable)>{{ $worker['nama'] }} — PN: {{ $worker['pn'] ?: 'belum sinkron' }} — {{ $worker['uker'] }}{{ $isRegistered ? ' (sudah terdaftar)' : '' }}</option>
                                 @endforeach
                             </select>
                             <div class="bcf-help mt-2">Data peserta diambil dari referensi BCF 2026. Pilih nama satu kali untuk melihat pembagian team.</div>
@@ -188,6 +196,7 @@
                         <div class="row g-3">
                             <div class="col-md-6"><label for="create_jabatan" class="bcf-label">Jabatan</label><input id="create_jabatan" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
                             <div class="col-md-6"><label for="create_unit_kerja" class="bcf-label">Unit Kerja</label><input id="create_unit_kerja" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
+                            <div class="col-md-6"><label for="create_pn" class="bcf-label">PN</label><input id="create_pn" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
                             <div class="col-md-6"><label for="create_ukuran" class="bcf-label">Ukuran Baju</label><input id="create_ukuran" class="form-control bcf-input" readonly placeholder="Terisi setelah nama dipilih"></div>
                         </div>
                         <div class="d-flex justify-content-end mt-4"><button type="submit" class="bcf-submit"><i class="fa-solid fa-check me-2"></i>Simpan Registrasi</button></div>
@@ -230,9 +239,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const picker = document.getElementById('select_pekerja_create');
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery(picker).select2({
+                    placeholder: '-- Cari nama atau PN peserta --',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
             picker?.addEventListener('change', function () {
                 const option = this.options[this.selectedIndex];
                 if (!option?.value) return;
+                document.getElementById('create_pn').value = option.dataset.pn || 'PN belum sinkron';
                 document.getElementById('create_jabatan').value = option.dataset.jabatan || '-';
                 document.getElementById('create_unit_kerja').value = option.dataset.uker || '-';
                 document.getElementById('create_ukuran').value = option.dataset.ukuran || '-';

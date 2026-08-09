@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\BcfRegistrasi;
+use App\Models\Pegawai;
 use App\Models\Uker;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class BcfRegistrasiController extends Controller
@@ -41,7 +43,7 @@ class BcfRegistrasiController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $bcfWorkers = $this->bcfWorkers();
+        $bcfWorkers = $this->bcfWorkersWithSystemData();
 
         $ukers = Uker::orderBy('nama', 'asc')->get(['id', 'nama', 'kode_uker']);
         $warnaOptions = self::WARNA_OPTIONS;
@@ -61,9 +63,13 @@ class BcfRegistrasiController extends Controller
             'nama.required' => 'Nama wajib diisi.',
         ]);
 
-        $worker = collect($this->bcfWorkers())->firstWhere('nama', $validated['nama']);
+        $worker = collect($this->bcfWorkersWithSystemData())->firstWhere('nama', $validated['nama']);
         if (!$worker) {
             throw ValidationException::withMessages(['nama' => 'Nama peserta tidak ditemukan pada data BCF 2026.']);
+        }
+
+        if (blank($worker['pn'])) {
+            throw ValidationException::withMessages(['nama' => 'PN peserta belum ditemukan di data pegawai sistem. Silakan hubungi admin.']);
         }
 
         if (BcfRegistrasi::where('nama', $worker['nama'])->exists()) {
@@ -79,7 +85,7 @@ class BcfRegistrasiController extends Controller
 
         BcfRegistrasi::create([
             'nama' => $worker['nama'],
-            'pn' => 'BCF-' . strtoupper(substr(hash('sha256', $worker['nama']), 0, 12)),
+            'pn' => $worker['pn'],
             'unit_kerja' => $worker['uker'],
             'warna' => $team['warna'],
             'nourut' => $nourut,
@@ -130,6 +136,35 @@ class BcfRegistrasiController extends Controller
         fclose($handle);
 
         return $workers;
+    }
+
+    private function bcfWorkersWithSystemData(): array
+    {
+        $employees = Pegawai::query()
+            ->get(['nama', 'pn', 'jabatan'])
+            ->groupBy(fn (Pegawai $pegawai) => $this->normalize($pegawai->nama));
+
+        return collect($this->bcfWorkers())->map(function (array $worker) use ($employees) {
+            $candidates = $employees->get($this->normalize($worker['nama']), collect());
+            $worker['pn'] = null;
+            $worker['pegawai_jabatan'] = null;
+
+            $employee = $candidates->first(function (Pegawai $pegawai) use ($worker) {
+                return $this->normalize($pegawai->jabatan) === $this->normalize($worker['jabatan']);
+            }) ?? $candidates->first(fn (Pegawai $pegawai) => blank($pegawai->jabatan));
+
+            if ($employee) {
+                $worker['pn'] = $employee->pn;
+                $worker['pegawai_jabatan'] = $employee->jabatan;
+            }
+
+            return $worker;
+        })->all();
+    }
+
+    private function normalize(?string $value): string
+    {
+        return Str::lower(Str::squish((string) $value));
     }
 
     public function update(Request $request, $id)
