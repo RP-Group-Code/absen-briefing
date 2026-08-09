@@ -1,437 +1,248 @@
-@extends('layouts.app')
+@extends('layouts.app-public')
 
 @section('title', 'BCF Registrasi')
-
-@push('styles')
-    <style>
-        #createBcfModal .modal-content,
-        #editBcfModal .modal-content {
-            background: rgba(15, 12, 41, 0.96);
-            border: 1px solid rgba(255, 255, 255, .14);
-            border-radius: 18px;
-            color: rgba(255, 255, 255, .9);
-            box-shadow: 0 20px 48px rgba(0, 0, 0, .55);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
-        }
-
-        #createBcfModal .modal-header,
-        #createBcfModal .modal-footer,
-        #editBcfModal .modal-header,
-        #editBcfModal .modal-footer {
-            border-color: rgba(255, 255, 255, .12);
-        }
-
-        #createBcfModal .modal-title,
-        #createBcfModal .form-label,
-        #editBcfModal .modal-title,
-        #editBcfModal .form-label {
-            color: rgba(255, 255, 255, .9) !important;
-        }
-
-        #createBcfModal .btn-close,
-        #editBcfModal .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        #createBcfModal .form-control,
-        #createBcfModal .form-select,
-        #editBcfModal .form-control,
-        #editBcfModal .form-select {
-            background: rgba(255, 255, 255, .08);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, .16);
-        }
-
-        #createBcfModal .form-control:focus,
-        #createBcfModal .form-select:focus,
-        #editBcfModal .form-control:focus,
-        #editBcfModal .form-select:focus {
-            background: rgba(255, 255, 255, .12);
-            color: #fff;
-            border-color: rgba(129, 140, 248, .85);
-            box-shadow: 0 0 0 .2rem rgba(99, 102, 241, .22);
-        }
-
-        #createBcfModal .form-select option,
-        #editBcfModal .form-select option {
-            background: #1a1a4e;
-            color: #fff;
-        }
-
-        .color-preview-badge {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            vertical-align: middle;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .action-group {
-            display: flex;
-            gap: 6px;
-        }
-
-        .act-btn {
-            border: none;
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .act-btn.e {
-            background: rgba(99, 102, 241, 0.2);
-            color: #818cf8;
-            border: 1px solid rgba(99, 102, 241, 0.4);
-        }
-
-        .act-btn.e:hover {
-            background: rgba(99, 102, 241, 0.4);
-            color: #fff;
-        }
-
-        .act-btn.d {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-
-        .act-btn.d:hover {
-            background: rgba(239, 68, 68, 0.4);
-            color: #fff;
-        }
-    </style>
-@endpush
+@section('description', 'Registrasi peserta BCF Branch Office Palembang Sriwijaya.')
 
 @php
     $colorHexMap = [
         'Ungu' => '#8b5cf6',
-        'Hitam' => '#1e293b',
-        'Biru Tua' => '#1e3a8a',
-        'Biru Muda' => '#38bdf8',
+        'Hitam' => '#172033',
+        'Biru Tua' => '#1649a4',
+        'Biru Muda' => '#55c7ed',
         'Putih' => '#ffffff',
-        'Kuning' => '#eab308',
-        'Merah' => '#ef4444',
-        'Hijau' => '#10b981',
-        'Orange' => '#f97316',
+        'Kuning' => '#f3c94b',
+        'Merah' => '#ef6b63',
+        'Hijau' => '#5bbf91',
+        'Orange' => '#f19a55',
     ];
 @endphp
 
+@push('styles')
+    <style>
+        :root {
+            --bcf-blue: #075bc7;
+            --bcf-blue-deep: #064497;
+            --bcf-cyan: #69c9eb;
+            --bcf-ink: #14233b;
+            --bcf-muted: #6e7b91;
+            --bcf-soft: #f3f7fc;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bcf-soft) !important;
+            color: var(--bcf-ink);
+            padding-bottom: 0 !important;
+        }
+        body::before, body::after { display: none !important; }
+        .bcf-page { overflow: hidden; background: var(--bcf-soft); }
+
+        .bcf-hero {
+            min-height: 100svh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            isolation: isolate;
+            background: var(--bcf-blue);
+            background-image: linear-gradient(90deg, rgba(4, 51, 122, .55), rgba(5, 86, 190, .08)), url('{{ asset('images/bcf-hero.png') }}');
+            background-size: cover;
+            background-position: center;
+        }
+        .bcf-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(180deg, rgba(2, 31, 86, .22), transparent 45%, rgba(2, 28, 83, .38));
+        }
+        .bcf-hero-inner { width: min(1120px, calc(100% - 40px)); margin: auto; text-align: center; padding: 48px 0; }
+        .bcf-brand { position: absolute; top: 30px; left: 5%; color: #fff; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
+        .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .68rem; letter-spacing: .2em; margin-top: 4px; }
+        .bcf-hero-copy { max-width: 650px; margin: 0 auto; color: #fff; }
+        .bcf-kicker { display: inline-flex; padding: 8px 17px; border-radius: 999px; background: rgba(105, 201, 235, .95); color: var(--bcf-blue-deep); font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+        .bcf-hero h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: .9; letter-spacing: -.08em; margin: 24px 0 18px; font-weight: 800; }
+        .bcf-hero h1 em { color: var(--bcf-cyan); font-style: normal; }
+        .bcf-hero p { max-width: 470px; margin: 0 auto; font-size: 1.05rem; color: rgba(255,255,255,.84); }
+        .bcf-hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+        .bcf-btn { border: 0; border-radius: 12px; min-width: 190px; padding: 15px 22px; font-weight: 800; letter-spacing: .03em; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+        .bcf-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,.2); }
+        .bcf-btn-primary { background: #fff; color: var(--bcf-blue-deep); }
+        .bcf-btn-secondary { color: #fff; border: 1px solid rgba(255,255,255,.65); background: rgba(6, 64, 150, .34); }
+        .bcf-scroll { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.7); font-size: .75rem; letter-spacing: .13em; text-transform: uppercase; }
+
+        .bcf-content { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 70px 0 90px; }
+        .bcf-section { scroll-margin-top: 24px; margin-bottom: 34px; }
+        .bcf-card { background: #fff; border: 1px solid #e1e9f3; border-radius: 18px; box-shadow: 0 12px 35px rgba(18, 59, 108, .07); overflow: hidden; }
+        .bcf-card-head { border-top: 5px solid var(--bcf-blue); padding: 26px 28px 20px; }
+        .bcf-card-head h2 { margin: 0 0 7px; font-size: 1.45rem; font-weight: 800; }
+        .bcf-card-head p { margin: 0; color: var(--bcf-muted); }
+        .bcf-form-body { padding: 0 28px 28px; }
+        .bcf-label { font-weight: 700; font-size: .86rem; margin-bottom: 8px; }
+        .bcf-required { color: #dc5c55; }
+        .bcf-input, .bcf-select { min-height: 48px; border-radius: 10px; border: 1px solid #d8e2ee; padding: 10px 13px; color: var(--bcf-ink); box-shadow: none !important; }
+        .bcf-input:focus, .bcf-select:focus { border-color: var(--bcf-cyan); outline: 3px solid rgba(105, 201, 235, .18); }
+        .bcf-picker { background: #edf8fd; border: 1px dashed #8dd5ed; border-radius: 12px; padding: 15px; margin-bottom: 22px; }
+        .bcf-picker label { color: var(--bcf-blue-deep); }
+        .bcf-help { color: var(--bcf-muted); font-size: .78rem; }
+        .bcf-submit { background: var(--bcf-blue); color: #fff; border: 0; border-radius: 10px; padding: 13px 22px; font-weight: 800; }
+        .bcf-submit:hover { background: var(--bcf-blue-deep); }
+        .bcf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 34px; }
+        .bcf-stat { background: #fff; border: 1px solid #e1e9f3; border-radius: 14px; padding: 18px; }
+        .bcf-stat strong { display: block; font-size: 1.55rem; color: var(--bcf-blue); }
+        .bcf-stat span { color: var(--bcf-muted); font-size: .82rem; }
+        .bcf-list { display: grid; gap: 12px; padding: 0 28px 28px; }
+        .bcf-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #e3ebf4; border-radius: 13px; padding: 16px; }
+        .bcf-person { min-width: 0; }
+        .bcf-person strong { display: block; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bcf-person small { color: var(--bcf-muted); }
+        .bcf-meta { display: flex; align-items: center; gap: 16px; color: var(--bcf-muted); font-size: .82rem; }
+        .bcf-number { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #eaf3ff; color: var(--bcf-blue-deep); font-weight: 800; }
+        .bcf-color { display: inline-flex; align-items: center; gap: 7px; }
+        .bcf-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; border: 1px solid #d1d9e4; }
+        .bcf-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .bcf-action { width: 36px; height: 36px; border-radius: 9px; border: 1px solid #dce6f0; background: #fff; color: var(--bcf-blue); }
+        .bcf-action.delete { color: #d85c59; }
+        .bcf-empty { color: var(--bcf-muted); text-align: center; padding: 30px 20px; }
+        .bcf-modal .modal-content { border: 0; border-radius: 18px; }
+        .bcf-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; }
+        .bcf-modal .btn-close { filter: brightness(0) invert(1); }
+        @media (max-width: 700px) {
+            .bcf-brand { top: 20px; left: 20px; }
+            .bcf-hero-inner { width: min(100% - 28px, 540px); }
+            .bcf-hero h1 { font-size: clamp(3rem, 18vw, 5rem); }
+            .bcf-stats { grid-template-columns: 1fr; }
+            .bcf-row { align-items: flex-start; flex-wrap: wrap; }
+            .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
+            .bcf-actions { margin-left: auto; }
+            .bcf-card-head, .bcf-form-body, .bcf-list { padding-left: 18px; padding-right: 18px; }
+        }
+    </style>
+@endpush
+
 @section('content')
-    <div class="container-fluid px-3 px-md-4 py-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div>
-                <h5 class="mb-1 fw-bold text-white"><i class="bi bi-file-earmark-text me-2"></i>BCF Registrasi</h5>
-                <small class="text-muted">Kelola data pendaftaran BCF, nomor urut, team, dan unit kerja.</small>
-            </div>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBcfModal">
-                <i class="fa-solid fa-plus me-1"></i> Tambah Registrasi
-            </button>
-        </div>
-
-        <div class="stats-wrapper mb-4">
-            <div class="table-responsive">
-                <table class="myTable table table-hover mb-0 display">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="70">No Urut</th>
-                            <th width="120">Warna</th>
-                            <th>Nama</th>
-                            <th>PN</th>
-                            <th>Unit Kerja</th>
-                            <th>Team</th>
-                            <th width="110">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($registrasi as $row)
-                            <tr>
-                                <td>
-                                    <span class="badge bg-secondary px-2 py-1 fs-6">
-                                        {{ $row->nourut }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @php
-                                        $hexColor = $colorHexMap[$row->warna] ?? '#38bdf8';
-                                    @endphp
-                                    <span class="color-preview-badge" style="background-color: {{ $hexColor }};" title="{{ $row->warna }}"></span>
-                                    <span class="fw-medium ms-1 text-white">{{ $row->warna }}</span>
-                                </td>
-                                <td class="fw-semibold">{{ $row->nama }}</td>
-                                <td><code>{{ $row->pn }}</code></td>
-                                <td>
-                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">
-                                        {{ $row->unit_kerja }}
-                                    </span>
-                                </td>
-                                <td>{{ $row->team ?? '-' }}</td>
-                                <td>
-                                    <div class="action-group">
-                                        <button type="button" class="act-btn e btn-edit-bcf"
-                                            data-id="{{ $row->id }}"
-                                            data-nama="{{ $row->nama }}"
-                                            data-pn="{{ $row->pn }}"
-                                            data-unit="{{ $row->unit_kerja }}"
-                                            data-warna="{{ $row->warna }}"
-                                            data-nourut="{{ $row->nourut }}"
-                                            data-team="{{ $row->team }}">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST"
-                                            class="form-delete-bcf d-inline" data-nama="{{ $row->nama }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="act-btn d">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal Create --}}
-    <div class="modal fade" id="createBcfModal" tabindex="-1" aria-labelledby="createBcfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form action="{{ route('bcf.registrasi.store') }}" method="POST">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold" id="createBcfModalLabel"><i class="bi bi-plus-circle me-2"></i>Tambah Registrasi BCF</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <main class="bcf-page">
+        <section class="bcf-hero" aria-label="BCF Registration">
+            <div class="bcf-brand">BRI <span>Branch Office Palembang Sriwijaya</span></div>
+            <div class="bcf-hero-inner">
+                <div class="bcf-hero-copy">
+                    <span class="bcf-kicker">BCF 2026</span>
+                    <h1>BRILiaN<br><em>Culture Fest</em></h1>
+                    <p>Registrasi peserta untuk Branch Office Palembang Sriwijaya. Silakan pilih menu yang ingin Anda gunakan.</p>
+                    <div class="bcf-hero-actions">
+                        <a class="bcf-btn bcf-btn-primary" href="#registrasi"><i class="fa-solid fa-pen-to-square me-2"></i>REGISTRASI</a>
+                        <a class="bcf-btn bcf-btn-secondary" href="#peserta"><i class="fa-solid fa-users me-2"></i>CEK DATA PESERTA</a>
                     </div>
-                    <div class="modal-body">
-                        {{-- Quick Search Pekerja --}}
-                        <div class="mb-3 p-2 rounded" style="background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.3);">
-                            <label for="select_pekerja_create" class="form-label text-info small fw-bold">
-                                <i class="bi bi-search me-1"></i> Pilih dari Data Pekerja (Otomatis Isi)
-                            </label>
-                            <select id="select_pekerja_create" class="form-select form-select-sm">
-                                <option value="">-- Pilih Pekerja --</option>
+                </div>
+            </div>
+            <div class="bcf-scroll"><i class="fa-solid fa-arrow-down me-2"></i>Scroll untuk melanjutkan</div>
+        </section>
+
+        <div class="bcf-content">
+            @if (session('success'))
+                <div class="alert alert-success border-0 shadow-sm mb-4">{{ session('success') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="alert alert-danger border-0 shadow-sm mb-4">
+                    <strong>Data belum dapat disimpan.</strong>
+                    <ul class="mb-0 mt-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                </div>
+            @endif
+
+            <div class="bcf-stats">
+                <div class="bcf-stat"><strong>{{ $registrasi->count() }}</strong><span>Total peserta terdaftar</span></div>
+                <div class="bcf-stat"><strong>{{ $registrasi->unique('unit_kerja')->count() }}</strong><span>Unit kerja terwakili</span></div>
+                <div class="bcf-stat"><strong>{{ $registrasi->max('nourut') ?? 0 }}</strong><span>Nomor registrasi terakhir</span></div>
+            </div>
+
+            <section id="registrasi" class="bcf-section">
+                <div class="bcf-card">
+                    <div class="bcf-card-head">
+                        <h2>Form Registrasi Peserta</h2>
+                        <p>Isi data peserta dengan benar. Kolom bertanda <span class="bcf-required">*</span> wajib diisi.</p>
+                    </div>
+                    <form action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
+                        @csrf
+                        <div class="bcf-picker">
+                            <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Pilih dari Data Pekerja</label>
+                            <select id="select_pekerja_create" class="form-select bcf-select mt-1">
+                                <option value="">-- Pilih pekerja untuk mengisi otomatis --</option>
                                 @foreach ($pegawais as $p)
-                                    @php
-                                        $pUkerFormatted = optional($p->uker)->kode_uker
-                                            ? '( ' . $p->uker->kode_uker . ' ) - ' . $p->uker->nama
-                                            : (optional($p->uker)->nama ?? '');
-                                    @endphp
-                                    <option value="{{ $p->id }}"
-                                        data-nama="{{ $p->nama }}"
-                                        data-pn="{{ $p->pn }}"
-                                        data-unit="{{ $pUkerFormatted }}">
-                                        {{ $p->nama }} (PN: {{ $p->pn }}) {{ $pUkerFormatted ? ' — ' . $pUkerFormatted : '' }}
-                                    </option>
+                                    @php $pUkerFormatted = optional($p->uker)->kode_uker ? '( ' . $p->uker->kode_uker . ' ) - ' . $p->uker->nama : (optional($p->uker)->nama ?? ''); @endphp
+                                    <option value="{{ $p->id }}" data-nama="{{ $p->nama }}" data-pn="{{ $p->pn }}" data-unit="{{ $pUkerFormatted }}">{{ $p->nama }} (PN: {{ $p->pn }}){{ $pUkerFormatted ? ' — ' . $pUkerFormatted : '' }}</option>
                                 @endforeach
                             </select>
+                            <div class="bcf-help mt-2">Nama, PN, dan unit kerja akan terisi otomatis jika tersedia.</div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="create_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" name="nama" id="create_nama" class="form-control" placeholder="Masukkan nama" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="create_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
-                                <input type="text" name="pn" id="create_pn" class="form-control" placeholder="Masukkan PN" required>
-                            </div>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label for="create_nama" class="bcf-label">Nama Lengkap <span class="bcf-required">*</span></label><input id="create_nama" name="nama" class="form-control bcf-input" value="{{ old('nama') }}" required></div>
+                            <div class="col-md-6"><label for="create_pn" class="bcf-label">PN (Personal Number) <span class="bcf-required">*</span></label><input id="create_pn" name="pn" class="form-control bcf-input" value="{{ old('pn') }}" required></div>
+                            <div class="col-12"><label for="create_unit_kerja" class="bcf-label">Unit Kerja <span class="bcf-required">*</span></label><select id="create_unit_kerja" name="unit_kerja" class="form-select bcf-select" required><option value="">-- Pilih Unit Kerja --</option>@foreach ($ukers as $uk) @php $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama; @endphp<option value="{{ $ukerFormatted }}" @selected(old('unit_kerja') === $ukerFormatted)>{{ $ukerFormatted }}</option>@endforeach</select></div>
+                            <div class="col-md-4"><label for="create_nourut" class="bcf-label">No Urut</label><input id="create_nourut" type="number" min="1" name="nourut" class="form-control bcf-input" value="{{ old('nourut') }}" placeholder="Otomatis"></div>
+                            <div class="col-md-4"><label for="create_team" class="bcf-label">Team</label><input id="create_team" name="team" class="form-control bcf-input" value="{{ old('team') }}" placeholder="Contoh: Team A"></div>
+                            <div class="col-md-4"><label for="create_warna" class="bcf-label">Warna <span class="bcf-required">*</span></label><select id="create_warna" name="warna" class="form-select bcf-select" required>@foreach ($warnaOptions as $w)<option value="{{ $w }}" @selected(old('warna', 'Biru Muda') === $w)>{{ $w }}</option>@endforeach</select></div>
                         </div>
+                        <div class="d-flex justify-content-end mt-4"><button type="submit" class="bcf-submit"><i class="fa-solid fa-check me-2"></i>Simpan Registrasi</button></div>
+                    </form>
+                </div>
+            </section>
 
-                        <div class="mb-3">
-                            <label for="create_unit_kerja" class="form-label">Unit Kerja <span class="text-danger">*</span></label>
-                            <select name="unit_kerja" id="create_unit_kerja" class="form-select" required>
-                                <option value="">-- Pilih Unit Kerja --</option>
-                                @foreach ($ukers as $uk)
-                                    @php
-                                        $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama;
-                                    @endphp
-                                    <option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="create_nourut" class="form-label">No Urut</label>
-                                <input type="number" name="nourut" id="create_nourut" class="form-control" placeholder="1" min="1">
+            <section id="peserta" class="bcf-section">
+                <div class="bcf-card">
+                    <div class="bcf-card-head"><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>
+                    <div class="bcf-list">
+                        @forelse ($registrasi as $row)
+                            @php $hexColor = $colorHexMap[$row->warna] ?? '#55c7ed'; @endphp
+                            <div class="bcf-row">
+                                <div class="bcf-person"><strong>{{ $row->nama }}</strong><small>{{ $row->pn }} · {{ $row->unit_kerja }}</small></div>
+                                <div class="bcf-meta"><span class="bcf-number">{{ $row->nourut ?: '-' }}</span><span>{{ $row->team ?: 'Tanpa team' }}</span><span class="bcf-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></div>
+                                <div class="bcf-actions"><button type="button" class="bcf-action btn-edit-bcf" title="Edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}" data-team="{{ $row->team }}"><i class="fa-solid fa-pen"></i></button><form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST" class="form-delete-bcf" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="bcf-action delete" title="Hapus"><i class="fa-solid fa-trash"></i></button></form></div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="create_team" class="form-label">Team</label>
-                                <input type="text" name="team" id="create_team" class="form-control" placeholder="Contoh: Team A">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="create_warna" class="form-label">Warna <span class="text-danger">*</span></label>
-                                <select name="warna" id="create_warna" class="form-select" required>
-                                    @foreach ($warnaOptions as $w)
-                                        <option value="{{ $w }}" {{ $w === 'Biru Muda' ? 'selected' : '' }}>{{ $w }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
+                        @empty
+                            <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
+                        @endforelse
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Simpan Data</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
 
-    {{-- Modal Edit --}}
-    <div class="modal fade" id="editBcfModal" tabindex="-1" aria-labelledby="editBcfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form id="editBcfForm" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold" id="editBcfModalLabel"><i class="bi bi-pencil-square me-2"></i>Edit Registrasi BCF</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" name="nama" id="edit_nama" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_pn" class="form-label">PN (Personal Number) <span class="text-danger">*</span></label>
-                                <input type="text" name="pn" id="edit_pn" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="edit_unit_kerja" class="form-label">Unit Kerja <span class="text-danger">*</span></label>
-                            <select name="unit_kerja" id="edit_unit_kerja" class="form-select" required>
-                                <option value="">-- Pilih Unit Kerja --</option>
-                                @foreach ($ukers as $uk)
-                                    @php
-                                        $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama;
-                                    @endphp
-                                    <option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="edit_nourut" class="form-label">No Urut</label>
-                                <input type="number" name="nourut" id="edit_nourut" class="form-control" min="1">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="edit_team" class="form-label">Team</label>
-                                <input type="text" name="team" id="edit_team" class="form-control">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="edit_warna" class="form-label">Warna <span class="text-danger">*</span></label>
-                                <select name="warna" id="edit_warna" class="form-select" required>
-                                    @foreach ($warnaOptions as $w)
-                                        <option value="{{ $w }}">{{ $w }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Update Data</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div class="modal fade bcf-modal" id="editBcfModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="editBcfForm" method="POST">@csrf @method('PUT')<div class="modal-header"><h5 class="modal-title">Edit Data Peserta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-6"><label class="bcf-label">Nama Lengkap</label><input id="edit_nama" name="nama" class="form-control bcf-input" required></div><div class="col-md-6"><label class="bcf-label">PN</label><input id="edit_pn" name="pn" class="form-control bcf-input" required></div><div class="col-12"><label class="bcf-label">Unit Kerja</label><select id="edit_unit_kerja" name="unit_kerja" class="form-select bcf-select" required><option value="">-- Pilih Unit Kerja --</option>@foreach ($ukers as $uk) @php $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama; @endphp<option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>@endforeach</select></div><div class="col-md-4"><label class="bcf-label">No Urut</label><input id="edit_nourut" type="number" min="1" name="nourut" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Team</label><input id="edit_team" name="team" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Warna</label><select id="edit_warna" name="warna" class="form-select bcf-select" required>@foreach ($warnaOptions as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></div></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="bcf-submit">Update Data</button></div></form></div></div>
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto-fill from select pekerja (Data Pekerja)
-            const selectPekerja = document.getElementById('select_pekerja_create');
-            if (selectPekerja) {
-                selectPekerja.addEventListener('change', function() {
-                    const selectedOpt = this.options[this.selectedIndex];
-                    if (selectedOpt && selectedOpt.value !== '') {
-                        document.getElementById('create_nama').value = selectedOpt.dataset.nama || '';
-                        document.getElementById('create_pn').value = selectedOpt.dataset.pn || '';
-                        const unitKerja = selectedOpt.dataset.unit || '';
-                        if (unitKerja) {
-                            const unitSelect = document.getElementById('create_unit_kerja');
-                            for (let i = 0; i < unitSelect.options.length; i++) {
-                                if (unitSelect.options[i].value === unitKerja) {
-                                    unitSelect.selectedIndex = i;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Handle Edit Modal populate
-            const editButtons = document.querySelectorAll('.btn-edit-bcf');
-            const editForm = document.getElementById('editBcfForm');
-            const editNama = document.getElementById('edit_nama');
-            const editPn = document.getElementById('edit_pn');
-            const editUnit = document.getElementById('edit_unit_kerja');
-            const editWarna = document.getElementById('edit_warna');
-            const editNourut = document.getElementById('edit_nourut');
-            const editTeam = document.getElementById('edit_team');
-
-            editButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    editForm.action = `/bcf-registrasi/${id}`;
-                    editNama.value = this.dataset.nama || '';
-                    editPn.value = this.dataset.pn || '';
-                    editUnit.value = this.dataset.unit || '';
-                    editWarna.value = this.dataset.warna || 'Biru Muda';
-                    editNourut.value = this.dataset.nourut || '';
-                    editTeam.value = this.dataset.team || '';
-
-                    const editModal = new bootstrap.Modal(document.getElementById('editBcfModal'));
-                    editModal.show();
-                });
+        document.addEventListener('DOMContentLoaded', function () {
+            const picker = document.getElementById('select_pekerja_create');
+            picker?.addEventListener('change', function () {
+                const option = this.options[this.selectedIndex];
+                if (!option?.value) return;
+                document.getElementById('create_nama').value = option.dataset.nama || '';
+                document.getElementById('create_pn').value = option.dataset.pn || '';
+                const unit = document.getElementById('create_unit_kerja');
+                [...unit.options].forEach(item => { item.selected = item.value === (option.dataset.unit || ''); });
             });
 
-            // Handle Delete confirmation
-            const deleteForms = document.querySelectorAll('.form-delete-bcf');
-            deleteForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const nama = this.dataset.nama;
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Hapus Data?',
-                            text: `Registrasi atas nama ${nama} akan dihapus permanen!`,
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#ef4444',
-                            cancelButtonColor: '#6b7280',
-                            confirmButtonText: 'Ya, Hapus!',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                this.submit();
-                            }
-                        });
-                    } else {
-                        if (confirm(`Hapus registrasi ${nama}?`)) {
-                            this.submit();
-                        }
-                    }
-                });
-            });
+            document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {
+                const data = this.dataset;
+                document.getElementById('editBcfForm').action = `{{ url('/bcf-registrasi') }}/${data.id}`;
+                document.getElementById('edit_nama').value = data.nama || '';
+                document.getElementById('edit_pn').value = data.pn || '';
+                document.getElementById('edit_unit_kerja').value = data.unit || '';
+                document.getElementById('edit_warna').value = data.warna || 'Biru Muda';
+                document.getElementById('edit_nourut').value = data.nourut || '';
+                document.getElementById('edit_team').value = data.team || '';
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editBcfModal')).show();
+            }));
+
+            document.querySelectorAll('.form-delete-bcf').forEach(form => form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const submit = () => form.submit();
+                if (typeof Swal === 'undefined') return confirm(`Hapus registrasi ${form.dataset.nama}?`) && submit();
+                Swal.fire({ title: 'Hapus data peserta?', text: `Registrasi ${form.dataset.nama} akan dihapus.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d85c59', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(result => result.isConfirmed && submit());
+            }));
         });
     </script>
 @endpush
