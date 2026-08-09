@@ -333,6 +333,18 @@
 
 @push('scripts')
     <script>
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        const resetBcfScroll = function () {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        };
+
+        resetBcfScroll();
+        window.addEventListener('load', resetBcfScroll, { once: true });
+        window.addEventListener('pageshow', resetBcfScroll);
+
         document.addEventListener('DOMContentLoaded', function () {
             const ambientCanvas = document.getElementById('bcfAmbientCanvas');
             const ambientHero = document.querySelector('.bcf-hero');
