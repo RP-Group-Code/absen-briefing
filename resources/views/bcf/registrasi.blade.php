@@ -118,6 +118,20 @@
         .bcf-action { width: 36px; height: 36px; border-radius: 9px; border: 1px solid #dce6f0; background: #fff; color: var(--bcf-blue); }
         .bcf-action.delete { color: #d85c59; }
         .bcf-empty { color: var(--bcf-muted); text-align: center; padding: 30px 20px; }
+        .bcf-table-wrap { padding: 0 28px 28px; overflow-x: auto; }
+        .bcf-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--bcf-ink); font-size: .86rem; }
+        .bcf-table th { background: #f4f8fc; color: var(--bcf-muted); font-size: .72rem; font-weight: 800; letter-spacing: .06em; padding: 12px 14px; text-transform: uppercase; white-space: nowrap; }
+        .bcf-table th:first-child { border-radius: 10px 0 0 10px; }
+        .bcf-table th:last-child { border-radius: 0 10px 10px 0; }
+        .bcf-table td { border-bottom: 1px solid #e7eef6; padding: 13px 14px; vertical-align: middle; }
+        .bcf-table tbody tr:last-child td { border-bottom: 0; }
+        .bcf-table tbody tr:hover { background: #f8fbfe; }
+        .bcf-table .bcf-table-name { font-weight: 800; }
+        .bcf-table .bcf-table-uker { color: var(--bcf-muted); max-width: 280px; }
+        .bcf-table .bcf-table-name, .bcf-table .bcf-table-uker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bcf-table-team { font-weight: 700; color: var(--bcf-blue-deep); }
+        .bcf-table-color { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+        .bcf-table-number { display: inline-grid; min-width: 30px; height: 28px; place-items: center; border-radius: 8px; background: #eaf3ff; color: var(--bcf-blue-deep); font-weight: 800; }
         .bcf-modal .modal-content { border: 0; border-radius: 18px; }
         .bcf-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; }
         .bcf-modal .btn-close { filter: brightness(0) invert(1); }
@@ -143,7 +157,20 @@
             .bcf-row { align-items: flex-start; flex-wrap: wrap; }
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
-            .bcf-card-head, .bcf-form-body, .bcf-list { padding-left: 18px; padding-right: 18px; }
+            .bcf-card-head, .bcf-form-body { padding-left: 18px; padding-right: 18px; }
+            .bcf-table-wrap { padding: 0 10px 14px; }
+            .bcf-table { table-layout: fixed; font-size: .68rem; }
+            .bcf-table th { font-size: .59rem; padding: 9px 5px; }
+            .bcf-table td { padding: 9px 5px; }
+            .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 28%; }
+            .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 20%; }
+            .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 18%; }
+            .bcf-table th:nth-child(4), .bcf-table td:nth-child(4) { width: 13%; text-align: center; }
+            .bcf-table th:nth-child(5), .bcf-table td:nth-child(5) { width: 21%; }
+            .bcf-table .bcf-table-uker { max-width: 0; }
+            .bcf-table-color { gap: 3px; }
+            .bcf-table .bcf-dot { width: 9px; height: 9px; }
+            .bcf-table-number { min-width: 23px; height: 23px; }
             .bcf-assignment-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -219,16 +246,28 @@
             <section id="peserta" class="bcf-section">
                 <div class="bcf-card">
                     <div class="bcf-card-head"><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>
-                    <div class="bcf-list">
+                    <div class="bcf-table-wrap">
                         @forelse ($registrasi as $row)
                             @php $hexColor = $colorHexMap[$row->warna] ?? '#55c7ed'; @endphp
-                            <div class="bcf-row">
-                                <div class="bcf-person"><strong>{{ $row->nama }}</strong><small>{{ $row->pn }} · {{ $row->unit_kerja }}</small></div>
-                                <div class="bcf-meta"><span class="bcf-number">{{ $row->nourut ?: '-' }}</span><span>{{ $row->team ?: 'Tanpa team' }}</span><span class="bcf-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></div>
-                                @auth
-                                    <div class="bcf-actions"><button type="button" class="bcf-action btn-edit-bcf" title="Edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}" data-team="{{ $row->team }}"><i class="fa-solid fa-pen"></i></button><form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST" class="form-delete-bcf" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="bcf-action delete" title="Hapus"><i class="fa-solid fa-trash"></i></button></form></div>
-                                @endauth
-                            </div>
+                            @if ($loop->first)
+                                <table class="bcf-table">
+                                    <thead><tr><th>Nama</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th>@auth<th>Aksi</th>@endauth</tr></thead>
+                                    <tbody>
+                            @endif
+                                        <tr>
+                                            <td class="bcf-table-name" title="{{ $row->nama }}">{{ $row->nama }}</td>
+                                            <td class="bcf-table-team">{{ $row->team ?: '-' }}</td>
+                                            <td><span class="bcf-table-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></td>
+                                            <td><span class="bcf-table-number">{{ $row->nourut ?: '-' }}</span></td>
+                                            <td class="bcf-table-uker" title="{{ $row->unit_kerja }}">{{ $row->unit_kerja }}</td>
+                                            @auth
+                                                <td><div class="bcf-actions"><button type="button" class="bcf-action btn-edit-bcf" title="Edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}" data-team="{{ $row->team }}"><i class="fa-solid fa-pen"></i></button><form action="{{ route('bcf.registrasi.destroy', $row->id) }}" method="POST" class="form-delete-bcf" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="bcf-action delete" title="Hapus"><i class="fa-solid fa-trash"></i></button></form></div></td>
+                                            @endauth
+                                        </tr>
+                            @if ($loop->last)
+                                    </tbody>
+                                </table>
+                            @endif
                         @empty
                             <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
                         @endforelse
