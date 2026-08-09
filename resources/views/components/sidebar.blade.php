@@ -119,6 +119,13 @@
                 </ul>
             </div>
         </li>
+        <li class="nav-item">
+            <a href="{{ route('bcf.registrasi.index') }}"
+                class="nav-link {{ request()->routeIs('bcf.registrasi.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="nav-label">BCF Registrasi</span>
+            </a>
+        </li>
         {{-- <li class="nav-item mt-2">
             <a href="{{ route('absen.dashboard') }}"
                 class="nav-link {{ request()->routeIs('absen.*') ? 'active' : '' }}">

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BcfRegistrasiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportPegawaiController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/pegawai/import',[ImportPegawaiController::class, 'store'])->name('pegawai.import.store');
     Route::get('/pegawai/import/template',[ImportPegawaiController::class, 'template'])->name('pegawai.import.template');
     Route::get('/delete-absen/{id}', [InputAbsenController::class, 'destroy'])->name('Delete-Absen');
+
+    Route::get('/bcf-registrasi', [BcfRegistrasiController::class, 'index'])->name('bcf.registrasi.index');
+    Route::post('/bcf-registrasi', [BcfRegistrasiController::class, 'store'])->name('bcf.registrasi.store');
+    Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
+    Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
 });
 
 Route::middleware('guest')->group(function () {
