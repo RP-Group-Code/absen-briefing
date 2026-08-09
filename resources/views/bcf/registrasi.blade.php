@@ -202,7 +202,7 @@
             <div class="bcf-hero-inner">
                 <div class="bcf-hero-copy">
                     <span class="bcf-kicker">BCF 2026</span>
-                    <img class="bcf-hero-logo" src="{{ asset('images/bcf-logo0.png') }}" alt="BRILiaN Culture Fest 2026">
+                    <img class="bcf-hero-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="BRILiaN Culture Fest 2026">
                     <p>Registrasi peserta untuk Branch Office Palembang Sriwijaya. Silakan pilih menu yang ingin Anda gunakan.</p>
                     <div class="bcf-hero-actions">
                         <a class="bcf-btn bcf-btn-primary" href="#registrasi"><i class="fa-solid fa-pen-to-square me-2"></i>REGISTRASI</a>
