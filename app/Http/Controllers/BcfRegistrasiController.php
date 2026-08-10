@@ -202,14 +202,30 @@ class BcfRegistrasiController extends Controller
         return Str::lower(Str::squish((string) $value));
     }
 
-    public function admin()
+    public function admin(Request $request)
     {
-        $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $search = trim((string) $request->input('search', ''));
+        $allRegistrasi = BcfRegistrasi::get(['team']);
 
-        $teamSummary = collect(self::TEAM_OPTIONS)->map(function (array $team) use ($registrasi) {
-            $used = $registrasi->where('team', $team['team'])->count();
+        $registrasi = BcfRegistrasi::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $like = '%' . $search . '%';
+                    $query->where('nama', 'like', $like)
+                        ->orWhere('pn', 'like', $like)
+                        ->orWhere('team', 'like', $like)
+                        ->orWhere('warna', 'like', $like)
+                        ->orWhere('unit_kerja', 'like', $like)
+                        ->orWhere('nourut', 'like', $like);
+                });
+            })
+            ->orderBy('nourut', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        $teamSummary = collect(self::TEAM_OPTIONS)->map(function (array $team) use ($allRegistrasi) {
+            $used = $allRegistrasi->where('team', $team['team'])->count();
 
             return array_merge($team, [
                 'used' => $used,
@@ -217,7 +233,7 @@ class BcfRegistrasiController extends Controller
             ]);
         });
 
-        return view('bcf.admin', compact('registrasi', 'teamSummary'));
+        return view('bcf.admin', compact('registrasi', 'teamSummary', 'search'));
     }
 
     public function update(Request $request, $id)

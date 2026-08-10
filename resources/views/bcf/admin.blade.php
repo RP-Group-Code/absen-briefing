@@ -47,6 +47,12 @@
         .admin-card-head { padding: 22px 25px 16px; }
         .admin-card-head h2 { margin: 0 0 5px; font-size: 1.25rem; font-weight: 800; }
         .admin-card-head p { margin: 0; color: var(--admin-muted); font-size: .86rem; }
+        .admin-searchbar { display: flex; gap: 8px; margin: 0 25px 16px; }
+        .admin-searchbar input { flex: 1; min-width: 0; height: 42px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 8px 12px; color: var(--admin-ink); }
+        .admin-searchbar input:focus { border-color: #55c7ed; box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); outline: 0; }
+        .admin-search-submit, .admin-search-reset { display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; font-size: .78rem; font-weight: 800; padding: 0 14px; text-decoration: none; }
+        .admin-search-submit { border: 0; background: var(--admin-blue); color: #fff; }
+        .admin-search-reset { border: 1px solid #d8e2ee; color: var(--admin-muted); background: #fff; }
         .admin-table-wrap { overflow-x: auto; padding: 0 25px 25px; }
         .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .82rem; }
         .admin-table th { background: #f4f8fc; color: var(--admin-muted); font-size: .68rem; letter-spacing: .06em; padding: 11px 12px; text-align: left; text-transform: uppercase; white-space: nowrap; }
@@ -66,6 +72,12 @@
         .admin-input { min-height: 44px; border: 1px solid #d8e2ee; border-radius: 9px; }
         .admin-input:focus { border-color: #55c7ed; box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); }
         .admin-save { border: 0; border-radius: 9px; background: var(--admin-blue); color: #fff; font-weight: 800; padding: 11px 18px; }
+        .admin-pagination { display: flex; justify-content: flex-end; padding: 0 25px 22px; }
+        .admin-pagination nav { margin: 0; }
+        .admin-pagination .pagination { margin: 0; gap: 4px; }
+        .admin-pagination .page-link { border: 1px solid #d8e2ee; border-radius: 7px; color: var(--admin-deep); font-size: .76rem; }
+        .admin-pagination .page-item.active .page-link { border-color: var(--admin-blue); background: var(--admin-blue); color: #fff; }
+        .admin-pagination .page-item.disabled .page-link { color: #a4afbd; }
         @media (max-width: 700px) {
             .admin-page { padding: 18px 10px 45px; }
             .admin-head { align-items: flex-start; flex-direction: column; padding: 20px; }
@@ -80,10 +92,14 @@
             .admin-card-head { padding: 18px 15px 13px; }
             .admin-card-head h2 { font-size: 1.05rem; }
             .admin-card-head p { font-size: .74rem; }
+            .admin-searchbar { margin: 0 15px 12px; }
+            .admin-searchbar input { height: 38px; font-size: .72rem; }
+            .admin-search-submit, .admin-search-reset { font-size: .68rem; padding: 0 10px; }
             .admin-table-wrap { padding: 0 10px 12px; }
             .admin-table { min-width: 720px; font-size: .7rem; }
             .admin-table th { font-size: .59rem; padding: 8px 7px; }
             .admin-table td { padding: 8px 7px; }
+            .admin-pagination { justify-content: center; padding: 0 10px 16px; }
         }
     </style>
 @endpush
@@ -110,6 +126,11 @@
 
             <section class="admin-card">
                 <div class="admin-card-head"><h2>Daftar Peserta</h2><p>Perubahan team otomatis memperbarui hitungan kuota di atas.</p></div>
+                <form method="GET" action="{{ route('bcf.registrasi.admin') }}" class="admin-searchbar">
+                    <input type="search" name="search" value="{{ $search }}" placeholder="Cari nama, PN, team, warna, no urut, atau Uker..." autocomplete="off">
+                    <button type="submit" class="admin-search-submit"><i class="fa-solid fa-magnifying-glass me-1"></i>Cari</button>
+                    @if ($search !== '')<a href="{{ route('bcf.registrasi.admin') }}" class="admin-search-reset">Reset</a>@endif
+                </form>
                 <div class="admin-table-wrap">
                     <table class="admin-table"><thead><tr><th>Nama</th><th>PN</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th><th>Aksi</th></tr></thead><tbody>
                         @forelse ($registrasi as $row)
@@ -119,6 +140,9 @@
                         @endforelse
                     </tbody></table>
                 </div>
+                @if ($registrasi->hasPages())
+                    <div class="admin-pagination">{{ $registrasi->onEachSide(1)->links('pagination::bootstrap-5') }}</div>
+                @endif
             </section>
         </div>
     </main>
