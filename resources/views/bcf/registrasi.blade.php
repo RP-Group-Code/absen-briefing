@@ -250,6 +250,7 @@
                     </div>
                     <form id="createBcfForm" action="{{ route('bcf.registrasi.store') }}" method="POST" class="bcf-form-body">
                         @csrf
+                        <input type="hidden" name="assignment_token" value="{{ $assignmentToken }}">
                         <div class="bcf-picker">
                             <div id="dropdownEntryWrap">
                                 <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari Nama / PN Peserta <span class="bcf-required">*</span></label>

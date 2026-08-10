@@ -6,9 +6,11 @@ use App\Models\BcfRegistrasi;
 use App\Models\Pegawai;
 use App\Models\Uker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Encryption\DecryptException;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class BcfRegistrasiController extends Controller
@@ -51,14 +53,18 @@ class BcfRegistrasiController extends Controller
         $nextTeam = $this->nextTeam();
         $nextNoUrut = (BcfRegistrasi::max('nourut') ?? 0) + 1;
         $registeredNames = $registrasi->pluck('nama')->all();
+        $assignmentToken = $nextTeam
+            ? Crypt::encryptString(json_encode(['team' => $nextTeam['team'], 'warna' => $nextTeam['warna']]))
+            : null;
 
-        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames'));
+        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
+            'assignment_token' => 'nullable|string',
         ], [
             'nama.required' => 'Nama wajib diisi.',
         ]);
@@ -78,7 +84,10 @@ class BcfRegistrasiController extends Controller
             throw ValidationException::withMessages(['nama' => 'Peserta ini sudah melakukan registrasi.']);
         }
 
-        $team = $this->nextTeam();
+        $team = $this->teamFromToken($validated['assignment_token'] ?? null);
+        if (!$team || BcfRegistrasi::where('team', $team['team'])->count() >= $team['capacity']) {
+            $team = $this->nextTeam();
+        }
         if (!$team) {
             throw ValidationException::withMessages(['nama' => 'Kuota seluruh team BCF sudah penuh.']);
         }
@@ -101,13 +110,33 @@ class BcfRegistrasiController extends Controller
 
     private function nextTeam(): ?array
     {
+        $availableTeams = [];
+
         foreach (self::TEAM_OPTIONS as $team) {
             if (BcfRegistrasi::where('team', $team['team'])->count() < $team['capacity']) {
-                return $team;
+                $availableTeams[] = $team;
             }
         }
 
-        return null;
+        return $availableTeams === [] ? null : $availableTeams[array_rand($availableTeams)];
+    }
+
+    private function teamFromToken(?string $token): ?array
+    {
+        if (blank($token)) {
+            return null;
+        }
+
+        try {
+            $payload = json_decode(Crypt::decryptString($token), true, 512, JSON_THROW_ON_ERROR);
+        } catch (DecryptException|\JsonException) {
+            return null;
+        }
+
+        return collect(self::TEAM_OPTIONS)->first(function (array $team) use ($payload) {
+            return $team['team'] === ($payload['team'] ?? null)
+                && $team['warna'] === ($payload['warna'] ?? null);
+        });
     }
 
     private function bcfWorkers(): array
