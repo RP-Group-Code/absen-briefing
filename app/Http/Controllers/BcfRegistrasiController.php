@@ -103,9 +103,13 @@ class BcfRegistrasiController extends Controller
             'team' => $team['team'],
         ]);
 
-        Alert::success('Berhasil Tambah Data', 'Data registrasi BCF berhasil disimpan.');
-
-        return redirect()->route('bcf.registrasi.index');
+        return redirect()->route('bcf.registrasi.index')->with('bcf_assignment', [
+            'nama' => $worker['nama'],
+            'nourut' => $nourut,
+            'warna' => $team['warna'],
+            'team' => $team['team'],
+            'penanggung_jawab' => $team['penanggung_jawab'],
+        ]);
     }
 
     private function nextTeam(): ?array

@@ -327,6 +327,13 @@
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignmentBcfModalLabel"><i class="fa-solid fa-circle-check me-2"></i>Konfirmasi Registrasi</h5></div><div class="modal-body"><p class="assignment-lead mb-0">Data team peserta akan disimpan sebagai berikut:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong id="assignment_nourut">{{ $nextNoUrut }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong id="assignment_warna">{{ $nextTeam['warna'] ?? '-' }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong id="assignment_team">{{ $nextTeam['team'] ?? 'Kuota penuh' }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong id="assignment_pic">{{ $nextTeam['penanggung_jawab'] ?? '-' }}</strong></div></div><div class="modal-footer"><button type="button" id="confirmAssignmentButton" class="bcf-submit"><i class="fa-solid fa-check me-2"></i>Konfirmasi &amp; Simpan</button></div></div></div>
     </div>
 
+    @if (session('bcf_assignment'))
+        @php($savedAssignment = session('bcf_assignment'))
+        <div class="modal fade bcf-assignment-modal" id="registrationResultModal" tabindex="-1" aria-labelledby="registrationResultModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="registrationResultModalLabel"><i class="fa-solid fa-star me-2"></i>Registrasi Berhasil</h5></div><div class="modal-body"><p class="assignment-lead mb-1">{{ $savedAssignment['nama'] }}</p><p class="assignment-lead mb-3">Team random yang Anda dapatkan:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong>{{ $savedAssignment['nourut'] }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong>{{ $savedAssignment['warna'] }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong>{{ $savedAssignment['team'] }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong>{{ $savedAssignment['penanggung_jawab'] }}</strong></div></div><div class="modal-footer"><button type="button" class="bcf-submit" data-bs-dismiss="modal"><i class="fa-solid fa-check me-2"></i>Tutup</button></div></div></div>
+        </div>
+    @endif
+
     <div class="modal fade bcf-modal" id="editBcfModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="editBcfForm" method="POST">@csrf @method('PUT')<div class="modal-header"><h5 class="modal-title">Edit Data Peserta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-6"><label class="bcf-label">Nama Lengkap</label><input id="edit_nama" name="nama" class="form-control bcf-input" required></div><div class="col-md-6"><label class="bcf-label">PN</label><input id="edit_pn" name="pn" class="form-control bcf-input" required></div><div class="col-12"><label class="bcf-label">Unit Kerja</label><select id="edit_unit_kerja" name="unit_kerja" class="form-select bcf-select" required><option value="">-- Pilih Unit Kerja --</option>@foreach ($ukers as $uk) @php $ukerFormatted = $uk->kode_uker ? '( ' . $uk->kode_uker . ' ) - ' . $uk->nama : $uk->nama; @endphp<option value="{{ $ukerFormatted }}">{{ $ukerFormatted }}</option>@endforeach</select></div><div class="col-md-4"><label class="bcf-label">No Urut</label><input id="edit_nourut" type="number" min="1" name="nourut" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Team</label><input id="edit_team" name="team" class="form-control bcf-input"></div><div class="col-md-4"><label class="bcf-label">Warna</label><select id="edit_warna" name="warna" class="form-select bcf-select" required>@foreach ($warnaOptions as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></div></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="bcf-submit">Update Data</button></div></form></div></div>
     </div>
@@ -511,6 +518,11 @@
                 window.addEventListener('resize', resizeAmbient, { passive: true });
                 animationFrame = window.requestAnimationFrame(drawAmbient);
                 window.addEventListener('pagehide', () => window.cancelAnimationFrame(animationFrame), { once: true });
+            }
+
+            const registrationResultModal = document.getElementById('registrationResultModal');
+            if (registrationResultModal) {
+                window.setTimeout(() => bootstrap.Modal.getOrCreateInstance(registrationResultModal).show(), 250);
             }
 
             const picker = document.getElementById('select_pekerja_create');
