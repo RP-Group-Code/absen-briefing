@@ -328,7 +328,9 @@
     </div>
 
     @if (session('bcf_assignment'))
-        @php($savedAssignment = session('bcf_assignment'))
+        @php
+            $savedAssignment = session('bcf_assignment');
+        @endphp
         <div class="modal fade bcf-assignment-modal" id="registrationResultModal" tabindex="-1" aria-labelledby="registrationResultModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="registrationResultModalLabel"><i class="fa-solid fa-star me-2"></i>Registrasi Berhasil</h5></div><div class="modal-body"><p class="assignment-lead mb-1">{{ $savedAssignment['nama'] }}</p><p class="assignment-lead mb-3">Team random yang Anda dapatkan:</p><div class="bcf-assignment-grid"><div class="bcf-assignment-item"><small>No Urut</small><strong>{{ $savedAssignment['nourut'] }}</strong></div><div class="bcf-assignment-item"><small>Warna</small><strong>{{ $savedAssignment['warna'] }}</strong></div><div class="bcf-assignment-item"><small>Team</small><strong>{{ $savedAssignment['team'] }}</strong></div></div><div class="bcf-assignment-note"><i class="fa-solid fa-user-tie me-2"></i>Penanggung jawab: <strong>{{ $savedAssignment['penanggung_jawab'] }}</strong></div></div><div class="modal-footer"><button type="button" class="bcf-submit" data-bs-dismiss="modal"><i class="fa-solid fa-check me-2"></i>Tutup</button></div></div></div>
         </div>
