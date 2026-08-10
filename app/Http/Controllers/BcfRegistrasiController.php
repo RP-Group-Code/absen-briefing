@@ -202,6 +202,24 @@ class BcfRegistrasiController extends Controller
         return Str::lower(Str::squish((string) $value));
     }
 
+    public function admin()
+    {
+        $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $teamSummary = collect(self::TEAM_OPTIONS)->map(function (array $team) use ($registrasi) {
+            $used = $registrasi->where('team', $team['team'])->count();
+
+            return array_merge($team, [
+                'used' => $used,
+                'remaining' => max(0, $team['capacity'] - $used),
+            ]);
+        });
+
+        return view('bcf.admin', compact('registrasi', 'teamSummary'));
+    }
+
     public function update(Request $request, $id)
     {
         $bcf = BcfRegistrasi::findOrFail($id);
@@ -212,20 +230,34 @@ class BcfRegistrasiController extends Controller
             'unit_kerja' => 'required|string|max:255',
             'warna' => ['required', Rule::in(self::WARNA_OPTIONS)],
             'nourut' => 'nullable|integer',
-            'team' => 'nullable|string|max:100',
+            'team' => ['required', Rule::in(collect(self::TEAM_OPTIONS)->pluck('team')->all())],
         ], [
             'nama.required' => 'Nama wajib diisi.',
             'pn.required' => 'PN wajib diisi.',
             'unit_kerja.required' => 'Unit kerja wajib dipilih.',
             'warna.required' => 'Warna wajib dipilih.',
             'warna.in' => 'Pilihan warna tidak valid.',
+            'team.required' => 'Team wajib dipilih.',
+            'team.in' => 'Team tidak valid.',
         ]);
+
+        $team = collect(self::TEAM_OPTIONS)->firstWhere('team', $validated['team']);
+        if ($team['warna'] !== $validated['warna']) {
+            throw ValidationException::withMessages(['warna' => "Warna untuk {$team['team']} harus {$team['warna']}."]);
+        }
+
+        $teamUsed = BcfRegistrasi::where('team', $team['team'])
+            ->where('id', '!=', $bcf->id)
+            ->count();
+        if ($teamUsed >= $team['capacity']) {
+            throw ValidationException::withMessages(['team' => "Kuota team {$team['team']} sudah penuh."]);
+        }
 
         $bcf->update($validated);
 
         Alert::success('Berhasil Diperbarui', 'Data registrasi BCF berhasil diperbarui.');
 
-        return redirect()->route('bcf.registrasi.index');
+        return redirect()->route('bcf.registrasi.admin');
     }
 
     public function destroy($id)
@@ -235,6 +267,6 @@ class BcfRegistrasiController extends Controller
 
         Alert::success('Berhasil Dihapus', 'Data registrasi BCF berhasil dihapus.');
 
-        return redirect()->route('bcf.registrasi.index');
+        return redirect()->route('bcf.registrasi.admin');
     }
 }

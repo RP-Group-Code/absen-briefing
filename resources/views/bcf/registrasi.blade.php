@@ -80,6 +80,9 @@
         .bcf-section { scroll-margin-top: 24px; margin-bottom: 34px; }
         .bcf-card { background: #fff; border: 1px solid #e1e9f3; border-radius: 18px; box-shadow: 0 12px 35px rgba(18, 59, 108, .07); overflow: hidden; }
         .bcf-card-head { border-top: 5px solid var(--bcf-blue); padding: 26px 28px 20px; }
+        .bcf-card-head-with-action { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .bcf-admin-link { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #b9cfe8; border-radius: 9px; background: #fff; color: var(--bcf-blue-deep); font-size: .76rem; font-weight: 800; padding: 9px 12px; text-decoration: none; white-space: nowrap; }
+        .bcf-admin-link:hover { background: #edf8fd; border-color: var(--bcf-cyan); color: var(--bcf-blue-deep); }
         .bcf-card-head h2 { margin: 0 0 7px; font-size: 1.45rem; font-weight: 800; }
         .bcf-card-head p { margin: 0; color: var(--bcf-muted); }
         .bcf-form-body { padding: 0 28px 28px; }
@@ -181,6 +184,8 @@
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
             .bcf-card-head, .bcf-form-body { padding-left: 18px; padding-right: 18px; }
+            .bcf-card-head-with-action { align-items: flex-start; }
+            .bcf-card-head-with-action .bcf-admin-link { font-size: .65rem; padding: 7px 8px; }
             .bcf-section#peserta .bcf-card-head { padding-top: 18px; padding-bottom: 16px; }
             .bcf-section#peserta .bcf-card-head h2 { font-size: 1.2rem; margin-bottom: 4px; }
             .bcf-section#peserta .bcf-card-head p { font-size: .74rem; }
@@ -284,7 +289,7 @@
 
             <section id="peserta" class="bcf-section">
                 <div class="bcf-card p-0 m-0">
-                    <div class="bcf-card-head"><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>
+                    <div class="bcf-card-head bcf-card-head-with-action"><div><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>@auth<a href="{{ route('bcf.registrasi.admin') }}" class="bcf-admin-link"><i class="fa-solid fa-shield-halved"></i> Portal Admin</a>@endauth</div>
                     <div class="bcf-table-wrap">
                         <div class="bcf-table-toolbar">
                             <label class="bcf-table-search" for="participantSearch">
