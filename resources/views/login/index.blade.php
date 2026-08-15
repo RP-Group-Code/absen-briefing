@@ -426,7 +426,6 @@
                 <img src="{{ asset('images/LogoPPOIT.png') }}" alt="Logo PPOIT">
             </div>
             <div class="brand-title">SISTEM SWJ #342</div>
-            <div class="brand-sub">Masuk ke akun Anda</div>
         </div>
 
         {{-- Body --}}

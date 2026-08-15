@@ -56,11 +56,14 @@
             background: linear-gradient(180deg, rgba(2, 31, 86, .22), transparent 45%, rgba(2, 28, 83, .38));
         }
         .bcf-ambient-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: .68; pointer-events: none; }
-        .bcf-brand, .bcf-hero-inner, .bcf-scroll { z-index: 1; }
-        .bcf-brand, .bcf-hero-inner, .bcf-scroll { position: relative; }
+        .bcf-brand, .bcf-hero-inner, .bcf-scroll, .bcf-hero-admin { z-index: 1; }
+        .bcf-brand, .bcf-hero-inner, .bcf-scroll, .bcf-hero-admin { position: relative; }
         .bcf-brand { position: absolute; }
         .bcf-hero-inner { width: min(1120px, calc(100% - 40px)); margin: auto; text-align: center; padding: 112px 0 92px; }
         .bcf-brand { position: absolute; top: 28px; left: max(28px, 5%); color: #fff; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 1.15rem; text-align: left; }
+        .bcf-hero-admin { position: absolute; top: 28px; right: max(28px, 5%); }
+        .bcf-hero-admin-link { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.28); border-radius: 12px; background: rgba(255,255,255,.12); color: #fff; font-size: .78rem; font-weight: 800; letter-spacing: .04em; padding: 11px 14px; text-decoration: none; backdrop-filter: blur(10px); box-shadow: 0 10px 28px rgba(4, 20, 59, .18); }
+        .bcf-hero-admin-link:hover { background: rgba(255,255,255,.18); color: #fff; border-color: rgba(255,255,255,.4); }
         .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .76rem; letter-spacing: .18em; margin-top: 10px; }
         .bcf-hero-copy { max-width: 650px; margin: 0 auto; color: #fff; }
         .bcf-kicker { display: inline-flex; color: rgba(255, 215, 0, .95); font-weight: 800; font-size: clamp(.95rem, 2vw, 1.35rem); letter-spacing: .08em; text-transform: uppercase; }
@@ -179,6 +182,8 @@
         @media (max-width: 700px) {
             .bcf-brand { top: 24px; left: 20px; font-size: 1rem; }
             .bcf-brand span { font-size: .62rem; letter-spacing: .12em; margin-top: 7px; }
+            .bcf-hero-admin { top: 20px; right: 20px; }
+            .bcf-hero-admin-link { font-size: .62rem; padding: 8px 10px; gap: 6px; }
             .bcf-hero-inner { width: min(100% - 28px, 540px); }
             .bcf-hero-inner { padding-top: 132px; padding-bottom: 112px; }
             .bcf-hero-logo { width: min(430px, 88vw); max-height: 270px; margin-top: 25px; }
@@ -234,6 +239,13 @@
         <section class="bcf-hero" aria-label="BCF Registration">
             <canvas id="bcfAmbientCanvas" class="bcf-ambient-canvas" aria-hidden="true"></canvas>
             <div class="bcf-brand">BRI <span>Branch Office Palembang Sriwijaya</span></div>
+            @auth
+                <div class="bcf-hero-admin">
+                    <a href="{{ route('bcf.registrasi.admin') }}" class="bcf-hero-admin-link">
+                        <i class="fa-solid fa-shield-halved"></i> Portal Admin
+                    </a>
+                </div>
+            @endauth
             <div class="bcf-hero-inner">
                 <div class="bcf-hero-copy">
                     <span class="bcf-kicker">BCF BO SRIWIJAYA 2026</span>
