@@ -580,9 +580,12 @@
                                     <label class="undi-label">Unit Kerja</label>
                                     <input class="undi-input" name="unit_kerja">
                                 </div>
-                                <div class="full">
-                                    <label class="undi-label">Keterangan</label>
-                                    <textarea class="undi-textarea" name="keterangan"></textarea>
+                                <div>
+                                    <label class="undi-label">Status</label>
+                                    <select class="undi-select" name="status">
+                                        <option value="Aktif" selected>Aktif</option>
+                                        <option value="Nonaktif">Nonaktif</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="undi-actions">
@@ -594,7 +597,7 @@
                             @csrf
                             <label class="undi-label">Import Peserta dari Excel</label>
                             <input class="undi-input" type="file" name="file" accept=".xlsx,.xls,.csv" required>
-                            <p class="undi-help">Header yang didukung: `nama`, `pn`, `unit_kerja/uker`, `keterangan`.</p>
+                            <p class="undi-help">Header yang didukung: `nama`, `pn`, `unit_kerja/uker`, `status`.</p>
                             <div class="undi-actions">
                                 <button class="undi-btn undi-btn-light" type="submit"><i class="fa-solid fa-file-arrow-up"></i> Import Peserta</button>
                             </div>
@@ -608,10 +611,10 @@
                                 <tbody>
                                     @forelse ($peserta as $row)
                                         <tr>
-                                            <td><strong>{{ $row->nama }}</strong><br><span style="color:var(--undi-muted)">{{ $row->keterangan ?: '-' }}</span></td>
+                                            <td><strong>{{ $row->nama }}</strong></td>
                                             <td>{{ $row->pn ?: '-' }}</td>
                                             <td>{{ $row->unit_kerja ?: '-' }}</td>
-                                            <td>{{ $row->is_active ? 'Aktif' : 'Nonaktif' }}</td>
+                                            <td>{{ $row->status ?: '-' }}</td>
                                         </tr>
                                     @empty
                                         <tr><td colspan="4">Belum ada peserta.</td></tr>

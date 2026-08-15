@@ -59,7 +59,7 @@ class BcfUndianController extends Controller
             ->get();
 
         $pesertaPool = PesertaUndi::query()
-            ->where('is_active', true)
+            ->where('status', 'Aktif')
             ->whereDoesntHave('pemenang')
             ->inRandomOrder()
             ->get(['nama', 'pn', 'unit_kerja']);
@@ -80,10 +80,15 @@ class BcfUndianController extends Controller
             'nama' => 'required|string|max:255',
             'pn' => 'nullable|string|max:100',
             'unit_kerja' => 'nullable|string|max:255',
-            'keterangan' => 'nullable|string|max:1000',
+            'status' => 'nullable|string|max:255',
         ]);
 
-        PesertaUndi::create($validated + ['is_active' => true]);
+        PesertaUndi::create([
+            'nama' => $validated['nama'],
+            'pn' => $validated['pn'] ?? null,
+            'unit_kerja' => $validated['unit_kerja'] ?? null,
+            'status' => $this->normalizePesertaStatus($validated['status'] ?? null),
+        ]);
 
         Alert::success('Peserta Ditambahkan', 'Peserta undian berhasil disimpan.');
 
@@ -110,8 +115,7 @@ class BcfUndianController extends Controller
                 'nama' => $nama,
                 'pn' => $this->nullableString($this->cellValue($row, $headers, ['pn', 'nip'])),
                 'unit_kerja' => $this->nullableString($this->cellValue($row, $headers, ['unit kerja', 'unit_kerja', 'uker'])),
-                'keterangan' => $this->nullableString($this->cellValue($row, $headers, ['keterangan', 'catatan'])),
-                'is_active' => true,
+                'status' => $this->normalizePesertaStatus($this->nullableString($this->cellValue($row, $headers, ['status']))),
             ]);
             $created++;
         }
@@ -212,7 +216,7 @@ class BcfUndianController extends Controller
 
         $winner = DB::transaction(function () use ($validated) {
             $pesertaPool = PesertaUndi::query()
-                ->where('is_active', true)
+                ->where('status', 'Aktif')
                 ->whereDoesntHave('pemenang')
                 ->lockForUpdate()
                 ->get();
@@ -277,7 +281,7 @@ class BcfUndianController extends Controller
     {
         $dashboard = [
             'total_peserta' => PesertaUndi::count(),
-            'peserta_aktif' => PesertaUndi::where('is_active', true)->count(),
+            'peserta_aktif' => PesertaUndi::where('status', 'Aktif')->count(),
             'total_hadiah' => HadiahUndi::sum('stock_total'),
             'sisa_hadiah' => HadiahUndi::sum('stock_sisa'),
             'total_pemenang' => Pemenang::count(),
@@ -291,7 +295,7 @@ class BcfUndianController extends Controller
             ->get();
 
         $pesertaTersedia = PesertaUndi::query()
-            ->where('is_active', true)
+            ->where('status', 'Aktif')
             ->whereDoesntHave('pemenang')
             ->count();
 
@@ -365,6 +369,21 @@ class BcfUndianController extends Controller
         $normalized = Str::lower(Str::of($status)->squish()->value());
 
         return ! in_array($normalized, ['habis', 'nonaktif', 'tidak tersedia', 'false', '0'], true);
+    }
+
+    private function normalizePesertaStatus(?string $status): string
+    {
+        $normalized = Str::lower(Str::of((string) ($status ?? ''))->squish()->value());
+
+        if ($normalized === '' || in_array($normalized, ['aktif', 'active', '1', 'true'], true)) {
+            return 'Aktif';
+        }
+
+        if (in_array($normalized, ['nonaktif', 'inactive', '0', 'false'], true)) {
+            return 'Nonaktif';
+        }
+
+        return trim((string) $status);
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed

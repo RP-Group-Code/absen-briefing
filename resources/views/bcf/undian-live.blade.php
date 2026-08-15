@@ -42,10 +42,10 @@
 
         .live-stage {
             position: relative;
-            min-height: 1180px;
+            min-height: 980px;
             border: 1px solid rgba(255, 211, 28, 0.08);
             border-radius: 28px;
-            padding: 24px 28px 34px;
+            padding: 22px 28px 28px;
             background:
                 radial-gradient(circle at center, rgba(255, 211, 28, 0.12), transparent 36%),
                 linear-gradient(180deg, rgba(11, 11, 19, 0.86), rgba(17, 7, 29, 0.92));
@@ -110,17 +110,17 @@
         .live-headline {
             position: relative;
             z-index: 2;
-            margin-top: 34px;
+            margin-top: 20px;
             flex: 1;
             text-align: center;
         }
 
         .live-headline h1 {
             margin: 0;
-            font-size: clamp(2.8rem, 5.2vw, 5.9rem);
-            line-height: .96;
+            font-size: clamp(2.3rem, 4.4vw, 4.85rem);
+            line-height: .98;
             font-weight: 900;
-            letter-spacing: .03em;
+            letter-spacing: .02em;
             text-transform: uppercase;
             color: var(--live-gold);
             text-shadow: 0 0 30px rgba(255, 211, 28, 0.22);
@@ -128,21 +128,21 @@
         }
 
         .live-subtitle {
-            margin-top: 18px;
+            margin-top: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
             color: var(--live-cyan);
-            font-size: 1rem;
-            letter-spacing: .34em;
+            font-size: .88rem;
+            letter-spacing: .26em;
             text-transform: uppercase;
             white-space: nowrap;
         }
 
         .live-brand-logo {
-            margin: 24px auto 0;
-            width: min(100%, 340px);
+            margin: 18px auto 0;
+            width: min(100%, 250px);
             display: block;
             filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
         }
@@ -164,13 +164,13 @@
             position: relative;
             z-index: 2;
             width: min(100%, 1120px);
-            margin: 58px auto 0;
+            margin: 34px auto 0;
             z-index: 2;
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.28);
             background: linear-gradient(180deg, rgba(45, 6, 68, 0.86), rgba(12, 10, 20, 0.92));
             box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
-            padding: 42px 34px 34px;
+            padding: 34px 30px 28px;
             text-align: center;
         }
 
@@ -189,8 +189,8 @@
         }
 
         .live-winner-name {
-            margin: 22px 0 10px;
-            font-size: clamp(4rem, 7vw, 7.8rem);
+            margin: 18px 0 8px;
+            font-size: clamp(3.2rem, 5.8vw, 6.4rem);
             line-height: .94;
             font-weight: 900;
             letter-spacing: .03em;
@@ -200,8 +200,8 @@
 
         .live-winner-meta {
             color: rgba(255, 255, 255, 0.78);
-            font-size: 1rem;
-            letter-spacing: .18em;
+            font-size: .9rem;
+            letter-spacing: .14em;
             text-transform: uppercase;
         }
 
@@ -379,7 +379,7 @@
 
             .live-winner-box {
                 width: 100%;
-                margin-top: 38px;
+                margin-top: 28px;
             }
 
             .live-watermark {
@@ -445,7 +445,6 @@
 
             <div class="live-headline">
                 <h1>Undian BCF BO Sriwijaya</h1>
-                <div class="live-subtitle">Sistem Undian Digital Boswj-App</div>
                 <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
             </div>
 

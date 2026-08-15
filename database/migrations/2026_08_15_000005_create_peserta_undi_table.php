@@ -13,8 +13,7 @@ return new class extends Migration
             $table->string('nama');
             $table->string('pn')->nullable()->index();
             $table->string('unit_kerja')->nullable();
-            $table->text('keterangan')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->string('status');
             $table->timestamps();
         });
     }

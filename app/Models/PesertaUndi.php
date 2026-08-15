@@ -13,13 +13,19 @@ class PesertaUndi extends Model
         'nama',
         'pn',
         'unit_kerja',
-        'keterangan',
-        'is_active',
+        'status',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    public function getIsActiveAttribute(): bool
+    {
+        $status = trim((string) $this->status);
+
+        if ($status === '') {
+            return false;
+        }
+
+        return ! in_array(mb_strtolower($status), ['nonaktif', 'inactive', '0'], true);
+    }
 
     public function pemenang(): HasMany
     {
