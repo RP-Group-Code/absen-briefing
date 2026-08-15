@@ -144,18 +144,19 @@
         .bcf-table .bcf-table-name, .bcf-table .bcf-table-uker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .bcf-table-team { font-weight: 700; color: var(--bcf-blue-deep); }
         .bcf-table-color { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-        .bcf-table-number { color: var(--bcf-ink); font-weight: 800; }
-        .bcf-table-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+        .bcf-table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
         .bcf-table-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--bcf-muted); font-size: .8rem; }
         .bcf-per-page { display: inline-flex; align-items: center; gap: 8px; }
         .bcf-per-page select { min-width: 84px; height: 38px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 6px 10px; color: var(--bcf-ink); background: #fff; }
-        .bcf-table-search { position: relative; width: min(360px, 100%); }
+        .bcf-searchbar { display: flex; align-items: center; gap: 10px; width: 100%; }
+        .bcf-table-search { position: relative; flex: 1; min-width: 0; }
         .bcf-table-search i { position: absolute; top: 50%; left: 13px; color: var(--bcf-muted); transform: translateY(-50%); pointer-events: none; }
         .bcf-table-search input { width: 100%; height: 42px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 8px 13px 8px 38px; color: var(--bcf-ink); outline: none; }
         .bcf-table-search input:focus { border-color: var(--bcf-cyan); box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); }
         .bcf-table-search input::placeholder { color: #8996a8; }
-        .bcf-table-empty-search { color: var(--bcf-muted); font-size: .84rem; padding: 18px; text-align: center; }
-        .bcf-table-empty-search[hidden] { display: none; }
+        .bcf-search-submit, .bcf-search-reset { display: inline-flex; align-items: center; justify-content: center; height: 42px; border-radius: 10px; font-size: .78rem; font-weight: 800; text-decoration: none; padding: 0 18px; white-space: nowrap; }
+        .bcf-search-submit { border: 0; background: var(--bcf-blue); color: #fff; }
+        .bcf-search-reset { border: 1px solid #d8e2ee; color: var(--bcf-muted); background: #fff; }
         .bcf-pagination { display: flex; justify-content: flex-end; padding-top: 18px; }
         .bcf-pagination nav { margin: 0; }
         .bcf-pagination .pagination { margin: 0; gap: 4px; }
@@ -194,25 +195,31 @@
             .bcf-meta { width: 100%; flex-wrap: wrap; gap: 9px 14px; }
             .bcf-actions { margin-left: auto; }
             .bcf-card-head, .bcf-form-body { padding-left: 18px; padding-right: 18px; }
-            .bcf-card-head-with-action { align-items: flex-start; }
-            .bcf-card-head-with-action .bcf-admin-link { font-size: .65rem; padding: 7px 8px; }
+            .bcf-card-head-with-action { align-items: flex-start; gap: 10px; }
+            .bcf-card-head-with-action .bcf-admin-link { font-size: .62rem; padding: 6px 7px; }
             .bcf-section#peserta .bcf-card-head { padding-top: 18px; padding-bottom: 16px; }
             .bcf-section#peserta .bcf-card-head h2 { font-size: 1.2rem; margin-bottom: 4px; }
             .bcf-section#peserta .bcf-card-head p { font-size: .74rem; }
-            .bcf-table-wrap { padding: 0 8px 10px; }
+            .bcf-table-wrap { padding: 0 6px 10px; }
             .bcf-table-toolbar { margin-bottom: 8px; }
-            .bcf-table-meta { align-items: flex-start; flex-direction: column; gap: 8px; font-size: .72rem; margin-bottom: 8px; }
-            .bcf-table-search input { height: 36px; font-size: .72rem; padding-left: 34px; }
+            .bcf-table-toolbar { align-items: stretch; flex-direction: column; }
+            .bcf-searchbar { flex-wrap: wrap; }
+            .bcf-table-meta { align-items: flex-start; flex-direction: column; gap: 6px; font-size: .68rem; margin-bottom: 8px; }
+            .bcf-per-page { width: 100%; justify-content: space-between; gap: 6px; }
+            .bcf-per-page label { font-size: .68rem; }
+            .bcf-per-page select { min-width: 72px; height: 34px; padding: 4px 8px; font-size: .72rem; }
+            .bcf-table-search input { height: 34px; font-size: .7rem; padding-left: 32px; }
             .bcf-table-search i { left: 11px; }
-            .bcf-table { min-width: 480px; table-layout: fixed; font-size: .6rem; }
-            .bcf-table th { font-size: .53rem; padding: 7px 4px; }
-            .bcf-table td { padding: 7px 4px; }
-            .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 35%; }
-            .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 22%; }
-            .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 21%; }
-            .bcf-table th:nth-child(4), .bcf-table td:nth-child(4) { width: 22%; }
-            .bcf-table .bcf-table-uker { max-width: 0; }
-            .bcf-table-color { gap: 3px; }
+            .bcf-search-submit, .bcf-search-reset { height: 34px; font-size: .66rem; padding: 0 12px; }
+            .bcf-table { min-width: 0; table-layout: fixed; font-size: .64rem; }
+            .bcf-table th { font-size: .5rem; padding: 7px 6px; }
+            .bcf-table td { padding: 8px 6px; }
+            .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 40%; }
+            .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 29%; }
+            .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 31%; }
+            .bcf-table .bcf-table-name { font-size: .66rem; }
+            .bcf-table-team { font-size: .63rem; }
+            .bcf-table-color { gap: 4px; font-size: .63rem; }
             .bcf-table .bcf-dot { width: 9px; height: 9px; }
             .bcf-assignment-grid { grid-template-columns: 1fr; }
             .bcf-pagination { justify-content: center; }
@@ -304,6 +311,9 @@
                         <div class="bcf-table-meta">
                             <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
                             <form method="GET" action="{{ route('bcf.registrasi.index') }}" class="bcf-per-page">
+                                @if ($search !== '')
+                                    <input type="hidden" name="search" value="{{ $search }}">
+                                @endif
                                 <label for="publicPerPage">Baris per halaman</label>
                                 <select id="publicPerPage" name="per_page">
                                     @foreach ($perPageOptions as $option)
@@ -313,28 +323,33 @@
                             </form>
                         </div>
                         <div class="bcf-table-toolbar">
-                            <label class="bcf-table-search" for="participantSearch">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="search" id="participantSearch" placeholder="Cari nama, team, warna, no urut, atau uker..." autocomplete="off">
-                            </label>
+                            <form method="GET" action="{{ route('bcf.registrasi.index') }}" class="bcf-searchbar">
+                                <label class="bcf-table-search" for="participantSearch">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="search" id="participantSearch" name="search" value="{{ $search }}" placeholder="Cari nama, PN, team, warna, no urut, atau uker..." autocomplete="off">
+                                </label>
+                                <input type="hidden" name="per_page" value="{{ $perPage }}">
+                                <button type="submit" class="bcf-search-submit"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari</button>
+                                @if ($search !== '')
+                                    <a href="{{ route('bcf.registrasi.index', ['per_page' => $perPage]) }}#peserta" class="bcf-search-reset">Reset</a>
+                                @endif
+                            </form>
                         </div>
                         @forelse ($registrasi as $row)
                             @php $hexColor = $colorHexMap[$row->warna] ?? '#55c7ed'; @endphp
                             @if ($loop->first)
                                 <table class="bcf-table">
-                                    <thead><tr><th>Nama</th><th>Team</th><th>Warna (No Urut)</th><th>Uker</th></tr></thead>
+                                    <thead><tr><th>Nama</th><th>Warna</th><th>Team</th></tr></thead>
                                     <tbody id="participantTableBody">
                             @endif
                                         <tr>
                                             <td class="bcf-table-name" title="{{ $row->nama }}">{{ $row->nama }}</td>
+                                            <td><span class="bcf-table-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></td>
                                             <td class="bcf-table-team">{{ $row->team ?: '-' }}</td>
-                                            <td><span class="bcf-table-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }} <span class="bcf-table-number">({{ $row->nourut ?: '-' }})</span></span></td>
-                                            <td class="bcf-table-uker" title="{{ $row->unit_kerja }}">{{ $row->unit_kerja }}</td>
                                         </tr>
                             @if ($loop->last)
                                     </tbody>
                                 </table>
-                                <div id="participantSearchEmpty" class="bcf-table-empty-search" hidden>Data peserta tidak ditemukan.</div>
                             @endif
                         @empty
                             <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
@@ -670,27 +685,6 @@
                 return true;
             };
 
-            const bindParticipantSearch = function () {
-                const participantSearch = document.getElementById('participantSearch');
-                const participantRows = document.querySelectorAll('#participantTableBody tr');
-                const participantSearchEmpty = document.getElementById('participantSearchEmpty');
-
-                participantSearch?.addEventListener('input', function () {
-                    const keyword = this.value.trim().toLowerCase();
-                    let visibleRows = 0;
-
-                    participantRows.forEach(row => {
-                        const matches = row.textContent.toLowerCase().includes(keyword);
-                        row.hidden = !matches;
-                        if (matches) visibleRows++;
-                    });
-
-                    if (participantSearchEmpty) {
-                        participantSearchEmpty.hidden = visibleRows > 0 || keyword === '';
-                    }
-                });
-            };
-
             const fetchSection = function (url, selector, onDone) {
                 const section = document.querySelector(selector);
                 if (!section || !window.jQuery) {
@@ -715,19 +709,33 @@
 
             const bindPublicPagination = function () {
                 const publicPerPageSelect = document.getElementById('publicPerPage');
+                const publicSearchForm = document.querySelector(`${publicParticipantSectionSelector} .bcf-searchbar`);
 
                 publicPerPageSelect?.addEventListener('change', function () {
                     const url = `${this.form.action}?${new URLSearchParams(new FormData(this.form)).toString()}#peserta`;
                     fetchSection(url, publicParticipantSectionSelector, function () {
-                        bindParticipantSearch();
                         bindPublicPagination();
                     });
                 });
 
+                publicSearchForm?.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const url = `${this.action}?${new URLSearchParams(new FormData(this)).toString()}#peserta`;
+                    fetchSection(url, publicParticipantSectionSelector, function () {
+                        bindPublicPagination();
+                    });
+                });
+
+                document.querySelectorAll(`${publicParticipantSectionSelector} .bcf-search-reset`).forEach(link => link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    fetchSection(this.href, publicParticipantSectionSelector, function () {
+                        bindPublicPagination();
+                    });
+                }));
+
                 document.querySelectorAll(`${publicParticipantSectionSelector} .bcf-pagination a`).forEach(link => link.addEventListener('click', function (event) {
                     event.preventDefault();
                     fetchSection(this.href, publicParticipantSectionSelector, function () {
-                        bindParticipantSearch();
                         bindPublicPagination();
                     });
                 }));
@@ -748,7 +756,6 @@
                 createForm.submit();
             });
 
-            bindParticipantSearch();
             bindPublicPagination();
 
             document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {

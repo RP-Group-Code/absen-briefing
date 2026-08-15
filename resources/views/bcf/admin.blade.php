@@ -38,6 +38,8 @@
         .admin-team-name { color: var(--admin-deep); font-weight: 800; }
         .admin-color { display: inline-flex; align-items: center; gap: 6px; color: var(--admin-muted); font-size: .76rem; }
         .admin-dot { display: inline-block; width: 11px; height: 11px; border: 1px solid #d3dce7; border-radius: 50%; }
+        .admin-pic { margin-top: 10px; color: var(--admin-muted); font-size: .78rem; }
+        .admin-pic strong { color: var(--admin-deep); font-weight: 800; }
         .admin-team-count { display: flex; align-items: baseline; justify-content: space-between; margin-top: 12px; }
         .admin-team-count strong { color: var(--admin-blue); font-size: 1.35rem; }
         .admin-team-count span { color: var(--admin-muted); font-size: .74rem; }
@@ -125,7 +127,7 @@
             <div class="admin-teams">
                 @foreach ($teamSummary as $team)
                     @php $percentage = min(100, ($team['used'] / $team['capacity']) * 100); @endphp
-                    <div class="admin-team"><div class="admin-team-top"><span class="admin-team-name">{{ $team['team'] }}</span><span class="admin-color"><i class="admin-dot" style="background: {{ $colorHexMap[$team['warna']] ?? '#55c7ed' }}"></i>{{ $team['warna'] }}</span></div><div class="admin-team-count"><strong>{{ $team['used'] }}/{{ $team['capacity'] }}</strong><span>{{ $team['remaining'] }} tersisa</span></div><div class="admin-progress"><span style="width: {{ $percentage }}%"></span></div></div>
+                    <div class="admin-team"><div class="admin-team-top"><span class="admin-team-name">{{ $team['team'] }}</span><span class="admin-color"><i class="admin-dot" style="background: {{ $colorHexMap[$team['warna']] ?? '#55c7ed' }}"></i>{{ $team['warna'] }}</span></div><div class="admin-pic">Penanggung jawab: <strong>{{ $team['penanggung_jawab'] }}</strong></div><div class="admin-team-count"><strong>{{ $team['used'] }}/{{ $team['capacity'] }}</strong><span>{{ $team['remaining'] }} tersisa</span></div><div class="admin-progress"><span style="width: {{ $percentage }}%"></span></div></div>
                 @endforeach
             </div>
 

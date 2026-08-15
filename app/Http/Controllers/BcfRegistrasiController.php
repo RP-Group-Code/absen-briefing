@@ -46,8 +46,21 @@ class BcfRegistrasiController extends Controller
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
+        $search = trim((string) $request->input('search', ''));
 
-        $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
+        $registrasi = BcfRegistrasi::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $like = '%' . $search . '%';
+                    $query->where('nama', 'like', $like)
+                        ->orWhere('pn', 'like', $like)
+                        ->orWhere('team', 'like', $like)
+                        ->orWhere('warna', 'like', $like)
+                        ->orWhere('unit_kerja', 'like', $like)
+                        ->orWhere('nourut', 'like', $like);
+                });
+            })
+            ->orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'peserta_page')
             ->withQueryString();
@@ -70,7 +83,7 @@ class BcfRegistrasiController extends Controller
 
         $perPageOptions = self::PER_PAGE_OPTIONS;
 
-        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken', 'totalRegistrasi', 'totalUnitKerja', 'latestNoUrut', 'perPage', 'perPageOptions'));
+        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken', 'totalRegistrasi', 'totalUnitKerja', 'latestNoUrut', 'perPage', 'perPageOptions', 'search'));
     }
 
     public function store(Request $request)
