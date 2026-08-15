@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BcfRegistrasiExport;
 use App\Models\BcfRegistrasi;
 use App\Models\BcfTeamQuota;
 use App\Models\Pegawai;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class BcfRegistrasiController extends Controller
@@ -283,6 +285,15 @@ class BcfRegistrasiController extends Controller
         $perPageOptions = self::PER_PAGE_OPTIONS;
 
         return view('bcf.admin', compact('registrasi', 'teamSummary', 'search', 'perPage', 'perPageOptions'));
+    }
+
+    public function export(Request $request)
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        $filename = 'bcf-registrasi-' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new BcfRegistrasiExport($search), $filename);
     }
 
     private function resolvePerPage(Request $request): int

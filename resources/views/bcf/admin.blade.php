@@ -59,6 +59,7 @@
         .admin-search-submit, .admin-search-reset { display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; font-size: .78rem; font-weight: 800; padding: 0 14px; text-decoration: none; }
         .admin-search-submit { border: 0; background: var(--admin-blue); color: #fff; }
         .admin-search-reset { border: 1px solid #d8e2ee; color: var(--admin-muted); background: #fff; }
+        .admin-export { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d8e2ee; border-radius: 9px; background: #fff; color: var(--admin-deep); font-size: .78rem; font-weight: 800; padding: 0 14px; text-decoration: none; white-space: nowrap; }
         .admin-table-wrap { overflow-x: auto; padding: 0 25px 25px; }
         .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .82rem; }
         .admin-table th { background: #f4f8fc; color: var(--admin-muted); font-size: .68rem; letter-spacing: .06em; padding: 11px 12px; text-align: left; text-transform: uppercase; white-space: nowrap; }
@@ -151,6 +152,7 @@
                     <input type="search" name="search" value="{{ $search }}" placeholder="Cari nama, PN, team, warna, no urut, atau Uker..." autocomplete="off">
                     <input type="hidden" name="per_page" value="{{ $perPage }}">
                     <button type="submit" class="admin-search-submit"><i class="fa-solid fa-magnifying-glass me-1"></i>Cari</button>
+                    <a href="{{ route('bcf.registrasi.export', ['search' => $search]) }}" class="admin-export"><i class="fa-solid fa-file-export me-1"></i>Export Excel</a>
                     @if ($search !== '')<a href="{{ route('bcf.registrasi.admin', ['per_page' => $perPage]) }}" class="admin-search-reset">Reset</a>@endif
                 </form>
                 <div class="admin-table-wrap">

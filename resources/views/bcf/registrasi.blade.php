@@ -214,12 +214,14 @@
             .bcf-table { min-width: 0; table-layout: fixed; font-size: .64rem; }
             .bcf-table th { font-size: .5rem; padding: 7px 6px; }
             .bcf-table td { padding: 8px 6px; }
-            .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 40%; }
-            .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 29%; }
-            .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 31%; }
+            .bcf-table th:nth-child(1), .bcf-table td:nth-child(1) { width: 31%; }
+            .bcf-table th:nth-child(2), .bcf-table td:nth-child(2) { width: 28%; }
+            .bcf-table th:nth-child(3), .bcf-table td:nth-child(3) { width: 18%; }
+            .bcf-table th:nth-child(4), .bcf-table td:nth-child(4) { width: 23%; }
             .bcf-table .bcf-table-name { font-size: .66rem; }
             .bcf-table-team { font-size: .63rem; }
             .bcf-table-color { gap: 4px; font-size: .63rem; }
+            .bcf-table .bcf-table-uker { max-width: 0; font-size: .62rem; }
             .bcf-table .bcf-dot { width: 9px; height: 9px; }
             .bcf-assignment-grid { grid-template-columns: 1fr; }
             .bcf-pagination { justify-content: center; }
@@ -339,13 +341,14 @@
                             @php $hexColor = $colorHexMap[$row->warna] ?? '#55c7ed'; @endphp
                             @if ($loop->first)
                                 <table class="bcf-table">
-                                    <thead><tr><th>Nama</th><th>Warna</th><th>Team</th></tr></thead>
+                                    <thead><tr><th>Nama</th><th>Warna (NoUrut)</th><th>Team</th><th>Uker</th></tr></thead>
                                     <tbody id="participantTableBody">
                             @endif
                                         <tr>
                                             <td class="bcf-table-name" title="{{ $row->nama }}">{{ $row->nama }}</td>
-                                            <td><span class="bcf-table-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }}</span></td>
+                                            <td><span class="bcf-table-color"><i class="bcf-dot" style="background: {{ $hexColor }}"></i>{{ $row->warna }} ({{ $row->nourut ?: '-' }})</span></td>
                                             <td class="bcf-table-team">{{ $row->team ?: '-' }}</td>
+                                            <td class="bcf-table-uker" title="{{ $row->unit_kerja }}">{{ $row->unit_kerja }}</td>
                                         </tr>
                             @if ($loop->last)
                                     </tbody>

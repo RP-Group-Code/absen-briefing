@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pegawai/import/template', [ImportPegawaiController::class, 'template'])->name('pegawai.import.template');
     Route::get('/delete-absen/{id}', [InputAbsenController::class, 'destroy'])->name('Delete-Absen');
     Route::get('/bcf-registrasi/admin', [BcfRegistrasiController::class, 'admin'])->name('bcf.registrasi.admin');
+    Route::get('/bcf-registrasi/export', [BcfRegistrasiController::class, 'export'])->name('bcf.registrasi.export');
     Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
     Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
 });
