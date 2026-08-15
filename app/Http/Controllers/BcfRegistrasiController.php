@@ -296,6 +296,28 @@ class BcfRegistrasiController extends Controller
         return Excel::download(new BcfRegistrasiExport($search), $filename);
     }
 
+    public function updateAttendance(Request $request, $id)
+    {
+        $bcf = BcfRegistrasi::findOrFail($id);
+
+        $validated = $request->validate([
+            'hadir' => 'required|boolean',
+        ]);
+
+        $bcf->update([
+            'hadir' => (bool) $validated['hadir'],
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'hadir' => $bcf->hadir,
+            ]);
+        }
+
+        return redirect()->route('bcf.registrasi.admin');
+    }
+
     private function resolvePerPage(Request $request): int
     {
         $perPage = (int) $request->input('per_page', self::PER_PAGE_OPTIONS[0]);

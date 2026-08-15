@@ -18,9 +18,11 @@ class BcfRegistrasi extends Model
         'warna',
         'nourut',
         'team',
+        'hadir',
     ];
 
     protected $casts = [
         'nourut' => 'integer',
+        'hadir' => 'boolean',
     ];
 }
