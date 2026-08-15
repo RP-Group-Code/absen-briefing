@@ -10,6 +10,7 @@ class HadiahUndi extends Model
     protected $table = 'hadiah_undi';
 
     protected $fillable = [
+        'no_urut',
         'nama_hadiah',
         'kategori',
         'deskripsi',
@@ -20,6 +21,7 @@ class HadiahUndi extends Model
     ];
 
     protected $casts = [
+        'no_urut' => 'integer',
         'stock_total' => 'integer',
         'stock_sisa' => 'integer',
         'harga' => 'integer',

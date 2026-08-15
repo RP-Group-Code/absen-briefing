@@ -503,6 +503,10 @@
                                 @csrf
                                 <div class="undi-form-grid">
                                     <div>
+                                        <label class="undi-label">No Urut</label>
+                                        <input class="undi-input" type="number" min="1" name="no_urut">
+                                    </div>
+                                    <div>
                                         <label class="undi-label">Nama Hadiah</label>
                                         <input class="undi-input" name="nama_hadiah" required>
                                     </div>
@@ -528,7 +532,7 @@
                                 @csrf
                                 <label class="undi-label">Import Hadiah dari Excel</label>
                                 <input class="undi-input" type="file" name="file" accept=".xlsx,.xls,.csv" required>
-                                <p class="undi-help">Header yang didukung: `nama_hadiah/hadiah`, `kategori`, `qty/jumlah`, `deskripsi`.</p>
+                                <p class="undi-help">Header yang didukung: `no_urut/no urut`, `nama_hadiah/hadiah`, `kategori`, `qty/jumlah`, `deskripsi`, `harga`.</p>
                                 <div class="undi-actions">
                                     <button class="undi-btn undi-btn-light" type="submit"><i class="fa-solid fa-file-arrow-up"></i> Import Hadiah</button>
                                 </div>
@@ -538,18 +542,19 @@
                         <div class="undi-table-wrap" style="margin-top:18px;">
                             <table class="undi-table">
                                 <thead>
-                                    <tr><th>Hadiah</th><th>Kategori</th><th>Stok</th><th>Status</th></tr>
+                                    <tr><th>No Urut</th><th>Hadiah</th><th>Kategori</th><th>Stok</th><th>Status</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($hadiah as $row)
                                         <tr>
+                                            <td>{{ $row->no_urut ?: '-' }}</td>
                                             <td><strong>{{ $row->nama_hadiah }}</strong><br><span style="color:var(--undi-muted)">{{ $row->deskripsi ?: '-' }}</span></td>
                                             <td>{{ $row->kategori ?: '-' }}</td>
                                             <td>{{ $row->stock_sisa }}/{{ $row->stock_total }}</td>
                                             <td>{{ $row->status ? 'Aktif' : 'Nonaktif' }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="4">Belum ada hadiah.</td></tr>
+                                        <tr><td colspan="5">Belum ada hadiah.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>

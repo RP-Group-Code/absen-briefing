@@ -27,6 +27,7 @@ class BcfUndianController extends Controller
             ->withQueryString();
 
         $hadiah = HadiahUndi::query()
+            ->when($this->hadiahUndiHasNoUrutColumn(), fn ($query) => $query->orderByRaw('CASE WHEN no_urut IS NULL THEN 1 ELSE 0 END')->orderBy('no_urut'))
             ->latest('id')
             ->paginate(10, ['*'], 'hadiah_page')
             ->withQueryString();
@@ -138,6 +139,7 @@ class BcfUndianController extends Controller
     public function storeHadiah(Request $request)
     {
         $validated = $request->validate([
+            'no_urut' => 'nullable|integer|min:1|max:1000000',
             'nama_hadiah' => 'required|string|max:255',
             'kategori' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
@@ -145,7 +147,8 @@ class BcfUndianController extends Controller
             'harga' => 'required|integer|min:0|max:999999999999',
         ]);
 
-        HadiahUndi::create([
+        HadiahUndi::create($this->hadiahUndiPayload([
+            'no_urut' => $validated['no_urut'] ?? null,
             'nama_hadiah' => $validated['nama_hadiah'],
             'kategori' => $validated['kategori'] ?? null,
             'deskripsi' => $validated['deskripsi'] ?? null,
@@ -153,7 +156,7 @@ class BcfUndianController extends Controller
             'stock_sisa' => $validated['stock_total'],
             'harga' => $validated['harga'],
             'status' => true,
-        ]);
+        ]));
 
         Alert::success('Hadiah Ditambahkan', 'Hadiah undian berhasil disimpan.');
 
@@ -189,7 +192,7 @@ class BcfUndianController extends Controller
                 continue;
             }
 
-            HadiahUndi::create($payload);
+            HadiahUndi::create($this->hadiahUndiPayload($payload));
             $created++;
         }
 
@@ -377,6 +380,7 @@ class BcfUndianController extends Controller
         $hadiahTersedia = HadiahUndi::query()
             ->where('status', true)
             ->where('stock_sisa', '>', 0)
+            ->when($this->hadiahUndiHasNoUrutColumn(), fn ($query) => $query->orderByRaw('CASE WHEN no_urut IS NULL THEN 1 ELSE 0 END')->orderBy('no_urut'))
             ->orderBy('kategori')
             ->orderBy('nama_hadiah')
             ->get();
@@ -581,6 +585,12 @@ class BcfUndianController extends Controller
         $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), 0);
 
         return [
+            'no_urut' => $this->sanitizeInteger($this->cellValue($row, $headers, [
+                'no urut',
+                'no_urut',
+                'nomor urut',
+                'urutan',
+            ]), null),
             'nama_hadiah' => $namaHadiah,
             'kategori' => $this->nullableString($this->cellValue($row, $headers, ['kategori'])),
             'deskripsi' => $this->nullableString($this->cellValue($row, $headers, ['deskripsi', 'keterangan'])),
@@ -594,8 +604,12 @@ class BcfUndianController extends Controller
     private function mapHadiahRowByPosition(array $row): ?array
     {
         $row = array_values($row);
+        $noUrut = null;
 
         if (isset($row[0]) && is_numeric(trim((string) $row[0])) && count($row) >= 7) {
+            if (count($row) >= 8) {
+                $noUrut = $this->sanitizeInteger($row[0] ?? null, null);
+            }
             array_shift($row);
         }
 
@@ -616,6 +630,7 @@ class BcfUndianController extends Controller
         $status = $this->nullableString($row[6] ?? null);
 
         return [
+            'no_urut' => $noUrut,
             'nama_hadiah' => $namaHadiah,
             'kategori' => $kategori,
             'deskripsi' => $deskripsi === '_' ? null : $deskripsi,
@@ -657,6 +672,20 @@ class BcfUndianController extends Controller
         $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
 
         return in_array($normalized, ['hadiah kecil', 'hadiah sedang'], true);
+    }
+
+    private function hadiahUndiHasNoUrutColumn(): bool
+    {
+        return Schema::hasColumn('hadiah_undi', 'no_urut');
+    }
+
+    private function hadiahUndiPayload(array $attributes): array
+    {
+        if (! $this->hadiahUndiHasNoUrutColumn()) {
+            unset($attributes['no_urut']);
+        }
+
+        return $attributes;
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed
