@@ -245,7 +245,7 @@ class BcfUndianController extends Controller
                 $totalSlotHadiah = (int) $hadiahPool->sum('stock_sisa');
                 if ($pesertaPool->count() < $totalSlotHadiah) {
                     throw ValidationException::withMessages([
-                        'undian' => 'Peserta tersedia tidak mencukupi untuk mengundi seluruh hadiah kecil sekaligus.',
+                        'undian' => 'Peserta tersedia tidak mencukupi untuk mengundi seluruh hadiah kategori ' . $selectedKategori . ' sekaligus.',
                     ]);
                 }
 
@@ -656,7 +656,7 @@ class BcfUndianController extends Controller
     {
         $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
 
-        return $normalized === 'hadiah kecil';
+        return in_array($normalized, ['hadiah kecil', 'hadiah sedang'], true);
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed

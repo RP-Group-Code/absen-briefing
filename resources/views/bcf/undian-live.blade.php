@@ -920,8 +920,9 @@
         $winnerMode = $winner['mode'] ?? 'single';
         $winnerBatchItems = collect($winner['items'] ?? []);
         $isBatchWinner = $winnerMode === 'batch' && $winnerBatchItems->isNotEmpty();
+        $batchWinnerKategori = $winner['kategori'] ?? 'Hadiah Batch';
         $displayWinnerName = $isBatchWinner
-            ? 'Undian Hadiah Kecil'
+            ? 'Undian ' . $batchWinnerKategori
             : ($winner['peserta'] ?? $recentWinner?->peserta?->nama ?? '???');
         $displayWinnerPn = $isBatchWinner
             ? ($winnerBatchItems->count() . ' pemenang terpilih')
@@ -933,7 +934,7 @@
             ? ($winner['undian_ke_selesai'] ?? null)
             : ($winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null);
         $displayWinnerBadge = $isBatchWinner
-            ? 'Hasil ' . ($winner['kategori'] ?? 'Hadiah Kecil')
+            ? 'Hasil ' . $batchWinnerKategori
             : ($displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi');
         $displayWinnerMeta = $isBatchWinner
             ? ('Undian #' . ($winner['undian_ke_mulai'] ?? '-') . ' sampai #' . ($winner['undian_ke_selesai'] ?? '-') . ' | Tutup modal untuk lanjut undian berikutnya')
@@ -996,7 +997,7 @@
                 <div class="live-winner-prize" id="liveWinnerPrize">{{ $displayWinnerHadiah }}</div>
                 <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerMeta }}</div>
                 <div class="live-batch-results {{ $isBatchWinner ? 'is-visible' : '' }}" id="liveBatchResults">
-                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $winner['kategori'] ?? 'Hadiah Kecil' }}</div>
+                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $batchWinnerKategori }}</div>
                     <div class="live-table-wrap live-batch-table-wrap">
                         <table class="live-table">
                             <thead>
@@ -1127,7 +1128,7 @@
                 <div class="live-modal-prize" id="liveWinnerModalPrize">{{ $displayWinnerHadiah }}</div>
                 <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerMeta }}</div>
                 <div class="live-batch-results {{ $isBatchWinner ? 'is-visible' : '' }}" id="liveWinnerModalBatchResults">
-                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $winner['kategori'] ?? 'Hadiah Kecil' }}</div>
+                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $batchWinnerKategori }}</div>
                     <div class="live-table-wrap live-batch-table-wrap">
                         <table class="live-table">
                             <thead>
@@ -1169,6 +1170,7 @@
             const pool = @json($pesertaPoolJson);
             const initialShouldCelebrate = @json($shouldCelebrate);
             const isInitialBatchWinner = @json($isBatchWinner);
+            const batchCategoryLabels = ['hadiah kecil', 'hadiah sedang'];
             const winnerName = document.getElementById('liveWinnerName');
             const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
@@ -1206,9 +1208,13 @@
 
             let spinTimer = null;
             let winnerCurrentPage = 1;
-            const isMassCategory = (value) => String(value || '').trim().toLowerCase() === 'hadiah kecil';
+            const isMassCategory = (value) => batchCategoryLabels.includes(String(value || '').trim().toLowerCase());
             const hasSelectedHadiah = () => String(hadiahSelect?.value || '').trim() !== '';
             const isBatchSelection = () => isMassCategory(hadiahCategory?.value);
+            const currentBatchCategoryLabel = () => {
+                const value = String(hadiahCategory?.value || '').trim();
+                return value === '' ? 'Hadiah Batch' : value;
+            };
 
             const updateClock = () => {
                 clock.textContent = new Date().toLocaleString('id-ID', {
@@ -1479,7 +1485,7 @@
 
             const currentHadiahLabel = () => {
                 if (isBatchSelection()) {
-                    return 'Hadiah Kecil - Semua Item';
+                    return `${currentBatchCategoryLabel()} - Semua Item`;
                 }
 
                 const selectedOption = hadiahSelect.options[hadiahSelect.selectedIndex];
@@ -1598,7 +1604,7 @@
                 if (!spinTimer) {
                     winnerPrize.textContent = currentHadiahLabel();
                     winnerMeta.textContent = isBatchSelection()
-                        ? 'Sistem akan mengundi seluruh item hadiah kecil sekaligus'
+                        ? `Sistem akan mengundi seluruh item kategori ${currentBatchCategoryLabel()} sekaligus`
                         : 'Peserta siap diundi';
                 }
                 syncStartButtonState();
