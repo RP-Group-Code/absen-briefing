@@ -188,52 +188,19 @@
             text-transform: uppercase;
         }
 
-        .live-winner-name-viewport {
-            position: relative;
-            margin: 18px 0 8px;
-            min-height: clamp(6.4rem, 11vw, 8rem);
-            overflow: hidden;
-        }
-
         .live-winner-name {
-            min-height: clamp(6.4rem, 11vw, 8rem);
+            margin: 18px 0 8px;
+            min-height: clamp(4.4rem, 8vw, 6rem);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(3.2rem, 5.8vw, 6.4rem);
-            line-height: .94;
+            font-size: clamp(2.4rem, 4.8vw, 4.9rem);
+            line-height: 1;
             font-weight: 900;
             letter-spacing: .03em;
             text-transform: uppercase;
             text-shadow: 0 0 24px rgba(255, 255, 255, 0.14);
             width: 100%;
-        }
-
-        .live-winner-name-current,
-        .live-winner-name-incoming {
-            position: absolute;
-            inset: 0;
-            transition: transform .18s cubic-bezier(.2, .72, .28, 1), opacity .18s ease;
-        }
-
-        .live-winner-name-current {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .live-winner-name-incoming {
-            transform: translateY(-115%);
-            opacity: 0;
-        }
-
-        .live-winner-name-viewport.is-animating .live-winner-name-current {
-            transform: translateY(115%);
-            opacity: .18;
-        }
-
-        .live-winner-name-viewport.is-animating .live-winner-name-incoming {
-            transform: translateY(0);
-            opacity: 1;
         }
 
         .live-winner-prize {
@@ -526,10 +493,7 @@
                     <i class="fa-solid fa-sparkles"></i>
                     {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi' }}
                 </div>
-                <div class="live-winner-name-viewport">
-                    <div class="live-winner-name live-winner-name-current" id="liveWinnerName">{{ $displayWinnerName }}</div>
-                    <div class="live-winner-name live-winner-name-incoming" id="liveWinnerNameIncoming">{{ $displayWinnerName }}</div>
-                </div>
+                <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
                 <div class="live-winner-prize" id="liveWinnerPrize">{{ $displayWinnerHadiah }}</div>
                 <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi' }} | {{ $recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi' }}</div>
             </div>
@@ -602,9 +566,7 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
-            const winnerViewport = document.querySelector('.live-winner-name-viewport');
             const winnerName = document.getElementById('liveWinnerName');
-            const winnerNameIncoming = document.getElementById('liveWinnerNameIncoming');
             const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const startButton = document.getElementById('liveStartButton');
@@ -619,9 +581,6 @@
             }));
 
             let spinTimer = null;
-            let isRollingName = false;
-            let queuedParticipant = null;
-
             const updateClock = () => {
                 clock.textContent = new Date().toLocaleString('id-ID', {
                     day: '2-digit',
@@ -648,27 +607,6 @@
                 winnerName.textContent = participant.nama;
                 winnerPrize.textContent = currentHadiahLabel();
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
-            };
-
-            const rollNameDown = (participant) => {
-                if (!participant) {
-                    return;
-                }
-
-                if (isRollingName) {
-                    queuedParticipant = participant;
-                    return;
-                }
-
-                isRollingName = true;
-                queuedParticipant = null;
-                winnerNameIncoming.textContent = participant.nama;
-                winnerPrize.textContent = currentHadiahLabel();
-                winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
-
-                requestAnimationFrame(() => {
-                    winnerViewport.classList.add('is-animating');
-                });
             };
 
             const renderHadiahOptions = (keyword = '') => {
@@ -704,26 +642,9 @@
                 startButton.disabled = false;
             };
 
-            winnerNameIncoming.addEventListener('transitionend', () => {
-                if (!winnerViewport.classList.contains('is-animating')) {
-                    return;
-                }
-
-                winnerName.textContent = winnerNameIncoming.textContent;
-                winnerViewport.classList.remove('is-animating');
-                isRollingName = false;
-
-                if (queuedParticipant) {
-                    const nextParticipant = queuedParticipant;
-                    queuedParticipant = null;
-                    rollNameDown(nextParticipant);
-                }
-            });
-
             startButton.addEventListener('click', () => {
                 if (!pool.length) {
                     winnerName.textContent = 'Peserta Habis';
-                    winnerNameIncoming.textContent = 'Peserta Habis';
                     winnerPrize.textContent = currentHadiahLabel();
                     winnerMeta.textContent = 'Tidak ada peserta aktif yang bisa diundi';
                     return;
@@ -731,7 +652,6 @@
 
                 if (hadiahSelect.options.length <= 1) {
                     winnerName.textContent = 'Hadiah Habis';
-                    winnerNameIncoming.textContent = 'Hadiah Habis';
                     winnerPrize.textContent = 'Tidak ada hadiah aktif';
                     winnerMeta.textContent = 'Tidak ada hadiah aktif yang bisa diundi';
                     return;
@@ -742,7 +662,7 @@
 
                 spinTimer = window.setInterval(() => {
                     const participant = randomParticipant();
-                    rollNameDown(participant);
+                    renderParticipant(participant);
                 }, 90);
             });
 
