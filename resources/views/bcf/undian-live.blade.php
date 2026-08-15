@@ -116,13 +116,14 @@
 
         .live-headline h1 {
             margin: 0;
-            font-size: clamp(4rem, 8vw, 8.4rem);
-            line-height: .9;
+            font-size: clamp(2.8rem, 5.2vw, 5.9rem);
+            line-height: .96;
             font-weight: 900;
-            letter-spacing: .05em;
+            letter-spacing: .03em;
             text-transform: uppercase;
             color: var(--live-gold);
             text-shadow: 0 0 30px rgba(255, 211, 28, 0.22);
+            white-space: nowrap;
         }
 
         .live-subtitle {
@@ -135,6 +136,13 @@
             letter-spacing: .34em;
             text-transform: uppercase;
             white-space: nowrap;
+        }
+
+        .live-brand-logo {
+            margin-top: 28px;
+            width: min(100%, 340px);
+            display: block;
+            filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
         }
 
         .live-watermark {
@@ -434,9 +442,9 @@
             </div>
 
             <div class="live-headline">
-                <h1>Undian BCF</h1>
-                <h1>Bo Sriwijaya</h1>
+                <h1>Undian BCF BO Sriwijaya</h1>
                 <div class="live-subtitle">Sistem Undian Digital Boswj-App</div>
+                <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
             </div>
 
             <div class="live-watermark">BRILIAN CULTURE FEST SYSTEM {{ now()->format('m.d.Y') }}</div>
