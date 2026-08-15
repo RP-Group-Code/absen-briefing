@@ -529,6 +529,14 @@
             pointer-events: none;
         }
 
+        .live-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+
         .live-status {
             text-align: center;
             color: rgba(255, 255, 255, 0.58);
@@ -931,7 +939,7 @@
                     </select>
 
                     <div class="live-buttons">
-                        <button class="live-btn live-btn-start" type="button" id="liveStartButton"><i class="fa-solid fa-dice"></i> Mulai Undi</button>
+                        <button class="live-btn live-btn-start" type="button" id="liveStartButton" disabled><i class="fa-solid fa-dice"></i> Mulai Undi</button>
                         <button class="live-btn live-btn-stop is-disabled" type="submit" id="liveStopButton"><i class="fa-solid fa-stop"></i> Stop</button>
                     </div>
 
@@ -1315,7 +1323,15 @@
                 window.clearInterval(spinTimer);
                 spinTimer = null;
                 stopButton.classList.add('is-disabled');
-                startButton.disabled = false;
+                startButton.disabled = hadiahSelect.value === '';
+            };
+
+            const syncStartButtonState = () => {
+                if (spinTimer) {
+                    return;
+                }
+
+                startButton.disabled = hadiahSelect.value === '';
             };
 
             startButton.addEventListener('click', () => {
@@ -1377,9 +1393,12 @@
                 if (!spinTimer) {
                     winnerPrize.textContent = currentHadiahLabel();
                 }
+
+                syncStartButtonState();
             });
 
             renderHadiahOptions(hadiahSearch.value, hadiahCategory.value);
+            syncStartButtonState();
             renderWinnerTable();
             updateClock();
             window.setInterval(updateClock, 1000);
