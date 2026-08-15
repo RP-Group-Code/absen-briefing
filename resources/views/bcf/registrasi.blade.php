@@ -61,8 +61,9 @@
         .bcf-brand { position: absolute; }
         .bcf-hero-inner { width: min(1120px, calc(100% - 40px)); margin: auto; text-align: center; padding: 112px 0 92px; }
         .bcf-brand { position: absolute; top: 28px; left: max(28px, 5%); color: #fff; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 1.15rem; text-align: left; }
-        .bcf-hero-admin { position: absolute; top: 28px; right: max(28px, 5%); }
-        .bcf-hero-admin-link { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.28); border-radius: 12px; background: rgba(255,255,255,.12); color: #fff; font-size: .78rem; font-weight: 800; letter-spacing: .04em; padding: 11px 14px; text-decoration: none; backdrop-filter: blur(10px); box-shadow: 0 10px 28px rgba(4, 20, 59, .18); }
+        .bcf-hero-admin { position: absolute; top: 28px; right: max(28px, 5%); display: flex; align-items: flex-start; }
+        .bcf-hero-admin-link { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.32); border-radius: 14px; background: rgba(255,255,255,.14); color: #fff; font-size: .92rem; font-weight: 800; letter-spacing: .04em; padding: 14px 18px; text-decoration: none; backdrop-filter: blur(10px); box-shadow: 0 10px 28px rgba(4, 20, 59, .18); }
+        .bcf-hero-admin-link i { font-size: 1rem; }
         .bcf-hero-admin-link:hover { background: rgba(255,255,255,.18); color: #fff; border-color: rgba(255,255,255,.4); }
         .bcf-brand span { display: block; color: var(--bcf-cyan); font-size: .76rem; letter-spacing: .18em; margin-top: 10px; }
         .bcf-hero-copy { max-width: 650px; margin: 0 auto; color: #fff; }
@@ -183,7 +184,8 @@
             .bcf-brand { top: 24px; left: 20px; font-size: 1rem; }
             .bcf-brand span { font-size: .62rem; letter-spacing: .12em; margin-top: 7px; }
             .bcf-hero-admin { top: 20px; right: 20px; }
-            .bcf-hero-admin-link { font-size: .62rem; padding: 8px 10px; gap: 6px; }
+            .bcf-hero-admin-link { font-size: .7rem; padding: 10px 12px; gap: 7px; border-radius: 12px; }
+            .bcf-hero-admin-link i { font-size: .78rem; }
             .bcf-hero-inner { width: min(100% - 28px, 540px); }
             .bcf-hero-inner { padding-top: 132px; padding-bottom: 112px; }
             .bcf-hero-logo { width: min(430px, 88vw); max-height: 270px; margin-top: 25px; }
