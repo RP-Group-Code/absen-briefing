@@ -188,8 +188,29 @@
             text-transform: uppercase;
         }
 
-        .live-winner-name {
+        .live-winner-name-viewport {
+            position: relative;
             margin: 18px 0 8px;
+            min-height: clamp(6.4rem, 11vw, 8rem);
+            overflow: hidden;
+        }
+
+        .live-winner-name-track {
+            display: flex;
+            flex-direction: column;
+            transform: translateY(-100%);
+        }
+
+        .live-winner-name-track.is-animating {
+            transition: transform .18s cubic-bezier(.2, .72, .28, 1);
+            transform: translateY(-200%);
+        }
+
+        .live-winner-name {
+            min-height: clamp(6.4rem, 11vw, 8rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: clamp(3.2rem, 5.8vw, 6.4rem);
             line-height: .94;
             font-weight: 900;
@@ -477,7 +498,13 @@
                     <i class="fa-solid fa-sparkles"></i>
                     {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi' }}
                 </div>
-                <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
+                <div class="live-winner-name-viewport">
+                    <div class="live-winner-name-track" id="liveWinnerNameTrack">
+                        <div class="live-winner-name" id="liveWinnerNamePrev">{{ $displayWinnerName }}</div>
+                        <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
+                        <div class="live-winner-name" id="liveWinnerNameNext">{{ $displayWinnerName }}</div>
+                    </div>
+                </div>
                 <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $displayWinnerHadiah }}</div>
             </div>
 
@@ -549,7 +576,10 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
+            const winnerNameTrack = document.getElementById('liveWinnerNameTrack');
+            const winnerNamePrev = document.getElementById('liveWinnerNamePrev');
             const winnerName = document.getElementById('liveWinnerName');
+            const winnerNameNext = document.getElementById('liveWinnerNameNext');
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
@@ -563,6 +593,8 @@
             }));
 
             let spinTimer = null;
+            let isRollingName = false;
+            let queuedParticipant = null;
 
             const updateClock = () => {
                 clock.textContent = new Date().toLocaleString('id-ID', {
@@ -576,6 +608,31 @@
             };
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
+
+            const renderParticipant = (participant) => {
+                winnerName.textContent = participant.nama;
+                winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
+            };
+
+            const rollNameDown = (participant) => {
+                if (!participant) {
+                    return;
+                }
+
+                if (isRollingName) {
+                    queuedParticipant = participant;
+                    return;
+                }
+
+                isRollingName = true;
+                queuedParticipant = null;
+                winnerNameNext.textContent = participant.nama;
+                winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
+
+                requestAnimationFrame(() => {
+                    winnerNameTrack.classList.add('is-animating');
+                });
+            };
 
             const renderHadiahOptions = (keyword = '') => {
                 const normalizedKeyword = String(keyword || '').trim().toLowerCase();
@@ -610,6 +667,28 @@
                 startButton.disabled = false;
             };
 
+            winnerNameTrack.addEventListener('transitionend', () => {
+                if (!winnerNameTrack.classList.contains('is-animating')) {
+                    return;
+                }
+
+                winnerNamePrev.textContent = winnerName.textContent;
+                winnerName.textContent = winnerNameNext.textContent;
+                winnerNameTrack.classList.remove('is-animating');
+                winnerNameTrack.style.transition = 'none';
+                winnerNameTrack.style.transform = 'translateY(-100%)';
+                winnerNameTrack.offsetHeight;
+                winnerNameTrack.style.transition = '';
+                winnerNameTrack.style.transform = '';
+                isRollingName = false;
+
+                if (queuedParticipant) {
+                    const nextParticipant = queuedParticipant;
+                    queuedParticipant = null;
+                    rollNameDown(nextParticipant);
+                }
+            });
+
             startButton.addEventListener('click', () => {
                 if (!pool.length) {
                     winnerName.textContent = 'Peserta Habis';
@@ -628,8 +707,7 @@
 
                 spinTimer = window.setInterval(() => {
                     const participant = randomParticipant();
-                    winnerName.textContent = participant.nama;
-                    winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
+                    rollNameDown(participant);
                 }, 90);
             });
 
