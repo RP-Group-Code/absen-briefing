@@ -134,7 +134,7 @@
         }
 
         .brand-icon {
-            width: 148px; height: 148px;
+            width: 248px; height: 248px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
