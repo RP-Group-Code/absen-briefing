@@ -484,7 +484,7 @@
 
         <section id="dashboard" class="undi-section undi-grid">
             <article class="undi-stat"><small>Total Peserta</small><strong>{{ $dashboard['total_peserta'] }}</strong></article>
-            <article class="undi-stat"><small>Peserta Aktif</small><strong>{{ $dashboard['peserta_aktif'] }}</strong></article>
+            <article class="undi-stat"><small>Peserta Belum Menang</small><strong>{{ $dashboard['peserta_aktif'] }}</strong></article>
             <article class="undi-stat"><small>Total Hadiah</small><strong>{{ $dashboard['total_hadiah'] }}</strong></article>
             <article class="undi-stat"><small>Sisa Hadiah</small><strong>{{ $dashboard['sisa_hadiah'] }}</strong></article>
         </section>
@@ -581,10 +581,14 @@
                                     <input class="undi-input" name="unit_kerja">
                                 </div>
                                 <div>
+                                    <label class="undi-label">Jabatan</label>
+                                    <input class="undi-input" name="jabatan">
+                                </div>
+                                <div>
                                     <label class="undi-label">Status</label>
                                     <select class="undi-select" name="status">
-                                        <option value="Aktif" selected>Aktif</option>
-                                        <option value="Nonaktif">Nonaktif</option>
+                                        <option value="Belum Menang" selected>Belum Menang</option>
+                                        <option value="Menang">Menang</option>
                                     </select>
                                 </div>
                             </div>
@@ -597,7 +601,7 @@
                             @csrf
                             <label class="undi-label">Import Peserta dari Excel</label>
                             <input class="undi-input" type="file" name="file" accept=".xlsx,.xls,.csv" required>
-                            <p class="undi-help">Header yang didukung: `nama`, `pn`, `unit_kerja/uker`, `status`.</p>
+                            <p class="undi-help">Header yang didukung: `nama`, `pn`, `unit_kerja/uker`, `jabatan`, `status`.</p>
                             <div class="undi-actions">
                                 <button class="undi-btn undi-btn-light" type="submit"><i class="fa-solid fa-file-arrow-up"></i> Import Peserta</button>
                             </div>
@@ -606,7 +610,7 @@
                         <div class="undi-table-wrap" style="margin-top:18px;">
                             <table class="undi-table">
                                 <thead>
-                                    <tr><th>Nama</th><th>PN</th><th>Unit Kerja</th><th>Status</th></tr>
+                                    <tr><th>Nama</th><th>PN</th><th>Unit Kerja</th><th>Jabatan</th><th>Status</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($peserta as $row)
@@ -614,10 +618,11 @@
                                             <td><strong>{{ $row->nama }}</strong></td>
                                             <td>{{ $row->pn ?: '-' }}</td>
                                             <td>{{ $row->unit_kerja ?: '-' }}</td>
+                                            <td>{{ $row->jabatan ?: '-' }}</td>
                                             <td>{{ $row->status ?: '-' }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="4">Belum ada peserta.</td></tr>
+                                        <tr><td colspan="5">Belum ada peserta.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>

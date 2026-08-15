@@ -19,10 +19,16 @@ return new class extends Migration
             });
         }
 
+        if (! Schema::hasColumn('peserta_undi', 'jabatan')) {
+            Schema::table('peserta_undi', function (Blueprint $table) {
+                $table->string('jabatan', 144)->nullable()->after('unit_kerja');
+            });
+        }
+
         if (Schema::hasColumn('peserta_undi', 'is_active')) {
-            DB::statement("UPDATE peserta_undi SET status = CASE WHEN is_active = 1 THEN 'Aktif' ELSE 'Nonaktif' END WHERE status IS NULL OR status = ''");
+            DB::statement("UPDATE peserta_undi SET status = CASE WHEN is_active = 1 THEN 'Belum Menang' ELSE 'Menang' END WHERE status IS NULL OR status = ''");
         } else {
-            DB::statement("UPDATE peserta_undi SET status = 'Aktif' WHERE status IS NULL OR status = ''");
+            DB::statement("UPDATE peserta_undi SET status = CASE WHEN LOWER(COALESCE(status, '')) IN ('aktif', 'active', 'belum menang', 'belummenang', '1', 'true', '') THEN 'Belum Menang' WHEN LOWER(COALESCE(status, '')) IN ('menang', 'winner', 'won') THEN 'Menang' ELSE status END");
         }
 
         DB::statement("ALTER TABLE peserta_undi MODIFY status VARCHAR(255) NOT NULL");
@@ -52,13 +58,19 @@ return new class extends Migration
             });
         }
 
+        if (Schema::hasColumn('peserta_undi', 'jabatan')) {
+            Schema::table('peserta_undi', function (Blueprint $table) {
+                $table->dropColumn('jabatan');
+            });
+        }
+
         if (! Schema::hasColumn('peserta_undi', 'is_active')) {
             Schema::table('peserta_undi', function (Blueprint $table) {
                 $table->boolean('is_active')->default(true)->after('keterangan');
             });
         }
 
-        DB::statement("UPDATE peserta_undi SET is_active = CASE WHEN LOWER(status) = 'nonaktif' THEN 0 ELSE 1 END");
+        DB::statement("UPDATE peserta_undi SET is_active = CASE WHEN LOWER(status) = 'menang' THEN 0 ELSE 1 END");
 
         if (Schema::hasColumn('peserta_undi', 'status')) {
             Schema::table('peserta_undi', function (Blueprint $table) {

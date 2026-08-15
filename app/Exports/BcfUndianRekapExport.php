@@ -23,6 +23,7 @@ class BcfUndianRekapExport implements FromCollection, WithHeadings, ShouldAutoSi
                     'Nama Peserta' => $pemenang->peserta?->nama,
                     'PN' => $pemenang->peserta?->pn,
                     'Unit Kerja' => $pemenang->peserta?->unit_kerja,
+                    'Jabatan' => $pemenang->peserta?->jabatan,
                     'Hadiah' => $pemenang->hadiah?->nama_hadiah,
                     'Kategori Hadiah' => $pemenang->hadiah?->kategori,
                     'Waktu Menang' => optional($pemenang->won_at)->format('Y-m-d H:i:s'),
@@ -33,6 +34,6 @@ class BcfUndianRekapExport implements FromCollection, WithHeadings, ShouldAutoSi
 
     public function headings(): array
     {
-        return ['Undian Ke', 'Nama Peserta', 'PN', 'Unit Kerja', 'Hadiah', 'Kategori Hadiah', 'Waktu Menang', 'Catatan'];
+        return ['Undian Ke', 'Nama Peserta', 'PN', 'Unit Kerja', 'Jabatan', 'Hadiah', 'Kategori Hadiah', 'Waktu Menang', 'Catatan'];
     }
 }

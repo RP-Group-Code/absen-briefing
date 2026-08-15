@@ -60,10 +60,10 @@ class BcfUndianController extends Controller
             ->get();
 
         $pesertaPool = PesertaUndi::query()
-            ->where('status', 'Aktif')
+            ->where('status', 'Belum Menang')
             ->whereDoesntHave('pemenang')
             ->inRandomOrder()
-            ->get(['nama', 'pn', 'unit_kerja']);
+            ->get(['nama', 'pn', 'unit_kerja', 'jabatan']);
 
         return view('bcf.undian-live', compact(
             'dashboard',
@@ -81,6 +81,7 @@ class BcfUndianController extends Controller
             'nama' => 'required|string|max:255',
             'pn' => 'nullable|string|max:100',
             'unit_kerja' => 'nullable|string|max:255',
+            'jabatan' => 'nullable|string|max:144',
             'status' => 'nullable|string|max:255',
         ]);
 
@@ -88,6 +89,7 @@ class BcfUndianController extends Controller
             'nama' => $validated['nama'],
             'pn' => $validated['pn'] ?? null,
             'unit_kerja' => $validated['unit_kerja'] ?? null,
+            'jabatan' => $validated['jabatan'] ?? null,
             'status' => $this->normalizePesertaStatus($validated['status'] ?? null),
         ]);
 
@@ -116,6 +118,7 @@ class BcfUndianController extends Controller
                 'nama' => $nama,
                 'pn' => $this->nullableString($this->cellValue($row, $headers, ['pn', 'nip'])),
                 'unit_kerja' => $this->nullableString($this->cellValue($row, $headers, ['unit kerja', 'unit_kerja', 'uker'])),
+                'jabatan' => $this->nullableString($this->cellValue($row, $headers, ['jabatan', 'job title', 'posisi'])),
                 'status' => $this->normalizePesertaStatus($this->nullableString($this->cellValue($row, $headers, ['status']))),
             ]);
             $created++;
@@ -139,7 +142,7 @@ class BcfUndianController extends Controller
             'kategori' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'stock_total' => 'required|integer|min:1|max:100000',
-            'harga' => 'nullable|integer|min:0|max:999999999999',
+            'harga' => 'required|integer|min:0|max:999999999999',
         ]);
 
         HadiahUndi::create([
@@ -148,7 +151,7 @@ class BcfUndianController extends Controller
             'deskripsi' => $validated['deskripsi'] ?? null,
             'stock_total' => $validated['stock_total'],
             'stock_sisa' => $validated['stock_total'],
-            'harga' => $validated['harga'] ?? null,
+            'harga' => $validated['harga'],
             'status' => true,
         ]);
 
@@ -210,7 +213,7 @@ class BcfUndianController extends Controller
 
         $winner = DB::transaction(function () use ($validated) {
             $pesertaPool = PesertaUndi::query()
-                ->where('status', 'Aktif')
+                ->where('status', 'Belum Menang')
                 ->whereDoesntHave('pemenang')
                 ->lockForUpdate()
                 ->get();
@@ -243,6 +246,7 @@ class BcfUndianController extends Controller
                 'won_at' => now(),
             ]);
 
+            $peserta->forceFill(['status' => 'Menang'])->save();
             $hadiah->decrement('stock_sisa');
 
             return $pemenang->load(['peserta', 'hadiah']);
@@ -275,7 +279,7 @@ class BcfUndianController extends Controller
     {
         $dashboard = [
             'total_peserta' => PesertaUndi::count(),
-            'peserta_aktif' => PesertaUndi::where('status', 'Aktif')->count(),
+            'peserta_aktif' => PesertaUndi::where('status', 'Belum Menang')->count(),
             'total_hadiah' => HadiahUndi::sum('stock_total'),
             'sisa_hadiah' => HadiahUndi::sum('stock_sisa'),
             'total_pemenang' => Pemenang::count(),
@@ -289,7 +293,7 @@ class BcfUndianController extends Controller
             ->get();
 
         $pesertaTersedia = PesertaUndi::query()
-            ->where('status', 'Aktif')
+            ->where('status', 'Belum Menang')
             ->whereDoesntHave('pemenang')
             ->count();
 
@@ -447,6 +451,10 @@ class BcfUndianController extends Controller
             return null;
         }
 
+        if ($this->shouldSkipHadiahRow($namaHadiah)) {
+            return null;
+        }
+
         $stockTotal = $this->sanitizeInteger($this->cellValue($row, $headers, [
             'qty',
             'jumlah',
@@ -463,7 +471,7 @@ class BcfUndianController extends Controller
         $stockSisa = max(0, min($stockTotal, $stockSisa));
 
         $status = $this->nullableString($this->cellValue($row, $headers, ['status']));
-        $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), null);
+        $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), 0);
 
         return [
             'nama_hadiah' => $namaHadiah,
@@ -489,11 +497,15 @@ class BcfUndianController extends Controller
             return null;
         }
 
+        if ($this->shouldSkipHadiahRow($namaHadiah)) {
+            return null;
+        }
+
         $kategori = $this->nullableString($row[1] ?? null);
         $deskripsi = $this->nullableString($row[2] ?? null);
         $stockTotal = max(1, $this->sanitizeInteger($row[3] ?? null, 1));
         $stockSisa = max(0, min($stockTotal, $this->sanitizeInteger($row[4] ?? null, $stockTotal)));
-        $harga = $this->sanitizeInteger($row[5] ?? null, null);
+        $harga = $this->sanitizeInteger($row[5] ?? null, 0);
         $status = $this->nullableString($row[6] ?? null);
 
         return [
@@ -507,19 +519,30 @@ class BcfUndianController extends Controller
         ];
     }
 
+    private function shouldSkipHadiahRow(string $namaHadiah): bool
+    {
+        $normalized = Str::upper(Str::of($namaHadiah)->squish()->value());
+
+        return in_array($normalized, ['TOTAL', 'SUBTOTAL', 'JUMLAH'], true);
+    }
+
     private function normalizePesertaStatus(?string $status): string
     {
         $normalized = Str::lower(Str::of((string) ($status ?? ''))->squish()->value());
 
-        if ($normalized === '' || in_array($normalized, ['aktif', 'active', '1', 'true'], true)) {
-            return 'Aktif';
+        if ($normalized === '' || in_array($normalized, ['belum menang', 'belummenang', 'aktif', 'active', '1', 'true'], true)) {
+            return 'Belum Menang';
+        }
+
+        if (in_array($normalized, ['menang', 'winner', 'won'], true)) {
+            return 'Menang';
         }
 
         if (in_array($normalized, ['nonaktif', 'inactive', '0', 'false'], true)) {
-            return 'Nonaktif';
+            return 'Belum Menang';
         }
 
-        return trim((string) $status);
+        return trim((string) $status) ?: 'Belum Menang';
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed

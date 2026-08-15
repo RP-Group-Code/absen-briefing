@@ -428,6 +428,7 @@
                     'nama' => $item->nama,
                     'pn' => $item->pn ?: 'PN tidak tersedia',
                     'uker' => $item->unit_kerja ?: 'Unit kerja belum diisi',
+                    'jabatan' => $item->jabatan ?: 'Jabatan belum diisi',
                 ];
             })
             ->values();
@@ -575,7 +576,7 @@
                 spinTimer = window.setInterval(() => {
                     const participant = randomParticipant();
                     winnerName.textContent = participant.nama;
-                    winnerMeta.textContent = participant.pn + ' | ' + participant.uker;
+                    winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
                 }, 90);
             });
 

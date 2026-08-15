@@ -13,6 +13,7 @@ class PesertaUndi extends Model
         'nama',
         'pn',
         'unit_kerja',
+        'jabatan',
         'status',
     ];
 
@@ -24,7 +25,7 @@ class PesertaUndi extends Model
             return false;
         }
 
-        return ! in_array(mb_strtolower($status), ['nonaktif', 'inactive', '0'], true);
+        return mb_strtolower($status) === 'belum menang';
     }
 
     public function pemenang(): HasMany
