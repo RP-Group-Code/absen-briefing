@@ -268,6 +268,27 @@
             margin-top: 8px;
         }
 
+        .live-search {
+            width: 100%;
+            min-height: 64px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--live-text);
+            font-size: 1rem;
+            padding: 0 20px;
+            outline: none;
+        }
+
+        .live-search::placeholder {
+            color: rgba(247, 247, 249, 0.44);
+        }
+
+        .live-search:focus {
+            box-shadow: 0 0 0 4px rgba(255, 211, 28, 0.1);
+            border-color: rgba(255, 211, 28, 0.24);
+        }
+
         .live-select {
             width: 100%;
             min-height: 76px;
@@ -487,6 +508,7 @@
                 <form class="live-form" method="POST" action="{{ route('bcf.undian.draw') }}" id="liveDrawForm">
                     @csrf
                     <input type="hidden" name="redirect_to" value="live">
+                    <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
                     <select class="live-select" name="hadiah_undi_id" id="liveHadiahSelect">
                         <option value="">-- Pilih Hadiah --</option>
                         @foreach ($hadiahTersedia as $item)
@@ -533,7 +555,12 @@
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
             const hadiahSelect = document.getElementById('liveHadiahSelect');
+            const hadiahSearch = document.getElementById('liveHadiahSearch');
             const clock = document.getElementById('liveClock');
+            const hadiahOptions = Array.from(hadiahSelect.options).map((option) => ({
+                value: option.value,
+                label: option.textContent,
+            }));
 
             let spinTimer = null;
 
@@ -549,6 +576,32 @@
             };
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
+
+            const renderHadiahOptions = (keyword = '') => {
+                const normalizedKeyword = String(keyword || '').trim().toLowerCase();
+                const currentValue = hadiahSelect.value;
+                const filteredOptions = hadiahOptions.filter((option, index) => {
+                    if (index === 0) {
+                        return true;
+                    }
+
+                    return option.label.toLowerCase().includes(normalizedKeyword);
+                });
+
+                hadiahSelect.innerHTML = '';
+                filteredOptions.forEach((option) => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    hadiahSelect.appendChild(optionElement);
+                });
+
+                if ([...hadiahSelect.options].some((option) => option.value === currentValue)) {
+                    hadiahSelect.value = currentValue;
+                } else {
+                    hadiahSelect.value = '';
+                }
+            };
 
             const setIdleState = () => {
                 window.clearInterval(spinTimer);
@@ -593,6 +646,11 @@
                 setIdleState();
             });
 
+            hadiahSearch.addEventListener('input', (event) => {
+                renderHadiahOptions(event.target.value);
+            });
+
+            renderHadiahOptions();
             updateClock();
             window.setInterval(updateClock, 1000);
         })();
