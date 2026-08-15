@@ -45,7 +45,7 @@ class BcfRegistrasiController extends Controller
     {
         $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'peserta_page')
+            ->paginate(10, ['*'], 'peserta_page')
             ->withQueryString();
 
         $totalRegistrasi = BcfRegistrasi::count();
@@ -245,7 +245,7 @@ class BcfRegistrasiController extends Controller
             })
             ->orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $capacities = BcfTeamQuota::query()->pluck('capacity', 'team');
