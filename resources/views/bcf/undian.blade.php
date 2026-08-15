@@ -454,8 +454,8 @@
             <div class="undi-brand">
                 <div class="undi-brand-icon"><i class="fa-solid fa-star"></i></div>
                 <div class="undi-brand-copy">
-                    <span class="undi-kicker">Undian BCF BO Sriwijaya</span>
-                    <h1 class="undi-title">Dashboard Pengelolaan Undian</h1>
+                    <span class="undi-kicker">Berkolaborasi Memberi Arti</span>
+                    <h1 class="undi-title">UNDIAN BCF BO SRIWIJAYA</h1>
                 </div>
             </div>
             <nav class="undi-nav">
@@ -469,9 +469,9 @@
             </nav>
         </section>
 
-        <section class="undi-intro">
+        {{-- <section class="undi-intro">
             <p class="undi-subtitle">Portal desktop-first untuk mengelola peserta, hadiah, undian, pemenang, dan rekap akhir dengan nuansa warna BCF yang seragam. Struktur atas kini dibuat model navbar agar area utama lebih penuh dan lebih lega untuk konten.</p>
-        </section>
+        </section> --}}
 
         <section id="dashboard" class="undi-section undi-grid">
             <article class="undi-stat"><small>Total Peserta</small><strong>{{ $dashboard['total_peserta'] }}</strong></article>
