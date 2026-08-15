@@ -44,6 +44,7 @@
         .admin-progress { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: #e9f0f7; }
         .admin-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--admin-blue), #55c7ed); }
         .admin-card { overflow: hidden; margin-top: 30px; }
+        .admin-card.is-loading { opacity: .55; transition: opacity .2s ease; pointer-events: none; }
         .admin-card-head { padding: 22px 25px 16px; }
         .admin-card-head h2 { margin: 0 0 5px; font-size: 1.25rem; font-weight: 800; }
         .admin-card-head p { margin: 0; color: var(--admin-muted); font-size: .86rem; }
@@ -176,35 +177,103 @@
             const editModal = document.getElementById('adminEditModal');
             const teamSelect = document.getElementById('admin_team');
             const colorInput = document.getElementById('admin_warna');
-            const perPageSelect = document.getElementById('adminPerPage');
+            const adminSectionSelector = '#daftar-peserta-admin';
 
             const syncAdminColor = function () {
                 colorInput.value = teamSelect.options[teamSelect.selectedIndex]?.dataset.warna || '';
             };
 
-            perPageSelect?.addEventListener('change', function () {
-                this.form.submit();
-            });
-
             teamSelect?.addEventListener('change', syncAdminColor);
-            document.querySelectorAll('.admin-edit').forEach(button => button.addEventListener('click', function () {
-                const data = this.dataset;
-                editForm.action = `{{ url('/bcf-registrasi') }}/${data.id}`;
-                document.getElementById('admin_nama').value = data.nama || '';
-                document.getElementById('admin_pn').value = data.pn || '';
-                document.getElementById('admin_unit').value = data.unit || '';
-                document.getElementById('admin_nourut').value = data.nourut || '';
-                teamSelect.value = data.team || '';
-                syncAdminColor();
-                bootstrap.Modal.getOrCreateInstance(editModal).show();
-            }));
 
-            document.querySelectorAll('.admin-delete').forEach(form => form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const submit = () => form.submit();
-                if (typeof Swal === 'undefined') return confirm(`Hapus ${form.dataset.nama}?`) && submit();
-                Swal.fire({ title: 'Hapus peserta?', text: `${form.dataset.nama} akan dihapus.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d85c59', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(result => result.isConfirmed && submit());
-            }));
+            const updateBrowserUrl = function (url) {
+                if (window.history?.pushState) {
+                    window.history.pushState({}, '', url);
+                }
+            };
+
+            const replaceSectionFromHtml = function (html, selector) {
+                const parser = new DOMParser();
+                const documentFromHtml = parser.parseFromString(html, 'text/html');
+                const nextSection = documentFromHtml.querySelector(selector);
+                const currentSection = document.querySelector(selector);
+
+                if (!nextSection || !currentSection) {
+                    window.location.assign(window.location.href);
+                    return false;
+                }
+
+                currentSection.replaceWith(nextSection);
+                return true;
+            };
+
+            const fetchSection = function (url, selector, onDone) {
+                const section = document.querySelector(selector);
+                if (!section || !window.jQuery) {
+                    window.location.assign(url);
+                    return;
+                }
+
+                section.classList.add('is-loading');
+                jQuery.get(url)
+                    .done(function (html) {
+                        if (!replaceSectionFromHtml(html, selector)) {
+                            return;
+                        }
+
+                        updateBrowserUrl(url);
+                        onDone?.();
+                    })
+                    .fail(function () {
+                        window.location.assign(url);
+                    });
+            };
+
+            const bindAdminActions = function () {
+                const perPageSelect = document.getElementById('adminPerPage');
+                const searchForm = document.querySelector('.admin-searchbar');
+
+                perPageSelect?.addEventListener('change', function () {
+                    const url = `${this.form.action}?${new URLSearchParams(new FormData(this.form)).toString()}#daftar-peserta-admin`;
+                    fetchSection(url, adminSectionSelector, bindAdminActions);
+                });
+
+                searchForm?.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const url = `${this.action}?${new URLSearchParams(new FormData(this)).toString()}#daftar-peserta-admin`;
+                    fetchSection(url, adminSectionSelector, bindAdminActions);
+                });
+
+                document.querySelectorAll(`${adminSectionSelector} .admin-search-reset`).forEach(link => link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    fetchSection(this.href, adminSectionSelector, bindAdminActions);
+                }));
+
+                document.querySelectorAll(`${adminSectionSelector} .admin-pagination a`).forEach(link => link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    fetchSection(this.href, adminSectionSelector, bindAdminActions);
+                }));
+
+                document.querySelectorAll(`${adminSectionSelector} .admin-edit`).forEach(button => button.addEventListener('click', function () {
+                    const data = this.dataset;
+                    editForm.action = `{{ url('/bcf-registrasi') }}/${data.id}`;
+                    document.getElementById('admin_nama').value = data.nama || '';
+                    document.getElementById('admin_pn').value = data.pn || '';
+                    document.getElementById('admin_unit').value = data.unit || '';
+                    document.getElementById('admin_nourut').value = data.nourut || '';
+                    teamSelect.value = data.team || '';
+                    syncAdminColor();
+                    bootstrap.Modal.getOrCreateInstance(editModal).show();
+                }));
+
+                document.querySelectorAll(`${adminSectionSelector} .admin-delete`).forEach(form => form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const submit = () => form.submit();
+                    if (typeof Swal === 'undefined') return confirm(`Hapus ${form.dataset.nama}?`) && submit();
+                    Swal.fire({ title: 'Hapus peserta?', text: `${form.dataset.nama} akan dihapus.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d85c59', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(result => result.isConfirmed && submit());
+                }));
+            };
+
+            bindAdminActions();
         });
     </script>
 @endpush

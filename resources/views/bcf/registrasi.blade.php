@@ -79,6 +79,7 @@
         .bcf-content { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 70px 0 90px; }
         .bcf-section { scroll-margin-top: 24px; margin-bottom: 34px; }
         .bcf-card { background: #fff; border: 1px solid #e1e9f3; border-radius: 18px; box-shadow: 0 12px 35px rgba(18, 59, 108, .07); overflow: hidden; }
+        .bcf-card.is-loading { opacity: .55; transition: opacity .2s ease; pointer-events: none; }
         .bcf-card-head { border-top: 5px solid var(--bcf-blue); padding: 26px 28px 20px; }
         .bcf-card-head-with-action { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
         .bcf-admin-link { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #b9cfe8; border-radius: 9px; background: #fff; color: var(--bcf-blue-deep); font-size: .76rem; font-weight: 800; padding: 9px 12px; text-decoration: none; white-space: nowrap; }
@@ -297,12 +298,12 @@
             </section>
 
             <section id="peserta" class="bcf-section">
-                <div class="bcf-card p-0 m-0">
+                <div id="publicParticipantSection" class="bcf-card p-0 m-0">
                     <div class="bcf-card-head bcf-card-head-with-action"><div><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>@auth<a href="{{ route('bcf.registrasi.admin') }}" class="bcf-admin-link"><i class="fa-solid fa-shield-halved"></i> Portal Admin</a>@endauth</div>
                     <div class="bcf-table-wrap">
                         <div class="bcf-table-meta">
                             <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
-                            <form method="GET" action="{{ route('bcf.registrasi.index') }}#peserta" class="bcf-per-page">
+                            <form method="GET" action="{{ route('bcf.registrasi.index') }}" class="bcf-per-page">
                                 <label for="publicPerPage">Baris per halaman</label>
                                 <select id="publicPerPage" name="per_page">
                                     @foreach ($perPageOptions as $option)
@@ -645,12 +646,92 @@
             const createForm = document.getElementById('createBcfForm');
             const assignmentModal = document.getElementById('assignmentBcfModal');
             const confirmAssignmentButton = document.getElementById('confirmAssignmentButton');
-            const publicPerPageSelect = document.getElementById('publicPerPage');
+            const publicParticipantSectionSelector = '#publicParticipantSection';
             let formReadyToSubmit = false;
 
-            publicPerPageSelect?.addEventListener('change', function () {
-                this.form.submit();
-            });
+            const updateBrowserUrl = function (url) {
+                if (window.history?.pushState) {
+                    window.history.pushState({}, '', url);
+                }
+            };
+
+            const replaceSectionFromHtml = function (html, selector) {
+                const parser = new DOMParser();
+                const documentFromHtml = parser.parseFromString(html, 'text/html');
+                const nextSection = documentFromHtml.querySelector(selector);
+                const currentSection = document.querySelector(selector);
+
+                if (!nextSection || !currentSection) {
+                    window.location.assign(window.location.href);
+                    return false;
+                }
+
+                currentSection.replaceWith(nextSection);
+                return true;
+            };
+
+            const bindParticipantSearch = function () {
+                const participantSearch = document.getElementById('participantSearch');
+                const participantRows = document.querySelectorAll('#participantTableBody tr');
+                const participantSearchEmpty = document.getElementById('participantSearchEmpty');
+
+                participantSearch?.addEventListener('input', function () {
+                    const keyword = this.value.trim().toLowerCase();
+                    let visibleRows = 0;
+
+                    participantRows.forEach(row => {
+                        const matches = row.textContent.toLowerCase().includes(keyword);
+                        row.hidden = !matches;
+                        if (matches) visibleRows++;
+                    });
+
+                    if (participantSearchEmpty) {
+                        participantSearchEmpty.hidden = visibleRows > 0 || keyword === '';
+                    }
+                });
+            };
+
+            const fetchSection = function (url, selector, onDone) {
+                const section = document.querySelector(selector);
+                if (!section || !window.jQuery) {
+                    window.location.assign(url);
+                    return;
+                }
+
+                section.classList.add('is-loading');
+                jQuery.get(url)
+                    .done(function (html) {
+                        if (!replaceSectionFromHtml(html, selector)) {
+                            return;
+                        }
+
+                        updateBrowserUrl(url);
+                        onDone?.();
+                    })
+                    .fail(function () {
+                        window.location.assign(url);
+                    });
+            };
+
+            const bindPublicPagination = function () {
+                const publicPerPageSelect = document.getElementById('publicPerPage');
+
+                publicPerPageSelect?.addEventListener('change', function () {
+                    const url = `${this.form.action}?${new URLSearchParams(new FormData(this.form)).toString()}#peserta`;
+                    fetchSection(url, publicParticipantSectionSelector, function () {
+                        bindParticipantSearch();
+                        bindPublicPagination();
+                    });
+                });
+
+                document.querySelectorAll(`${publicParticipantSectionSelector} .bcf-pagination a`).forEach(link => link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    fetchSection(this.href, publicParticipantSectionSelector, function () {
+                        bindParticipantSearch();
+                        bindPublicPagination();
+                    });
+                }));
+            };
 
             createForm?.addEventListener('submit', function (event) {
                 if (formReadyToSubmit) return;
@@ -667,23 +748,8 @@
                 createForm.submit();
             });
 
-            const participantSearch = document.getElementById('participantSearch');
-            const participantRows = document.querySelectorAll('#participantTableBody tr');
-            const participantSearchEmpty = document.getElementById('participantSearchEmpty');
-            participantSearch?.addEventListener('input', function () {
-                const keyword = this.value.trim().toLowerCase();
-                let visibleRows = 0;
-
-                participantRows.forEach(row => {
-                    const matches = row.textContent.toLowerCase().includes(keyword);
-                    row.hidden = !matches;
-                    if (matches) visibleRows++;
-                });
-
-                if (participantSearchEmpty) {
-                    participantSearchEmpty.hidden = visibleRows > 0 || keyword === '';
-                }
-            });
+            bindParticipantSearch();
+            bindPublicPagination();
 
             document.querySelectorAll('.btn-edit-bcf').forEach(button => button.addEventListener('click', function () {
                 const data = this.dataset;
