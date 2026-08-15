@@ -8,6 +8,7 @@ use App\Models\PesertaUndi;
 use App\Models\Pemenang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -63,7 +64,7 @@ class BcfUndianController extends Controller
             ->where('status', 'Belum Menang')
             ->whereDoesntHave('pemenang')
             ->inRandomOrder()
-            ->get(['nama', 'pn', 'unit_kerja', 'jabatan']);
+            ->get($this->pesertaUndiSelectColumns(['nama', 'pn', 'unit_kerja', 'jabatan']));
 
         return view('bcf.undian-live', compact(
             'dashboard',
@@ -85,13 +86,13 @@ class BcfUndianController extends Controller
             'status' => 'nullable|string|max:255',
         ]);
 
-        PesertaUndi::create([
+        PesertaUndi::create($this->pesertaUndiPayload([
             'nama' => $validated['nama'],
             'pn' => $validated['pn'] ?? null,
             'unit_kerja' => $validated['unit_kerja'] ?? null,
             'jabatan' => $validated['jabatan'] ?? null,
             'status' => $this->normalizePesertaStatus($validated['status'] ?? null),
-        ]);
+        ]));
 
         Alert::success('Peserta Ditambahkan', 'Peserta undian berhasil disimpan.');
 
@@ -114,13 +115,13 @@ class BcfUndianController extends Controller
                 continue;
             }
 
-            PesertaUndi::create([
+            PesertaUndi::create($this->pesertaUndiPayload([
                 'nama' => $nama,
                 'pn' => $this->nullableString($this->cellValue($row, $headers, ['pn', 'nip'])),
                 'unit_kerja' => $this->nullableString($this->cellValue($row, $headers, ['unit kerja', 'unit_kerja', 'uker'])),
                 'jabatan' => $this->nullableString($this->cellValue($row, $headers, ['jabatan', 'job title', 'posisi'])),
                 'status' => $this->normalizePesertaStatus($this->nullableString($this->cellValue($row, $headers, ['status']))),
-            ]);
+            ]));
             $created++;
         }
 
@@ -405,6 +406,29 @@ class BcfUndianController extends Controller
         $semicolonCount = substr_count($line, ';');
 
         return $semicolonCount > $commaCount ? ';' : ',';
+    }
+
+    private function pesertaUndiHasJabatanColumn(): bool
+    {
+        return Schema::hasColumn('peserta_undi', 'jabatan');
+    }
+
+    private function pesertaUndiPayload(array $attributes): array
+    {
+        if (! $this->pesertaUndiHasJabatanColumn()) {
+            unset($attributes['jabatan']);
+        }
+
+        return $attributes;
+    }
+
+    private function pesertaUndiSelectColumns(array $columns): array
+    {
+        if ($this->pesertaUndiHasJabatanColumn()) {
+            return $columns;
+        }
+
+        return array_values(array_filter($columns, fn (string $column) => $column !== 'jabatan'));
     }
 
     private function sanitizeInteger(mixed $value, ?int $default = 0): ?int
