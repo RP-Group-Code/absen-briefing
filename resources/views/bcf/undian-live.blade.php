@@ -6,9 +6,9 @@
 @push('styles')
     <style>
         :root {
-            --live-bg: #090a12;
-            --live-bg-soft: #17051f;
-            --live-panel: rgba(20, 14, 34, 0.86);
+            --live-bg: #0a4ead;
+            --live-bg-soft: #083b82;
+            --live-panel: rgba(10, 78, 173, 0.86);
             --live-line: rgba(255, 208, 0, 0.18);
             --live-gold: #ffd31c;
             --live-gold-soft: #ffb000;
@@ -24,7 +24,7 @@
                 linear-gradient(rgba(255, 211, 28, 0.06) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 211, 28, 0.06) 1px, transparent 1px),
                 radial-gradient(circle at top center, rgba(255, 211, 28, 0.18), transparent 28%),
-                radial-gradient(circle at 70% 72%, rgba(140, 0, 255, 0.18), transparent 30%),
+                radial-gradient(circle at 70% 72%, rgba(10, 78, 173, 0.22), transparent 30%),
                 linear-gradient(180deg, var(--live-bg) 0%, var(--live-bg-soft) 100%) !important;
             background-size: 102px 102px, 102px 102px, auto, auto, auto;
             color: var(--live-text);
@@ -48,7 +48,7 @@
             padding: 22px 28px 28px;
             background:
                 radial-gradient(circle at center, rgba(255, 211, 28, 0.12), transparent 36%),
-                linear-gradient(180deg, rgba(11, 11, 19, 0.86), rgba(17, 7, 29, 0.92));
+                linear-gradient(180deg, rgba(10, 78, 173, 0.88), rgba(6, 40, 100, 0.94));
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -69,7 +69,7 @@
             background:
                 radial-gradient(circle at 20% 16%, rgba(255, 211, 28, 0.14), transparent 22%),
                 radial-gradient(circle at 72% 18%, rgba(255, 211, 28, 0.12), transparent 24%),
-                radial-gradient(circle at 82% 72%, rgba(153, 0, 255, 0.14), transparent 28%);
+                radial-gradient(circle at 82% 72%, rgba(39, 224, 255, 0.14), transparent 28%);
             pointer-events: none;
         }
 
@@ -219,6 +219,7 @@
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.28);
             background: linear-gradient(180deg, rgba(45, 6, 68, 0.86), rgba(12, 10, 20, 0.92));
+            background: linear-gradient(180deg, rgba(10, 78, 173, 0.9), rgba(5, 31, 78, 0.95));
             box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
             padding: 34px 30px 28px;
             text-align: center;
@@ -337,7 +338,7 @@
             border: 1px solid rgba(255, 211, 28, 0.18);
             background:
                 radial-gradient(circle at top center, rgba(255, 211, 28, 0.12), transparent 32%),
-                linear-gradient(180deg, rgba(31, 8, 48, 0.96), rgba(11, 10, 21, 0.98));
+                linear-gradient(180deg, rgba(10, 78, 173, 0.96), rgba(4, 26, 70, 0.98));
             box-shadow:
                 0 30px 120px rgba(0, 0, 0, 0.46),
                 0 0 44px rgba(255, 211, 28, 0.12);
@@ -361,6 +362,7 @@
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.26);
             background: linear-gradient(180deg, rgba(58, 8, 86, 0.94), rgba(10, 10, 20, 0.96));
+            background: linear-gradient(180deg, rgba(10, 78, 173, 0.95), rgba(4, 27, 72, 0.98));
             box-shadow:
                 0 34px 90px rgba(0, 0, 0, 0.34),
                 0 0 50px rgba(255, 211, 28, 0.14);
@@ -464,6 +466,7 @@
             border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             background: linear-gradient(180deg, rgba(9, 11, 20, 0.92), rgba(22, 7, 34, 0.95));
+            background: linear-gradient(180deg, rgba(7, 44, 111, 0.94), rgba(5, 29, 76, 0.97));
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
             padding: 28px 28px 32px;
             display: flex;

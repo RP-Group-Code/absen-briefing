@@ -6,8 +6,8 @@
 @push('styles')
     <style>
         :root {
-            --undi-navy: #0d3f91;
-            --undi-blue: #1560d8;
+            --undi-navy: #0a4ead;
+            --undi-blue: #0a4ead;
             --undi-cyan: #5dc9ea;
             --undi-gold: #ffcf40;
             --undi-ink: #16304d;
@@ -19,7 +19,7 @@
         body {
             background:
                 radial-gradient(circle at top left, rgba(93, 201, 234, .18), transparent 32%),
-                linear-gradient(180deg, #f6fbff 0%, #eef5ff 100%) !important;
+                linear-gradient(180deg, #edf5ff 0%, #dfeeff 100%) !important;
             color: var(--undi-ink);
             padding-bottom: 18px !important;
         }
@@ -41,8 +41,9 @@
             padding: 16px 20px;
             border-radius: 22px;
             background: linear-gradient(135deg, rgba(13, 63, 145, .98), rgba(21, 96, 216, .95));
+            background: linear-gradient(135deg, rgba(10, 78, 173, .98), rgba(12, 92, 201, .95));
             color: #fff;
-            box-shadow: 0 24px 60px rgba(9, 47, 108, .18);
+            box-shadow: 0 24px 60px rgba(10, 78, 173, .18);
             border: 1px solid rgba(255,255,255,.08);
         }
 
@@ -291,7 +292,7 @@
         .undi-winner-stage {
             background:
                 radial-gradient(circle at top center, rgba(255, 207, 64, .2), transparent 34%),
-                linear-gradient(180deg, #0f438f 0%, #1a66da 100%);
+                linear-gradient(180deg, #0a4ead 0%, #0f6ad1 100%);
             color: #fff;
             border-radius: 24px;
             padding: 28px;
