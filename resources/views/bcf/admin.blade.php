@@ -70,7 +70,9 @@
         .admin-name { font-weight: 800; white-space: nowrap; }
         .admin-name-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .admin-attendance { width: 18px; height: 18px; accent-color: var(--admin-blue); flex-shrink: 0; }
-        .admin-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-name-block { min-width: 0; }
+        .admin-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+        .admin-name-pn { display: block; margin-top: 2px; color: var(--admin-muted); font-size: .72rem; font-weight: 600; }
         .admin-uker { color: var(--admin-muted); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .admin-action { width: 33px; height: 33px; border: 1px solid #dbe5ef; border-radius: 8px; background: #fff; color: var(--admin-blue); }
         .admin-action.delete { color: #d85c59; }
@@ -159,11 +161,11 @@
                     @if ($search !== '')<a href="{{ route('bcf.registrasi.admin', ['per_page' => $perPage]) }}" class="admin-search-reset">Reset</a>@endif
                 </form>
                 <div class="admin-table-wrap">
-                    <table class="admin-table"><thead><tr><th>Nama</th><th>PN</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th><th>Aksi</th></tr></thead><tbody>
+                    <table class="admin-table"><thead><tr><th>Nama / PN</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th><th>Aksi</th></tr></thead><tbody>
                         @forelse ($registrasi as $row)
-                            <tr><td class="admin-name"><label class="admin-name-wrap"><input type="checkbox" class="admin-attendance-toggle admin-attendance" data-url="{{ route('bcf.registrasi.attendance', $row->id) }}" @checked($row->hadir)><span class="admin-name-text">{{ $row->nama }}</span></label></td><td>{{ $row->pn }}</td><td>{{ $row->team ?: '-' }}</td><td>{{ $row->warna }}</td><td>{{ $row->nourut ?: '-' }}</td><td class="admin-uker" title="{{ $row->unit_kerja }}">{{ $row->unit_kerja }}</td><td><div class="admin-actions"><button type="button" class="admin-action admin-edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-team="{{ $row->team }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}"><i class="fa-solid fa-pen"></i></button><form method="POST" action="{{ route('bcf.registrasi.destroy', $row->id) }}" class="admin-delete" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="admin-action delete"><i class="fa-solid fa-trash"></i></button></form></div></td></tr>
+                            <tr><td class="admin-name"><label class="admin-name-wrap"><input type="checkbox" class="admin-attendance-toggle admin-attendance" data-url="{{ route('bcf.registrasi.attendance', $row->id) }}" @checked($row->hadir)><span class="admin-name-block"><span class="admin-name-text">{{ $row->nama }}</span><span class="admin-name-pn">{{ $row->pn }}</span></span></label></td><td>{{ $row->team ?: '-' }}</td><td>{{ $row->warna }}</td><td>{{ $row->nourut ?: '-' }}</td><td class="admin-uker" title="{{ $row->unit_kerja }}">{{ $row->unit_kerja }}</td><td><div class="admin-actions"><button type="button" class="admin-action admin-edit" data-id="{{ $row->id }}" data-nama="{{ $row->nama }}" data-pn="{{ $row->pn }}" data-unit="{{ $row->unit_kerja }}" data-team="{{ $row->team }}" data-warna="{{ $row->warna }}" data-nourut="{{ $row->nourut }}"><i class="fa-solid fa-pen"></i></button><form method="POST" action="{{ route('bcf.registrasi.destroy', $row->id) }}" class="admin-delete" data-nama="{{ $row->nama }}">@csrf @method('DELETE')<button type="submit" class="admin-action delete"><i class="fa-solid fa-trash"></i></button></form></div></td></tr>
                         @empty
-                            <tr><td colspan="7" class="text-center text-muted py-4">Belum ada peserta.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted py-4">Belum ada peserta.</td></tr>
                         @endforelse
                     </tbody></table>
                 </div>
