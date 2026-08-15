@@ -208,10 +208,11 @@ class BcfUndianController extends Controller
     {
         $validated = $request->validate([
             'hadiah_undi_id' => 'nullable|exists:hadiah_undi,id',
+            'hadiah_kategori' => 'nullable|string|max:255',
             'redirect_to' => 'nullable|string|in:index,live',
         ]);
 
-        $winner = DB::transaction(function () use ($validated) {
+        $result = DB::transaction(function () use ($validated) {
             $pesertaPool = PesertaUndi::query()
                 ->where('status', 'Belum Menang')
                 ->whereDoesntHave('pemenang')
@@ -227,13 +228,67 @@ class BcfUndianController extends Controller
                 ->where('stock_sisa', '>', 0)
                 ->lockForUpdate();
 
-            if (! empty($validated['hadiah_undi_id'])) {
+            $selectedKategori = $this->nullableString($validated['hadiah_kategori'] ?? null);
+
+            if ($this->isMassUndianCategory($selectedKategori)) {
+                $hadiahQuery->where('kategori', $selectedKategori);
+            } elseif (! empty($validated['hadiah_undi_id'])) {
                 $hadiahQuery->whereKey($validated['hadiah_undi_id']);
             }
 
             $hadiahPool = $hadiahQuery->get();
             if ($hadiahPool->isEmpty()) {
                 throw ValidationException::withMessages(['hadiah_undi_id' => 'Tidak ada hadiah tersedia untuk diundi.']);
+            }
+
+            if ($this->isMassUndianCategory($selectedKategori)) {
+                $totalSlotHadiah = (int) $hadiahPool->sum('stock_sisa');
+                if ($pesertaPool->count() < $totalSlotHadiah) {
+                    throw ValidationException::withMessages([
+                        'undian' => 'Peserta tersedia tidak mencukupi untuk mengundi seluruh hadiah kecil sekaligus.',
+                    ]);
+                }
+
+                $pesertaQueue = $pesertaPool->shuffle()->values();
+                $nextUndianKe = (Pemenang::max('undian_ke') ?? 0) + 1;
+                $createdWinners = collect();
+                $wonAt = now();
+
+                foreach ($hadiahPool as $hadiah) {
+                    $qty = max(0, (int) $hadiah->stock_sisa);
+
+                    for ($index = 0; $index < $qty; $index++) {
+                        $peserta = $pesertaQueue->shift();
+
+                        if (! $peserta) {
+                            break;
+                        }
+
+                        $pemenang = Pemenang::create([
+                            'peserta_undi_id' => $peserta->id,
+                            'hadiah_undi_id' => $hadiah->id,
+                            'undian_ke' => $nextUndianKe,
+                            'won_at' => $wonAt,
+                        ]);
+
+                        $peserta->forceFill(['status' => 'Menang'])->save();
+                        $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
+                        $nextUndianKe++;
+                    }
+
+                    $hadiah->forceFill([
+                        'stock_sisa' => 0,
+                        'status' => false,
+                    ])->save();
+                }
+
+                return [
+                    'mode' => 'batch',
+                    'kategori' => $selectedKategori,
+                    'winners' => $createdWinners,
+                    'undian_ke_mulai' => $createdWinners->first()?->undian_ke,
+                    'undian_ke_selesai' => $createdWinners->last()?->undian_ke,
+                ];
             }
 
             $peserta = $pesertaPool->random();
@@ -254,22 +309,46 @@ class BcfUndianController extends Controller
                 'status' => $sisaHadiah > 0,
             ])->save();
 
-            return $pemenang->load(['peserta', 'hadiah']);
+            return [
+                'mode' => 'single',
+                'winner' => $pemenang->load(['peserta', 'hadiah']),
+            ];
         });
 
         $redirectRoute = ($validated['redirect_to'] ?? 'index') === 'live'
             ? 'bcf.undian.live'
             : 'bcf.undian.index';
 
+        $winnerFlash = $result['mode'] === 'batch'
+            ? [
+                'mode' => 'batch',
+                'kategori' => $result['kategori'],
+                'undian_ke_mulai' => $result['undian_ke_mulai'],
+                'undian_ke_selesai' => $result['undian_ke_selesai'],
+                'items' => $result['winners']->map(function ($winner) {
+                    return [
+                        'undian_ke' => $winner->undian_ke,
+                        'peserta' => $winner->peserta?->nama,
+                        'pn' => $winner->peserta?->pn,
+                        'jabatan' => $winner->peserta?->jabatan,
+                        'uker' => $winner->peserta?->unit_kerja,
+                        'hadiah' => $winner->hadiah?->nama_hadiah,
+                        'kategori' => $winner->hadiah?->kategori,
+                    ];
+                })->values()->all(),
+            ]
+            : [
+                'mode' => 'single',
+                'peserta' => $result['winner']->peserta?->nama,
+                'pn' => $result['winner']->peserta?->pn,
+                'hadiah' => $result['winner']->hadiah?->nama_hadiah,
+                'kategori' => $result['winner']->hadiah?->kategori,
+                'undian_ke' => $result['winner']->undian_ke,
+            ];
+
         return redirect()
             ->route($redirectRoute, ['tab' => 'undian'])
-            ->with('undian_winner', [
-                'peserta' => $winner->peserta?->nama,
-                'pn' => $winner->peserta?->pn,
-                'hadiah' => $winner->hadiah?->nama_hadiah,
-                'kategori' => $winner->hadiah?->kategori,
-                'undian_ke' => $winner->undian_ke,
-            ]);
+            ->with('undian_winner', $winnerFlash);
     }
 
     public function exportRekap()
@@ -571,6 +650,13 @@ class BcfUndianController extends Controller
         }
 
         return trim((string) $status) ?: 'Belum Menang';
+    }
+
+    private function isMassUndianCategory(?string $kategori): bool
+    {
+        $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
+
+        return $normalized === 'hadiah kecil';
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed

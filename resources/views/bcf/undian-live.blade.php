@@ -224,6 +224,20 @@
             text-align: center;
         }
 
+        .live-winner-box.is-batch {
+            width: min(100%, 1360px);
+        }
+
+        .live-winner-box.is-batch .live-winner-name {
+            min-height: auto;
+            font-size: clamp(1.9rem, 3.1vw, 3rem);
+            margin-bottom: 10px;
+        }
+
+        .live-winner-box.is-batch .live-winner-prize {
+            font-size: clamp(1rem, 1.8vw, 1.35rem);
+        }
+
         .live-winner-badge {
             display: inline-flex;
             align-items: center;
@@ -269,6 +283,28 @@
             font-size: 1rem;
             letter-spacing: .14em;
             text-transform: uppercase;
+        }
+
+        .live-batch-results {
+            display: none;
+            margin-top: 22px;
+            text-align: left;
+        }
+
+        .live-batch-results.is-visible {
+            display: block;
+        }
+
+        .live-batch-summary {
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.84);
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .live-batch-table-wrap {
+            margin-top: 0;
         }
 
         .live-modal {
@@ -330,6 +366,11 @@
                 0 0 50px rgba(255, 211, 28, 0.14);
             padding: 46px 40px 38px;
             text-align: center;
+        }
+
+        .live-modal-card.is-batch {
+            max-height: calc(100vh - 140px);
+            overflow: auto;
         }
 
         .live-modal-card .live-winner-badge {
@@ -832,10 +873,27 @@
 @section('content')
     @php
         $winner = session('undian_winner');
-        $displayWinnerName = $winner['peserta'] ?? $recentWinner?->peserta?->nama ?? '???';
-        $displayWinnerPn = $winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi';
-        $displayWinnerHadiah = $winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah';
-        $displayWinnerRound = $winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null;
+        $winnerMode = $winner['mode'] ?? 'single';
+        $winnerBatchItems = collect($winner['items'] ?? []);
+        $isBatchWinner = $winnerMode === 'batch' && $winnerBatchItems->isNotEmpty();
+        $displayWinnerName = $isBatchWinner
+            ? 'Undian ' . ($winner['kategori'] ?? 'Hadiah Kecil') . ' Selesai'
+            : ($winner['peserta'] ?? $recentWinner?->peserta?->nama ?? '???');
+        $displayWinnerPn = $isBatchWinner
+            ? ($winnerBatchItems->count() . ' pemenang terpilih')
+            : ($winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi');
+        $displayWinnerHadiah = $isBatchWinner
+            ? (($winner['kategori'] ?? 'Hadiah Kecil') . ' • ' . $winnerBatchItems->count() . ' penerima')
+            : ($winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah');
+        $displayWinnerRound = $isBatchWinner
+            ? ($winner['undian_ke_selesai'] ?? null)
+            : ($winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null);
+        $displayWinnerBadge = $isBatchWinner
+            ? 'Hasil ' . ($winner['kategori'] ?? 'Hadiah Kecil')
+            : ($displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi');
+        $displayWinnerMeta = $isBatchWinner
+            ? ('Undian #' . ($winner['undian_ke_mulai'] ?? '-') . ' sampai #' . ($winner['undian_ke_selesai'] ?? '-') . ' | Tutup modal untuk lanjut undian berikutnya')
+            : (($displayWinnerPn ?: 'Peserta siap diundi') . ' | ' . ($recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi') . ' | ' . ($recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi'));
         $shouldCelebrate = (bool) session()->has('undian_winner');
         $hadiahCategories = $hadiahTersedia
             ->pluck('kategori')
@@ -885,14 +943,43 @@
 
             <div class="live-watermark">BRILIAN CULTURE FEST SYSTEM {{ now()->format('m.d.Y') }}</div>
 
-            <div class="live-winner-box">
+            <div class="live-winner-box {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerBox">
                 <div class="live-winner-badge" id="liveWinnerBadge">
                     <i class="fa-solid fa-sparkles"></i>
-                    {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi' }}
+                    {{ $displayWinnerBadge }}
                 </div>
                 <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
                 <div class="live-winner-prize" id="liveWinnerPrize">{{ $displayWinnerHadiah }}</div>
-                <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi' }} | {{ $recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi' }}</div>
+                <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerMeta }}</div>
+                <div class="live-batch-results {{ $isBatchWinner ? 'is-visible' : '' }}" id="liveBatchResults">
+                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $winner['kategori'] ?? 'Hadiah Kecil' }}</div>
+                    <div class="live-table-wrap live-batch-table-wrap">
+                        <table class="live-table">
+                            <thead>
+                                <tr>
+                                    <th>No Undian</th>
+                                    <th>Nama Peserta</th>
+                                    <th>Hadiah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($winnerBatchItems as $batchItem)
+                                    <tr>
+                                        <td class="live-table-rank">#{{ $batchItem['undian_ke'] ?? '-' }}</td>
+                                        <td>
+                                            <div class="live-table-name">{{ $batchItem['peserta'] ?? '-' }}</div>
+                                            <div class="live-table-subtext">{{ $batchItem['pn'] ?: 'PN tidak tersedia' }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="live-table-name">{{ $batchItem['hadiah'] ?? '-' }}</div>
+                                            <div class="live-table-subtext">{{ $batchItem['kategori'] ?: 'Tanpa kategori' }}</div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div class="live-panel">
@@ -924,7 +1011,7 @@
                     <input type="hidden" name="redirect_to" value="live">
                     <div class="live-filter-row">
                         <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
-                        <select class="live-search" id="liveHadiahCategory">
+                        <select class="live-search" id="liveHadiahCategory" name="hadiah_kategori">
                             <option value="">Semua kategori</option>
                             @foreach ($hadiahCategories as $kategori)
                                 <option value="{{ $kategori }}">{{ $kategori }}</option>
@@ -984,14 +1071,43 @@
     <div class="live-modal" id="liveWinnerModal" aria-hidden="true">
         <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
             <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
-            <div class="live-modal-card">
+            <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerModalCard">
                 <div class="live-winner-badge" id="liveWinnerModalTitle">
                     <i class="fa-solid fa-crown"></i>
-                    {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Hasil Undian' }}
+                    {{ $displayWinnerBadge }}
                 </div>
                 <div class="live-modal-name" id="liveWinnerModalName">{{ $displayWinnerName }}</div>
                 <div class="live-modal-prize" id="liveWinnerModalPrize">{{ $displayWinnerHadiah }}</div>
-                <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerPn }} | {{ $recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi' }} | {{ $recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi' }}</div>
+                <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerMeta }}</div>
+                <div class="live-batch-results {{ $isBatchWinner ? 'is-visible' : '' }}" id="liveWinnerModalBatchResults">
+                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $winner['kategori'] ?? 'Hadiah Kecil' }}</div>
+                    <div class="live-table-wrap live-batch-table-wrap">
+                        <table class="live-table">
+                            <thead>
+                                <tr>
+                                    <th>No Undian</th>
+                                    <th>Nama Peserta</th>
+                                    <th>Hadiah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($winnerBatchItems as $batchItem)
+                                    <tr>
+                                        <td class="live-table-rank">#{{ $batchItem['undian_ke'] ?? '-' }}</td>
+                                        <td>
+                                            <div class="live-table-name">{{ $batchItem['peserta'] ?? '-' }}</div>
+                                            <div class="live-table-subtext">{{ $batchItem['pn'] ?: 'PN tidak tersedia' }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="live-table-name">{{ $batchItem['hadiah'] ?? '-' }}</div>
+                                            <div class="live-table-subtext">{{ $batchItem['kategori'] ?: 'Tanpa kategori' }}</div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="live-modal-actions">
                     <button class="live-modal-dismiss" type="button" id="liveWinnerModalDismiss">Tutup Tampilan</button>
                 </div>
@@ -1005,15 +1121,23 @@
         (() => {
             const pool = @json($pesertaPoolJson);
             const initialShouldCelebrate = @json($shouldCelebrate);
+            const isInitialBatchWinner = @json($isBatchWinner);
             const winnerName = document.getElementById('liveWinnerName');
             const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const winnerBadge = document.getElementById('liveWinnerBadge');
+            const winnerBox = document.getElementById('liveWinnerBox');
             const liveStage = document.getElementById('liveStage');
             const confettiLayer = document.getElementById('liveConfettiLayer');
             const winnerModal = document.getElementById('liveWinnerModal');
             const winnerModalClose = document.getElementById('liveWinnerModalClose');
             const winnerModalDismiss = document.getElementById('liveWinnerModalDismiss');
+            const winnerModalCard = document.getElementById('liveWinnerModalCard');
+            const winnerModalName = document.getElementById('liveWinnerModalName');
+            const winnerModalPrize = document.getElementById('liveWinnerModalPrize');
+            const winnerModalMeta = document.getElementById('liveWinnerModalMeta');
+            const batchResults = document.getElementById('liveBatchResults');
+            const modalBatchResults = document.getElementById('liveWinnerModalBatchResults');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
@@ -1035,6 +1159,10 @@
 
             let spinTimer = null;
             let winnerCurrentPage = 1;
+            const isMassCategory = (value) => String(value || '').trim().toLowerCase() === 'hadiah kecil';
+            const hasSelectedHadiah = () => String(hadiahSelect?.value || '').trim() !== '';
+            const isBatchSelection = () => isMassCategory(hadiahCategory?.value);
+
             const updateClock = () => {
                 clock.textContent = new Date().toLocaleString('id-ID', {
                     day: '2-digit',
@@ -1051,9 +1179,22 @@
                     winnerBadge.innerHTML = '<i class="fa-solid fa-sparkles"></i> Siap Diundi';
                 }
 
+                winnerBox?.classList.remove('is-batch');
+                winnerModalCard?.classList.remove('is-batch');
+                batchResults?.classList.remove('is-visible');
+                modalBatchResults?.classList.remove('is-visible');
                 winnerName.textContent = '???';
                 winnerPrize.textContent = 'Silakan pilih hadiah';
                 winnerMeta.textContent = 'Peserta siap diundi';
+                if (winnerModalName) {
+                    winnerModalName.textContent = '???';
+                }
+                if (winnerModalPrize) {
+                    winnerModalPrize.textContent = 'Silakan pilih hadiah';
+                }
+                if (winnerModalMeta) {
+                    winnerModalMeta.textContent = 'Peserta siap diundi';
+                }
             };
 
             const openWinnerModal = () => {
@@ -1290,15 +1431,27 @@
             };
 
             const currentHadiahLabel = () => {
+                if (isBatchSelection()) {
+                    return 'Hadiah Kecil - Semua Item';
+                }
+
                 const selectedOption = hadiahSelect.options[hadiahSelect.selectedIndex];
                 if (!selectedOption || !selectedOption.value) {
-                    return winnerPrize.textContent || 'Silakan pilih hadiah';
+                    return 'Silakan pilih hadiah';
                 }
 
                 return selectedOption.textContent;
             };
 
+            const resetDisplayedBatchState = () => {
+                winnerBox?.classList.remove('is-batch');
+                winnerModalCard?.classList.remove('is-batch');
+                batchResults?.classList.remove('is-visible');
+                modalBatchResults?.classList.remove('is-visible');
+            };
+
             const renderParticipant = (participant) => {
+                resetDisplayedBatchState();
                 winnerName.textContent = participant.nama;
                 winnerPrize.textContent = currentHadiahLabel();
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
@@ -1339,7 +1492,7 @@
                 window.clearInterval(spinTimer);
                 spinTimer = null;
                 stopButton.classList.add('is-disabled');
-                startButton.disabled = hadiahSelect.value === '';
+                syncStartButtonState();
             };
 
             const syncStartButtonState = () => {
@@ -1347,7 +1500,7 @@
                     return;
                 }
 
-                startButton.disabled = hadiahSelect.value === '';
+                startButton.disabled = !isBatchSelection() && !hasSelectedHadiah();
             };
 
             startButton.addEventListener('click', () => {
@@ -1358,13 +1511,14 @@
                     return;
                 }
 
-                if (hadiahSelect.options.length <= 1) {
+                if (!isBatchSelection() && hadiahSelect.options.length <= 1) {
                     winnerName.textContent = 'Hadiah Habis';
                     winnerPrize.textContent = 'Tidak ada hadiah aktif';
                     winnerMeta.textContent = 'Tidak ada hadiah aktif yang bisa diundi';
                     return;
                 }
 
+                resetDisplayedBatchState();
                 startButton.disabled = true;
                 stopButton.classList.remove('is-disabled');
 
@@ -1389,10 +1543,18 @@
 
             hadiahSearch.addEventListener('input', (event) => {
                 renderHadiahOptions(event.target.value, hadiahCategory.value);
+                syncStartButtonState();
             });
 
             hadiahCategory.addEventListener('change', (event) => {
                 renderHadiahOptions(hadiahSearch.value, event.target.value);
+                if (!spinTimer) {
+                    winnerPrize.textContent = currentHadiahLabel();
+                    winnerMeta.textContent = isBatchSelection()
+                        ? 'Sistem akan mengundi seluruh item hadiah kecil sekaligus'
+                        : 'Peserta siap diundi';
+                }
+                syncStartButtonState();
             });
 
             winnerSearch?.addEventListener('input', () => {
@@ -1408,12 +1570,21 @@
             hadiahSelect.addEventListener('change', () => {
                 if (!spinTimer) {
                     winnerPrize.textContent = currentHadiahLabel();
+                    winnerMeta.textContent = hasSelectedHadiah() || isBatchSelection()
+                        ? 'Peserta siap diundi'
+                        : 'Silakan pilih hadiah terlebih dahulu';
                 }
 
                 syncStartButtonState();
             });
 
             renderHadiahOptions(hadiahSearch.value, hadiahCategory.value);
+            if (isInitialBatchWinner) {
+                winnerBox?.classList.add('is-batch');
+                winnerModalCard?.classList.add('is-batch');
+                batchResults?.classList.add('is-visible');
+                modalBatchResults?.classList.add('is-visible');
+            }
             syncStartButtonState();
             renderWinnerTable();
             updateClock();
