@@ -921,6 +921,9 @@
         $winnerBatchItems = collect($winner['items'] ?? []);
         $isBatchWinner = $winnerMode === 'batch' && $winnerBatchItems->isNotEmpty();
         $batchWinnerKategori = $winner['kategori'] ?? 'Hadiah Batch';
+        $singleWinnerKategori = $winner['kategori'] ?? $recentWinner?->hadiah?->kategori ?? null;
+        $normalizedSingleWinnerKategori = \Illuminate\Support\Str::of((string) $singleWinnerKategori)->lower()->squish()->value();
+        $isGrandPrizeWinner = in_array($normalizedSingleWinnerKategori, ['hadiah besar', 'grand prize', 'grandprize'], true);
         $displayWinnerName = $isBatchWinner
             ? 'Undian ' . $batchWinnerKategori
             : ($winner['peserta'] ?? $recentWinner?->peserta?->nama ?? '???');
@@ -935,7 +938,7 @@
             : ($winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null);
         $displayWinnerBadge = $isBatchWinner
             ? 'Hasil ' . $batchWinnerKategori
-            : ($displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi');
+            : ($isGrandPrizeWinner ? 'GrandPrize' : ($displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi'));
         $displayWinnerMeta = $isBatchWinner
             ? ('Undian #' . ($winner['undian_ke_mulai'] ?? '-') . ' sampai #' . ($winner['undian_ke_selesai'] ?? '-') . ' | Tutup modal untuk lanjut undian berikutnya')
             : (($displayWinnerPn ?: 'Peserta siap diundi') . ' | ' . ($recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi') . ' | ' . ($recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi'));
