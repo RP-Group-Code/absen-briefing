@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BcfUndianController;
 use App\Http\Controllers\BcfRegistrasiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportPegawaiController;
@@ -53,6 +54,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/bcf-registrasi/{id}/attendance', [BcfRegistrasiController::class, 'updateAttendance'])->name('bcf.registrasi.attendance');
     Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
     Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
+    Route::get('/bcf-undian', [BcfUndianController::class, 'index'])->name('bcf.undian.index');
+    Route::post('/bcf-undian/peserta', [BcfUndianController::class, 'storePeserta'])->name('bcf.undian.peserta.store');
+    Route::post('/bcf-undian/peserta/import', [BcfUndianController::class, 'importPeserta'])->name('bcf.undian.peserta.import');
+    Route::post('/bcf-undian/hadiah', [BcfUndianController::class, 'storeHadiah'])->name('bcf.undian.hadiah.store');
+    Route::post('/bcf-undian/hadiah/import', [BcfUndianController::class, 'importHadiah'])->name('bcf.undian.hadiah.import');
+    Route::post('/bcf-undian/draw', [BcfUndianController::class, 'draw'])->name('bcf.undian.draw');
+    Route::get('/bcf-undian/rekap/export', [BcfUndianController::class, 'exportRekap'])->name('bcf.undian.rekap.export');
 });
 
 Route::middleware('guest')->group(function () {
