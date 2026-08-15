@@ -127,36 +127,30 @@
         .card-header-glass {
             position: relative;
             z-index: 1;
-            padding: 2rem 2rem 1.5rem;
+            padding: 2.2rem 2rem 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,.08);
             background: rgba(255,255,255,.03);
             text-align: center;
         }
 
         .brand-icon {
-            width: 84px; height: 84px;
-            border-radius: 22px;
-            background: rgba(255,255,255,.12);
+            width: 148px; height: 148px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
-            box-shadow:
-                0 6px 20px rgba(15,12,41,.28),
-                inset 0 1px 0 rgba(255,255,255,.18);
+            margin-bottom: 1.15rem;
             animation: iconPulse 3s ease-in-out infinite;
-            overflow: hidden;
-            padding: 10px;
         }
         .brand-icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
+            filter: drop-shadow(0 10px 22px rgba(37, 99, 235, .18));
         }
         @keyframes iconPulse {
-            0%,100% { box-shadow: 0 6px 20px rgba(99,102,241,.45), inset 0 1px 0 rgba(255,255,255,.3); }
-            50%      { box-shadow: 0 8px 28px rgba(99,102,241,.7),  inset 0 1px 0 rgba(255,255,255,.3); }
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-2px); }
         }
 
         .brand-title {
@@ -171,6 +165,18 @@
             color: rgba(255,255,255,.4);
             letter-spacing: .04em;
             text-transform: uppercase;
+        }
+
+        @media (max-width: 576px) {
+            .card-header-glass {
+                padding-top: 2rem;
+            }
+
+            .brand-icon {
+                width: 122px;
+                height: 122px;
+                margin-bottom: 1rem;
+            }
         }
 
         /* ── Card Body ── */
@@ -419,7 +425,7 @@
             <div class="brand-icon">
                 <img src="{{ asset('images/LogoPPOIT.png') }}" alt="Logo PPOIT">
             </div>
-            <div class="brand-title">Sistem SWJ #342</div>
+            <div class="brand-title">SISTEM SWJ #342</div>
             <div class="brand-sub">Masuk ke akun Anda</div>
         </div>
 
