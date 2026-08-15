@@ -45,7 +45,12 @@ class BcfRegistrasiController extends Controller
     {
         $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(20, ['*'], 'peserta_page')
+            ->withQueryString();
+
+        $totalRegistrasi = BcfRegistrasi::count();
+        $totalUnitKerja = BcfRegistrasi::distinct('unit_kerja')->count('unit_kerja');
+        $latestNoUrut = BcfRegistrasi::max('nourut') ?? 0;
 
         $bcfWorkers = $this->bcfWorkersWithSystemData();
 
@@ -53,13 +58,13 @@ class BcfRegistrasiController extends Controller
         $warnaOptions = self::WARNA_OPTIONS;
         $teamOptions = self::TEAM_OPTIONS;
         $nextTeam = $this->nextTeam();
-        $nextNoUrut = (BcfRegistrasi::max('nourut') ?? 0) + 1;
-        $registeredNames = $registrasi->pluck('nama')->all();
+        $nextNoUrut = $latestNoUrut + 1;
+        $registeredNames = BcfRegistrasi::pluck('nama')->all();
         $assignmentToken = $nextTeam
             ? Crypt::encryptString(json_encode(['team' => $nextTeam['team'], 'warna' => $nextTeam['warna']]))
             : null;
 
-        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken'));
+        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken', 'totalRegistrasi', 'totalUnitKerja', 'latestNoUrut'));
     }
 
     public function store(Request $request)
@@ -240,7 +245,7 @@ class BcfRegistrasiController extends Controller
             })
             ->orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(20)
+            ->paginate(15)
             ->withQueryString();
 
         $capacities = BcfTeamQuota::query()->pluck('capacity', 'team');

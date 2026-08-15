@@ -145,6 +145,7 @@
         .bcf-table-color { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
         .bcf-table-number { color: var(--bcf-ink); font-weight: 800; }
         .bcf-table-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+        .bcf-table-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--bcf-muted); font-size: .8rem; }
         .bcf-table-search { position: relative; width: min(360px, 100%); }
         .bcf-table-search i { position: absolute; top: 50%; left: 13px; color: var(--bcf-muted); transform: translateY(-50%); pointer-events: none; }
         .bcf-table-search input { width: 100%; height: 42px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 8px 13px 8px 38px; color: var(--bcf-ink); outline: none; }
@@ -152,6 +153,12 @@
         .bcf-table-search input::placeholder { color: #8996a8; }
         .bcf-table-empty-search { color: var(--bcf-muted); font-size: .84rem; padding: 18px; text-align: center; }
         .bcf-table-empty-search[hidden] { display: none; }
+        .bcf-pagination { display: flex; justify-content: flex-end; padding-top: 18px; }
+        .bcf-pagination nav { margin: 0; }
+        .bcf-pagination .pagination { margin: 0; gap: 4px; }
+        .bcf-pagination .page-link { border: 1px solid #d8e2ee; border-radius: 7px; color: var(--bcf-blue-deep); font-size: .76rem; }
+        .bcf-pagination .page-item.active .page-link { border-color: var(--bcf-blue); background: var(--bcf-blue); color: #fff; }
+        .bcf-pagination .page-item.disabled .page-link { color: #9aa8ba; }
         .bcf-modal .modal-content { border: 0; border-radius: 18px; }
         .bcf-modal .modal-header { background: var(--bcf-blue); color: #fff; border: 0; }
         .bcf-modal .btn-close { filter: brightness(0) invert(1); }
@@ -191,6 +198,7 @@
             .bcf-section#peserta .bcf-card-head p { font-size: .74rem; }
             .bcf-table-wrap { padding: 0 8px 10px; }
             .bcf-table-toolbar { margin-bottom: 8px; }
+            .bcf-table-meta { align-items: flex-start; flex-direction: column; gap: 8px; font-size: .72rem; margin-bottom: 8px; }
             .bcf-table-search input { height: 36px; font-size: .72rem; padding-left: 34px; }
             .bcf-table-search i { left: 11px; }
             .bcf-table { min-width: 480px; table-layout: fixed; font-size: .6rem; }
@@ -204,6 +212,7 @@
             .bcf-table-color { gap: 3px; }
             .bcf-table .bcf-dot { width: 9px; height: 9px; }
             .bcf-assignment-grid { grid-template-columns: 1fr; }
+            .bcf-pagination { justify-content: center; }
         }
     </style>
 @endpush
@@ -240,9 +249,9 @@
             @endif
 
             <div class="bcf-stats">
-                <div class="bcf-stat"><strong>{{ $registrasi->count() }}</strong><span>Total peserta terdaftar</span></div>
-                <div class="bcf-stat"><strong>{{ $registrasi->unique('unit_kerja')->count() }}</strong><span>Unit kerja terwakili</span></div>
-                <div class="bcf-stat"><strong>{{ $registrasi->max('nourut') ?? 0 }}</strong><span>Nomor registrasi terakhir</span></div>
+                <div class="bcf-stat"><strong>{{ $totalRegistrasi }}</strong><span>Total peserta terdaftar</span></div>
+                <div class="bcf-stat"><strong>{{ $totalUnitKerja }}</strong><span>Unit kerja terwakili</span></div>
+                <div class="bcf-stat"><strong>{{ $latestNoUrut }}</strong><span>Nomor registrasi terakhir</span></div>
             </div>
 
             <section id="registrasi" class="bcf-section">
@@ -289,6 +298,9 @@
                 <div class="bcf-card p-0 m-0">
                     <div class="bcf-card-head bcf-card-head-with-action"><div><h2>Data Peserta</h2><p>Daftar peserta yang sudah melakukan registrasi.</p></div>@auth<a href="{{ route('bcf.registrasi.admin') }}" class="bcf-admin-link"><i class="fa-solid fa-shield-halved"></i> Portal Admin</a>@endauth</div>
                     <div class="bcf-table-wrap">
+                        <div class="bcf-table-meta">
+                            <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
+                        </div>
                         <div class="bcf-table-toolbar">
                             <label class="bcf-table-search" for="participantSearch">
                                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -316,6 +328,11 @@
                         @empty
                             <div class="bcf-empty"><i class="fa-regular fa-folder-open fa-2x mb-2"></i><br>Belum ada peserta yang terdaftar.</div>
                         @endforelse
+                        @if ($registrasi->hasPages())
+                            <div class="bcf-pagination">
+                                {{ $registrasi->fragment('peserta')->onEachSide(1)->links('pagination::bootstrap-5') }}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </section>

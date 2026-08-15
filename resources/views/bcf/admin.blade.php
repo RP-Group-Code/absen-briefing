@@ -47,6 +47,7 @@
         .admin-card-head { padding: 22px 25px 16px; }
         .admin-card-head h2 { margin: 0 0 5px; font-size: 1.25rem; font-weight: 800; }
         .admin-card-head p { margin: 0; color: var(--admin-muted); font-size: .86rem; }
+        .admin-list-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 25px 14px; color: var(--admin-muted); font-size: .8rem; }
         .admin-searchbar { display: flex; gap: 8px; margin: 0 25px 16px; }
         .admin-searchbar input { flex: 1; min-width: 0; height: 42px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 8px 12px; color: var(--admin-ink); }
         .admin-searchbar input:focus { border-color: #55c7ed; box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); outline: 0; }
@@ -93,6 +94,7 @@
             .admin-card-head h2 { font-size: 1.05rem; }
             .admin-card-head p { font-size: .74rem; }
             .admin-searchbar { margin: 0 15px 12px; }
+            .admin-list-meta { align-items: flex-start; flex-direction: column; margin: 0 15px 12px; font-size: .72rem; }
             .admin-searchbar input { height: 38px; font-size: .72rem; }
             .admin-search-submit, .admin-search-reset { font-size: .68rem; padding: 0 10px; }
             .admin-table-wrap { padding: 0 10px 12px; }
@@ -126,6 +128,9 @@
 
             <section class="admin-card">
                 <div class="admin-card-head"><h2>Daftar Peserta</h2><p>Perubahan team otomatis memperbarui hitungan kuota di atas.</p></div>
+                <div class="admin-list-meta">
+                    <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
+                </div>
                 <form method="GET" action="{{ route('bcf.registrasi.admin') }}" class="admin-searchbar">
                     <input type="search" name="search" value="{{ $search }}" placeholder="Cari nama, PN, team, warna, no urut, atau Uker..." autocomplete="off">
                     <button type="submit" class="admin-search-submit"><i class="fa-solid fa-magnifying-glass me-1"></i>Cari</button>

@@ -66,6 +66,5 @@ Route::post('/absen-briefing-kanca/status', [InputAbsenController::class, 'saveK
 Route::get('/pegawai/by-unit/{uker_id}', [InputAbsenController::class, 'getPegawaiByUnit']);
 Route::post('/submit/absen/briefing', [InputAbsenController::class, 'store'])->name('submit.absen');
 
-
 Route::get('/bcf-registrasi', [BcfRegistrasiController::class, 'index'])->name('bcf.registrasi.index');
 Route::post('/bcf-registrasi', [BcfRegistrasiController::class, 'store'])->name('bcf.registrasi.store');
