@@ -17,6 +17,8 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class BcfRegistrasiController extends Controller
 {
+    private const PER_PAGE_OPTIONS = [10, 20, 50];
+
     public const WARNA_OPTIONS = [
         'Ungu',
         'Hitam',
@@ -41,11 +43,13 @@ class BcfRegistrasiController extends Controller
         ['nourut' => 9, 'team' => 'BRILINK', 'warna' => 'Orange', 'penanggung_jawab' => 'Febin', 'capacity' => 40],
     ];
 
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $this->resolvePerPage($request);
+
         $registrasi = BcfRegistrasi::orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10, ['*'], 'peserta_page')
+            ->paginate($perPage, ['*'], 'peserta_page')
             ->withQueryString();
 
         $totalRegistrasi = BcfRegistrasi::count();
@@ -64,7 +68,9 @@ class BcfRegistrasiController extends Controller
             ? Crypt::encryptString(json_encode(['team' => $nextTeam['team'], 'warna' => $nextTeam['warna']]))
             : null;
 
-        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken', 'totalRegistrasi', 'totalUnitKerja', 'latestNoUrut'));
+        $perPageOptions = self::PER_PAGE_OPTIONS;
+
+        return view('bcf.registrasi', compact('registrasi', 'ukers', 'warnaOptions', 'bcfWorkers', 'teamOptions', 'nextTeam', 'nextNoUrut', 'registeredNames', 'assignmentToken', 'totalRegistrasi', 'totalUnitKerja', 'latestNoUrut', 'perPage', 'perPageOptions'));
     }
 
     public function store(Request $request)
@@ -229,6 +235,7 @@ class BcfRegistrasiController extends Controller
     public function admin(Request $request)
     {
         $search = trim((string) $request->input('search', ''));
+        $perPage = $this->resolvePerPage($request);
         $allRegistrasi = BcfRegistrasi::get(['team']);
 
         $registrasi = BcfRegistrasi::query()
@@ -245,7 +252,7 @@ class BcfRegistrasiController extends Controller
             })
             ->orderBy('nourut', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $capacities = BcfTeamQuota::query()->pluck('capacity', 'team');
@@ -260,7 +267,18 @@ class BcfRegistrasiController extends Controller
             ]);
         });
 
-        return view('bcf.admin', compact('registrasi', 'teamSummary', 'search'));
+        $perPageOptions = self::PER_PAGE_OPTIONS;
+
+        return view('bcf.admin', compact('registrasi', 'teamSummary', 'search', 'perPage', 'perPageOptions'));
+    }
+
+    private function resolvePerPage(Request $request): int
+    {
+        $perPage = (int) $request->input('per_page', self::PER_PAGE_OPTIONS[0]);
+
+        return in_array($perPage, self::PER_PAGE_OPTIONS, true)
+            ? $perPage
+            : self::PER_PAGE_OPTIONS[0];
     }
 
     public function update(Request $request, $id)

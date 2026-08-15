@@ -146,6 +146,8 @@
         .bcf-table-number { color: var(--bcf-ink); font-weight: 800; }
         .bcf-table-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
         .bcf-table-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--bcf-muted); font-size: .8rem; }
+        .bcf-per-page { display: inline-flex; align-items: center; gap: 8px; }
+        .bcf-per-page select { min-width: 84px; height: 38px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 6px 10px; color: var(--bcf-ink); background: #fff; }
         .bcf-table-search { position: relative; width: min(360px, 100%); }
         .bcf-table-search i { position: absolute; top: 50%; left: 13px; color: var(--bcf-muted); transform: translateY(-50%); pointer-events: none; }
         .bcf-table-search input { width: 100%; height: 42px; border: 1px solid #d8e2ee; border-radius: 10px; padding: 8px 13px 8px 38px; color: var(--bcf-ink); outline: none; }
@@ -300,6 +302,14 @@
                     <div class="bcf-table-wrap">
                         <div class="bcf-table-meta">
                             <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
+                            <form method="GET" action="{{ route('bcf.registrasi.index') }}#peserta" class="bcf-per-page">
+                                <label for="publicPerPage">Baris per halaman</label>
+                                <select id="publicPerPage" name="per_page">
+                                    @foreach ($perPageOptions as $option)
+                                        <option value="{{ $option }}" @selected($perPage === $option)>{{ $option }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
                         </div>
                         <div class="bcf-table-toolbar">
                             <label class="bcf-table-search" for="participantSearch">
@@ -631,7 +641,12 @@
             const createForm = document.getElementById('createBcfForm');
             const assignmentModal = document.getElementById('assignmentBcfModal');
             const confirmAssignmentButton = document.getElementById('confirmAssignmentButton');
+            const publicPerPageSelect = document.getElementById('publicPerPage');
             let formReadyToSubmit = false;
+
+            publicPerPageSelect?.addEventListener('change', function () {
+                this.form.submit();
+            });
 
             createForm?.addEventListener('submit', function (event) {
                 if (formReadyToSubmit) return;

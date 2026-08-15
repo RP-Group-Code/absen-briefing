@@ -48,6 +48,8 @@
         .admin-card-head h2 { margin: 0 0 5px; font-size: 1.25rem; font-weight: 800; }
         .admin-card-head p { margin: 0; color: var(--admin-muted); font-size: .86rem; }
         .admin-list-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 25px 14px; color: var(--admin-muted); font-size: .8rem; }
+        .admin-per-page { display: inline-flex; align-items: center; gap: 8px; }
+        .admin-per-page select { min-width: 84px; height: 38px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 6px 10px; color: var(--admin-ink); background: #fff; }
         .admin-searchbar { display: flex; gap: 8px; margin: 0 25px 16px; }
         .admin-searchbar input { flex: 1; min-width: 0; height: 42px; border: 1px solid #d8e2ee; border-radius: 9px; padding: 8px 12px; color: var(--admin-ink); }
         .admin-searchbar input:focus { border-color: #55c7ed; box-shadow: 0 0 0 3px rgba(105, 201, 235, .18); outline: 0; }
@@ -130,11 +132,23 @@
                 <div class="admin-card-head"><h2>Daftar Peserta</h2><p>Perubahan team otomatis memperbarui hitungan kuota di atas.</p></div>
                 <div class="admin-list-meta">
                     <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
+                    <form method="GET" action="{{ route('bcf.registrasi.admin') }}" class="admin-per-page">
+                        @if ($search !== '')
+                            <input type="hidden" name="search" value="{{ $search }}">
+                        @endif
+                        <label for="adminPerPage">Baris per halaman</label>
+                        <select id="adminPerPage" name="per_page">
+                            @foreach ($perPageOptions as $option)
+                                <option value="{{ $option }}" @selected($perPage === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </form>
                 </div>
                 <form method="GET" action="{{ route('bcf.registrasi.admin') }}" class="admin-searchbar">
                     <input type="search" name="search" value="{{ $search }}" placeholder="Cari nama, PN, team, warna, no urut, atau Uker..." autocomplete="off">
+                    <input type="hidden" name="per_page" value="{{ $perPage }}">
                     <button type="submit" class="admin-search-submit"><i class="fa-solid fa-magnifying-glass me-1"></i>Cari</button>
-                    @if ($search !== '')<a href="{{ route('bcf.registrasi.admin') }}" class="admin-search-reset">Reset</a>@endif
+                    @if ($search !== '')<a href="{{ route('bcf.registrasi.admin', ['per_page' => $perPage]) }}" class="admin-search-reset">Reset</a>@endif
                 </form>
                 <div class="admin-table-wrap">
                     <table class="admin-table"><thead><tr><th>Nama</th><th>PN</th><th>Team</th><th>Warna</th><th>No Urut</th><th>Uker</th><th>Aksi</th></tr></thead><tbody>
@@ -162,10 +176,15 @@
             const editModal = document.getElementById('adminEditModal');
             const teamSelect = document.getElementById('admin_team');
             const colorInput = document.getElementById('admin_warna');
+            const perPageSelect = document.getElementById('adminPerPage');
 
             const syncAdminColor = function () {
                 colorInput.value = teamSelect.options[teamSelect.selectedIndex]?.dataset.warna || '';
             };
+
+            perPageSelect?.addEventListener('change', function () {
+                this.form.submit();
+            });
 
             teamSelect?.addEventListener('change', syncAdminColor);
             document.querySelectorAll('.admin-edit').forEach(button => button.addEventListener('click', function () {
