@@ -36,20 +36,22 @@
             margin: 0 auto;
             padding: 16px 18px 28px;
             display: grid;
-            grid-template-columns: minmax(0, 1.18fr) minmax(430px, 0.82fr);
+            grid-template-columns: 1fr;
             gap: 18px;
         }
 
         .live-stage {
             position: relative;
-            min-height: calc(100vh - 44px);
+            min-height: 1180px;
             border: 1px solid rgba(255, 211, 28, 0.08);
             border-radius: 28px;
-            padding: 24px 28px 26px;
+            padding: 24px 28px 34px;
             background:
                 radial-gradient(circle at center, rgba(255, 211, 28, 0.12), transparent 36%),
                 linear-gradient(180deg, rgba(11, 11, 19, 0.86), rgba(17, 7, 29, 0.92));
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .live-stage::before {
@@ -109,6 +111,7 @@
             position: relative;
             z-index: 2;
             margin-top: 34px;
+            flex: 1;
         }
 
         .live-headline h1 {
@@ -136,8 +139,8 @@
 
         .live-watermark {
             position: absolute;
-            left: 34%;
-            bottom: 13%;
+            left: 44%;
+            bottom: 17%;
             transform: rotate(-20deg);
             color: rgba(255, 211, 28, 0.16);
             font-size: clamp(2rem, 4vw, 4.2rem);
@@ -148,10 +151,10 @@
         }
 
         .live-winner-box {
-            position: absolute;
-            right: 4%;
-            bottom: 13%;
-            width: min(100%, 760px);
+            position: relative;
+            z-index: 2;
+            width: min(100%, 1120px);
+            margin: 110px auto 0;
             z-index: 2;
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.28);
@@ -193,15 +196,17 @@
         }
 
         .live-panel {
-            min-height: calc(100vh - 44px);
             border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             background: linear-gradient(180deg, rgba(9, 11, 20, 0.92), rgba(22, 7, 34, 0.95));
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
-            padding: 24px 24px 28px;
+            padding: 28px 28px 32px;
             display: flex;
             flex-direction: column;
             gap: 18px;
+            max-width: 1540px;
+            width: 100%;
+            margin: 22px auto 0;
         }
 
         .live-panel-title {
@@ -220,8 +225,8 @@
 
         .live-stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
         }
 
         .live-stat {
@@ -250,6 +255,7 @@
         .live-form {
             display: grid;
             gap: 14px;
+            margin-top: 8px;
         }
 
         .live-select {
@@ -322,7 +328,8 @@
 
         .live-list {
             display: grid;
-            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
             max-height: 100%;
             overflow: auto;
             padding-right: 4px;
@@ -355,24 +362,44 @@
         }
 
         @media (max-width: 1400px) {
-            .live-shell {
-                grid-template-columns: 1fr;
-            }
-
             .live-stage,
             .live-panel {
                 min-height: auto;
             }
 
             .live-winner-box {
-                position: relative;
-                inset: auto;
                 width: 100%;
                 margin-top: 52px;
             }
 
             .live-watermark {
                 bottom: 25%;
+                left: 24%;
+            }
+
+            .live-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 960px) {
+            .live-stage {
+                min-height: auto;
+            }
+
+            .live-panel-top,
+            .live-topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .live-stats,
+            .live-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .live-watermark {
+                display: none;
             }
         }
     </style>
@@ -422,67 +449,67 @@
                 <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
                 <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $displayWinnerHadiah }}</div>
             </div>
-        </section>
 
-        <aside class="live-panel">
-            <div class="live-panel-top">
+            <div class="live-panel">
+                <div class="live-panel-top">
+                    <div>
+                        <h2 class="live-panel-title">Panel Kontrol Undian</h2>
+                        <p class="live-panel-subtitle">Pemenang final tetap ditentukan server dari database agar hasil undian tetap valid.</p>
+                    </div>
+                    <div class="live-clock" id="liveClock">{{ now()->format('d M Y H:i:s') }}</div>
+                </div>
+
+                <div class="live-stats">
+                    <article class="live-stat">
+                        <span>Peserta Siap</span>
+                        <strong>{{ $pesertaTersedia }}</strong>
+                    </article>
+                    <article class="live-stat">
+                        <span>Hadiah Aktif</span>
+                        <strong>{{ $hadiahTersedia->count() }}</strong>
+                    </article>
+                    <article class="live-stat">
+                        <span>Total Pemenang</span>
+                        <strong>{{ $dashboard['total_pemenang'] }}</strong>
+                    </article>
+                </div>
+
+                <form class="live-form" method="POST" action="{{ route('bcf.undian.draw') }}" id="liveDrawForm">
+                    @csrf
+                    <input type="hidden" name="redirect_to" value="live">
+                    <select class="live-select" name="hadiah_undi_id" id="liveHadiahSelect">
+                        <option value="">-- Pilih Hadiah --</option>
+                        @foreach ($hadiahTersedia as $item)
+                            <option value="{{ $item->id }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
+                        @endforeach
+                    </select>
+
+                    <div class="live-buttons">
+                        <button class="live-btn live-btn-start" type="button" id="liveStartButton"><i class="fa-solid fa-dice"></i> Mulai Undi</button>
+                        <button class="live-btn live-btn-stop is-disabled" type="submit" id="liveStopButton"><i class="fa-solid fa-stop"></i> Stop</button>
+                    </div>
+
+                    <div class="live-status"><strong>{{ $pesertaTersedia }}</strong> peserta tersedia • <strong>{{ $dashboard['total_pemenang'] }}</strong> pemenang tercatat</div>
+                </form>
+
                 <div>
-                    <h2 class="live-panel-title">Panel Kontrol Undian</h2>
-                    <p class="live-panel-subtitle">Pemenang final tetap ditentukan server dari database agar hasil undian tetap valid.</p>
-                </div>
-                <div class="live-clock" id="liveClock">{{ now()->format('d M Y H:i:s') }}</div>
-            </div>
-
-            <div class="live-stats">
-                <article class="live-stat">
-                    <span>Peserta Siap</span>
-                    <strong>{{ $pesertaTersedia }}</strong>
-                </article>
-                <article class="live-stat">
-                    <span>Hadiah Aktif</span>
-                    <strong>{{ $hadiahTersedia->count() }}</strong>
-                </article>
-                <article class="live-stat">
-                    <span>Total Pemenang</span>
-                    <strong>{{ $dashboard['total_pemenang'] }}</strong>
-                </article>
-            </div>
-
-            <form class="live-form" method="POST" action="{{ route('bcf.undian.draw') }}" id="liveDrawForm">
-                @csrf
-                <input type="hidden" name="redirect_to" value="live">
-                <select class="live-select" name="hadiah_undi_id" id="liveHadiahSelect">
-                    <option value="">-- Pilih Hadiah --</option>
-                    @foreach ($hadiahTersedia as $item)
-                        <option value="{{ $item->id }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
-                    @endforeach
-                </select>
-
-                <div class="live-buttons">
-                    <button class="live-btn live-btn-start" type="button" id="liveStartButton"><i class="fa-solid fa-dice"></i> Mulai Undi</button>
-                    <button class="live-btn live-btn-stop is-disabled" type="submit" id="liveStopButton"><i class="fa-solid fa-stop"></i> Stop</button>
-                </div>
-
-                <div class="live-status"><strong>{{ $pesertaTersedia }}</strong> peserta tersedia • <strong>{{ $dashboard['total_pemenang'] }}</strong> pemenang tercatat</div>
-            </form>
-
-            <div>
-                <h3 class="live-panel-title" style="font-size:1rem;">Pemenang Terbaru</h3>
-                <div class="live-list">
-                    @forelse ($pemenangTerbaru as $item)
-                        <article class="live-list-item">
-                            <strong>#{{ $item->undian_ke }} • {{ $item->peserta?->nama }}</strong>
-                            <span>{{ $item->hadiah?->nama_hadiah }}{{ $item->hadiah?->kategori ? ' • ' . $item->hadiah?->kategori : '' }}</span>
-                        </article>
-                    @empty
-                        <article class="live-list-item">
-                            <strong>Belum ada pemenang</strong>
-                            <span>Mulai undian pertama untuk menampilkan riwayat pemenang di sini.</span>
-                        </article>
-                    @endforelse
+                    <h3 class="live-panel-title" style="font-size:1rem;">Pemenang Terbaru</h3>
+                    <div class="live-list">
+                        @forelse ($pemenangTerbaru as $item)
+                            <article class="live-list-item">
+                                <strong>#{{ $item->undian_ke }} • {{ $item->peserta?->nama }}</strong>
+                                <span>{{ $item->hadiah?->nama_hadiah }}{{ $item->hadiah?->kategori ? ' • ' . $item->hadiah?->kategori : '' }}</span>
+                            </article>
+                        @empty
+                            <article class="live-list-item">
+                                <strong>Belum ada pemenang</strong>
+                                <span>Mulai undian pertama untuk menampilkan riwayat pemenang di sini.</span>
+                            </article>
+                        @endforelse
+                    </div>
                 </div>
             </div>
-        </aside>
+        </section>
     </main>
 @endsection
 
