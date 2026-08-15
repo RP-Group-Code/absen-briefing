@@ -66,6 +66,13 @@
             flex-shrink: 0;
         }
 
+        .undi-brand-icon img {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            display: block;
+        }
+
         .undi-brand-copy {
             min-width: 0;
         }
@@ -452,7 +459,9 @@
     <main class="undi-shell">
         <section class="undi-navbar">
             <div class="undi-brand">
-                <div class="undi-brand-icon"><i class="fa-solid fa-star"></i></div>
+                <div class="undi-brand-icon">
+                    <img src="{{ asset('images/bcf-logo0.png') }}" alt="Logo BCF">
+                </div>
                 <div class="undi-brand-copy">
                     <span class="undi-kicker">Berkolaborasi Memberi Arti</span>
                     <h1 class="undi-title">UNDIAN BCF BO SRIWIJAYA</h1>
