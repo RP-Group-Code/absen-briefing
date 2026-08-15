@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'update'])->name('bcf.registrasi.update');
     Route::delete('/bcf-registrasi/{id}', [BcfRegistrasiController::class, 'destroy'])->name('bcf.registrasi.destroy');
     Route::get('/bcf-undian', [BcfUndianController::class, 'index'])->name('bcf.undian.index');
+    Route::get('/bcf-undian/live', [BcfUndianController::class, 'live'])->name('bcf.undian.live');
     Route::post('/bcf-undian/peserta', [BcfUndianController::class, 'storePeserta'])->name('bcf.undian.peserta.store');
     Route::post('/bcf-undian/peserta/import', [BcfUndianController::class, 'importPeserta'])->name('bcf.undian.peserta.import');
     Route::post('/bcf-undian/hadiah', [BcfUndianController::class, 'storeHadiah'])->name('bcf.undian.hadiah.store');

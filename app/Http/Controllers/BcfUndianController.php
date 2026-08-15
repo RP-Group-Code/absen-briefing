@@ -17,6 +17,8 @@ class BcfUndianController extends Controller
 {
     public function index(Request $request)
     {
+        [$dashboard, $hadiahTersedia, $pesertaTersedia, $recentWinner] = $this->buildUndianSummary();
+
         $peserta = PesertaUndi::query()
             ->latest('id')
             ->paginate(10, ['*'], 'peserta_page')
@@ -34,32 +36,6 @@ class BcfUndianController extends Controller
             ->paginate(10, ['*'], 'pemenang_page')
             ->withQueryString();
 
-        $dashboard = [
-            'total_peserta' => PesertaUndi::count(),
-            'peserta_aktif' => PesertaUndi::where('is_active', true)->count(),
-            'total_hadiah' => HadiahUndi::sum('stock_total'),
-            'sisa_hadiah' => HadiahUndi::sum('stock_sisa'),
-            'total_pemenang' => Pemenang::count(),
-        ];
-
-        $hadiahTersedia = HadiahUndi::query()
-            ->where('is_active', true)
-            ->where('stock_sisa', '>', 0)
-            ->orderBy('kategori')
-            ->orderBy('nama_hadiah')
-            ->get();
-
-        $pesertaTersedia = PesertaUndi::query()
-            ->where('is_active', true)
-            ->whereDoesntHave('pemenang')
-            ->count();
-
-        $recentWinner = Pemenang::query()
-            ->with(['peserta', 'hadiah'])
-            ->latest('won_at')
-            ->latest('id')
-            ->first();
-
         return view('bcf.undian', compact(
             'peserta',
             'hadiah',
@@ -68,6 +44,33 @@ class BcfUndianController extends Controller
             'hadiahTersedia',
             'pesertaTersedia',
             'recentWinner'
+        ));
+    }
+
+    public function live()
+    {
+        [$dashboard, $hadiahTersedia, $pesertaTersedia, $recentWinner] = $this->buildUndianSummary();
+
+        $pemenangTerbaru = Pemenang::query()
+            ->with(['peserta', 'hadiah'])
+            ->latest('won_at')
+            ->latest('id')
+            ->take(8)
+            ->get();
+
+        $pesertaPool = PesertaUndi::query()
+            ->where('is_active', true)
+            ->whereDoesntHave('pemenang')
+            ->inRandomOrder()
+            ->get(['nama', 'pn', 'unit_kerja']);
+
+        return view('bcf.undian-live', compact(
+            'dashboard',
+            'hadiahTersedia',
+            'pesertaTersedia',
+            'recentWinner',
+            'pemenangTerbaru',
+            'pesertaPool'
         ));
     }
 
@@ -180,6 +183,7 @@ class BcfUndianController extends Controller
     {
         $validated = $request->validate([
             'hadiah_undi_id' => 'nullable|exists:hadiah_undi,id',
+            'redirect_to' => 'nullable|string|in:index,live',
         ]);
 
         $winner = DB::transaction(function () use ($validated) {
@@ -222,8 +226,12 @@ class BcfUndianController extends Controller
             return $pemenang->load(['peserta', 'hadiah']);
         });
 
+        $redirectRoute = ($validated['redirect_to'] ?? 'index') === 'live'
+            ? 'bcf.undian.live'
+            : 'bcf.undian.index';
+
         return redirect()
-            ->route('bcf.undian.index', ['tab' => 'undian'])
+            ->route($redirectRoute, ['tab' => 'undian'])
             ->with('undian_winner', [
                 'peserta' => $winner->peserta?->nama,
                 'pn' => $winner->peserta?->pn,
@@ -239,6 +247,37 @@ class BcfUndianController extends Controller
             new BcfUndianRekapExport(),
             'bcf-undian-rekap-' . now()->format('Y-m-d_H-i-s') . '.xlsx'
         );
+    }
+
+    private function buildUndianSummary(): array
+    {
+        $dashboard = [
+            'total_peserta' => PesertaUndi::count(),
+            'peserta_aktif' => PesertaUndi::where('is_active', true)->count(),
+            'total_hadiah' => HadiahUndi::sum('stock_total'),
+            'sisa_hadiah' => HadiahUndi::sum('stock_sisa'),
+            'total_pemenang' => Pemenang::count(),
+        ];
+
+        $hadiahTersedia = HadiahUndi::query()
+            ->where('is_active', true)
+            ->where('stock_sisa', '>', 0)
+            ->orderBy('kategori')
+            ->orderBy('nama_hadiah')
+            ->get();
+
+        $pesertaTersedia = PesertaUndi::query()
+            ->where('is_active', true)
+            ->whereDoesntHave('pemenang')
+            ->count();
+
+        $recentWinner = Pemenang::query()
+            ->with(['peserta', 'hadiah'])
+            ->latest('won_at')
+            ->latest('id')
+            ->first();
+
+        return [$dashboard, $hadiahTersedia, $pesertaTersedia, $recentWinner];
     }
 
     private function extractSheetRecords(array $rows): array

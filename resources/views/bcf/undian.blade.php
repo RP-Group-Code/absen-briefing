@@ -21,19 +21,19 @@
                 radial-gradient(circle at top left, rgba(93, 201, 234, .18), transparent 32%),
                 linear-gradient(180deg, #f6fbff 0%, #eef5ff 100%) !important;
             color: var(--undi-ink);
-            padding-bottom: 40px !important;
+            padding-bottom: 18px !important;
         }
 
         .undi-shell {
-            width: min(1380px, calc(100% - 36px));
-            margin: 26px auto 0;
+            width: min(1600px, calc(100% - 16px));
+            margin: 8px auto 0;
         }
 
         .undi-hero {
             background: linear-gradient(135deg, rgba(13, 63, 145, .97), rgba(21, 96, 216, .92));
             color: #fff;
-            border-radius: 28px;
-            padding: 34px 38px;
+            border-radius: 22px;
+            padding: 24px 28px;
             box-shadow: 0 24px 60px rgba(9, 47, 108, .22);
             position: relative;
             overflow: hidden;
@@ -81,7 +81,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 26px;
+            margin-top: 18px;
         }
 
         .undi-nav a, .undi-admin-back {
@@ -110,8 +110,8 @@
         .undi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-top: 18px;
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .undi-stat {
@@ -143,21 +143,21 @@
         .undi-content {
             display: grid;
             grid-template-columns: 1.15fr .85fr;
-            gap: 18px;
-            margin-top: 18px;
+            gap: 14px;
+            margin-top: 12px;
             align-items: start;
         }
 
         .undi-card {
             background: #fff;
             border: 1px solid var(--undi-line);
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: 0 16px 40px rgba(18, 59, 108, .08);
             overflow: hidden;
         }
 
         .undi-card-head {
-            padding: 24px 26px 16px;
+            padding: 18px 20px 12px;
             border-bottom: 1px solid #edf3fb;
         }
 
@@ -174,12 +174,12 @@
         }
 
         .undi-card-body {
-            padding: 22px 26px 26px;
+            padding: 18px 20px 20px;
         }
 
         .undi-section {
             scroll-margin-top: 22px;
-            margin-top: 18px;
+            margin-top: 12px;
         }
 
         .undi-form-grid {
@@ -250,7 +250,7 @@
 
         .undi-stack {
             display: grid;
-            gap: 18px;
+            gap: 14px;
         }
 
         .undi-winner-stage {
@@ -386,6 +386,15 @@
         }
 
         @media (max-width: 1100px) {
+            .undi-shell {
+                width: min(100% - 12px, 1600px);
+                margin-top: 6px;
+            }
+
+            .undi-hero {
+                padding: 20px 18px;
+            }
+
             .undi-grid { grid-template-columns: repeat(2, 1fr); }
             .undi-content { grid-template-columns: 1fr; }
         }
@@ -403,7 +412,7 @@
                 <a href="#dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
                 <a href="#hadiah"><i class="fa-solid fa-gift"></i> Hadiah</a>
                 <a href="#peserta"><i class="fa-solid fa-users"></i> Peserta</a>
-                <a href="#undian"><i class="fa-solid fa-wand-magic-sparkles"></i> Undian</a>
+                <a href="{{ route('bcf.undian.live') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Undian</a>
                 <a href="#pemenang"><i class="fa-solid fa-trophy"></i> Pemenang</a>
                 <a href="#rekap"><i class="fa-solid fa-file-export"></i> Rekap</a>
             </nav>
@@ -559,39 +568,29 @@
                 <section id="undian" class="undi-card undi-section">
                     <div class="undi-card-head">
                         <h2>Undian</h2>
-                        <p>Sistem goncang animasi dan pengambilan pemenang acak dari data peserta yang belum pernah menang.</p>
+                        <p>Laman undian sekarang dibuat terpisah agar lebih fokus untuk layar utama pengocokan dan pengumuman pemenang.</p>
                     </div>
                     <div class="undi-card-body">
                         <div class="undi-winner-stage">
                             <div>
-                                <small>Mode Goncang Undian</small>
-                                <h3>Tekan tombol undi untuk melihat pemenang</h3>
-                                <p>Peserta diambil acak dari pool aktif, dan hadiah diambil dari stok hadiah yang masih tersedia.</p>
+                                <small>Laman Undian Live</small>
+                                <h3>Buka layar undian terpisah untuk mode panggung</h3>
+                                <p>Tampilan live memakai tema khusus desktop, animasi nama peserta, dan kontrol undi yang terhubung langsung ke database.</p>
                             </div>
 
                             <div class="undi-winner-panel">
                                 @php $winner = session('undian_winner'); @endphp
-                                <small style="display:block;color:rgba(255,255,255,.72);font-weight:800;letter-spacing:.08em;text-transform:uppercase;">Hasil Terakhir</small>
+                                <small style="display:block;color:rgba(255,255,255,.72);font-weight:800;letter-spacing:.08em;text-transform:uppercase;">Highlight Pemenang</small>
                                 <div class="undi-winner-name">{{ $winner['peserta'] ?? $recentWinner?->peserta?->nama ?? 'Belum ada pemenang' }}</div>
                                 <p style="margin-bottom:12px;">{{ $winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan mulai undian pertama.' }}</p>
                                 <div class="undi-badge"><i class="fa-solid fa-ticket"></i> Undian ke-{{ $winner['undian_ke'] ?? $recentWinner?->undian_ke ?? 0 }}</div>
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('bcf.undian.draw') }}" style="margin-top:18px;">
-                            @csrf
-                            <label class="undi-label">Pilih Hadiah Spesifik</label>
-                            <select class="undi-select" name="hadiah_undi_id">
-                                <option value="">Acak dari semua hadiah yang tersedia</option>
-                                @foreach ($hadiahTersedia as $item)
-                                    <option value="{{ $item->id }}">{{ $item->nama_hadiah }} ({{ $item->stock_sisa }} tersisa)</option>
-                                @endforeach
-                            </select>
-                            <p class="undi-help">Peserta tersedia saat ini: <strong>{{ $pesertaTersedia }}</strong> orang.</p>
-                            <div class="undi-actions">
-                                <button class="undi-btn undi-btn-accent" type="submit"><i class="fa-solid fa-bolt"></i> Mulai Undian</button>
-                            </div>
-                        </form>
+                        <div class="undi-actions" style="margin-top:18px;">
+                            <a class="undi-btn undi-btn-accent" href="{{ route('bcf.undian.live') }}"><i class="fa-solid fa-up-right-from-square"></i> Buka Laman Undian</a>
+                        </div>
+                        <p class="undi-help">Peserta tersedia saat ini: <strong>{{ $pesertaTersedia }}</strong> orang, hadiah tersedia: <strong>{{ $hadiahTersedia->count() }}</strong> item aktif.</p>
                     </div>
                 </section>
 
