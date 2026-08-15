@@ -248,7 +248,12 @@ class BcfUndianController extends Controller
             ]);
 
             $peserta->forceFill(['status' => 'Menang'])->save();
-            $hadiah->decrement('stock_sisa');
+
+            $sisaHadiah = max(0, ((int) $hadiah->stock_sisa) - 1);
+            $hadiah->forceFill([
+                'stock_sisa' => $sisaHadiah,
+                'status' => $sisaHadiah > 0,
+            ])->save();
 
             return $pemenang->load(['peserta', 'hadiah']);
         });
@@ -278,9 +283,14 @@ class BcfUndianController extends Controller
 
     private function buildUndianSummary(): array
     {
+        $pesertaTersedia = PesertaUndi::query()
+            ->where('status', 'Belum Menang')
+            ->whereDoesntHave('pemenang')
+            ->count();
+
         $dashboard = [
             'total_peserta' => PesertaUndi::count(),
-            'peserta_aktif' => PesertaUndi::where('status', 'Belum Menang')->count(),
+            'peserta_aktif' => $pesertaTersedia,
             'total_hadiah' => HadiahUndi::sum('stock_total'),
             'sisa_hadiah' => HadiahUndi::sum('stock_sisa'),
             'total_pemenang' => Pemenang::count(),
@@ -292,11 +302,6 @@ class BcfUndianController extends Controller
             ->orderBy('kategori')
             ->orderBy('nama_hadiah')
             ->get();
-
-        $pesertaTersedia = PesertaUndi::query()
-            ->where('status', 'Belum Menang')
-            ->whereDoesntHave('pemenang')
-            ->count();
 
         $recentWinner = Pemenang::query()
             ->with(['peserta', 'hadiah'])

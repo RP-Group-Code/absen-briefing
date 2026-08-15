@@ -284,6 +284,12 @@
             margin-top: 8px;
         }
 
+        .live-filter-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(240px, .72fr);
+            gap: 14px;
+        }
+
         .live-search {
             width: 100%;
             min-height: 64px;
@@ -345,15 +351,15 @@
         }
 
         .live-btn-start {
-            background: linear-gradient(135deg, var(--live-gold), var(--live-gold-soft));
+            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
             color: #111;
-            box-shadow: 0 18px 36px rgba(255, 176, 0, 0.26);
+            box-shadow: 0 18px 36px rgba(29, 132, 226, 0.26);
         }
 
         .live-btn-stop {
-            background: linear-gradient(135deg, #ff5b78, var(--live-pink));
+            background: linear-gradient(135deg, #943755 0%, #a43c65 55%, #b13f72 100%);
             color: #fff;
-            box-shadow: 0 18px 36px rgba(255, 74, 114, 0.24);
+            box-shadow: 0 18px 36px rgba(177, 63, 114, 0.24);
         }
 
         .live-btn-stop.is-disabled {
@@ -468,7 +474,8 @@
             }
 
             .live-stats,
-            .live-buttons {
+            .live-buttons,
+            .live-filter-row {
                 grid-template-columns: 1fr;
             }
 
@@ -490,6 +497,13 @@
         $displayWinnerPn = $winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi';
         $displayWinnerHadiah = $winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah';
         $displayWinnerRound = $winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null;
+        $hadiahCategories = $hadiahTersedia
+            ->pluck('kategori')
+            ->filter(fn ($item) => filled($item))
+            ->map(fn ($item) => trim((string) $item))
+            ->unique()
+            ->sort()
+            ->values();
         $pesertaPoolJson = $pesertaPool
             ->map(function ($item) {
                 return [
@@ -556,11 +570,19 @@
                 <form class="live-form" method="POST" action="{{ route('bcf.undian.draw') }}" id="liveDrawForm">
                     @csrf
                     <input type="hidden" name="redirect_to" value="live">
-                    <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
+                    <div class="live-filter-row">
+                        <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
+                        <select class="live-search" id="liveHadiahCategory">
+                            <option value="">Semua kategori</option>
+                            @foreach ($hadiahCategories as $kategori)
+                                <option value="{{ $kategori }}">{{ $kategori }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <select class="live-select" name="hadiah_undi_id" id="liveHadiahSelect">
                         <option value="">-- Pilih Hadiah --</option>
                         @foreach ($hadiahTersedia as $item)
-                            <option value="{{ $item->id }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
+                            <option value="{{ $item->id }}" data-kategori="{{ $item->kategori ?: '' }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
                         @endforeach
                     </select>
 
@@ -625,10 +647,12 @@
             const form = document.getElementById('liveDrawForm');
             const hadiahSelect = document.getElementById('liveHadiahSelect');
             const hadiahSearch = document.getElementById('liveHadiahSearch');
+            const hadiahCategory = document.getElementById('liveHadiahCategory');
             const clock = document.getElementById('liveClock');
             const hadiahOptions = Array.from(hadiahSelect.options).map((option) => ({
                 value: option.value,
                 label: option.textContent,
+                kategori: option.dataset.kategori || '',
             }));
 
             let spinTimer = null;
@@ -660,15 +684,19 @@
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
             };
 
-            const renderHadiahOptions = (keyword = '') => {
+            const renderHadiahOptions = (keyword = '', kategori = '') => {
                 const normalizedKeyword = String(keyword || '').trim().toLowerCase();
+                const normalizedKategori = String(kategori || '').trim().toLowerCase();
                 const currentValue = hadiahSelect.value;
                 const filteredOptions = hadiahOptions.filter((option, index) => {
                     if (index === 0) {
                         return true;
                     }
 
-                    return option.label.toLowerCase().includes(normalizedKeyword);
+                    const matchKeyword = option.label.toLowerCase().includes(normalizedKeyword);
+                    const matchKategori = normalizedKategori === '' || option.kategori.toLowerCase() === normalizedKategori;
+
+                    return matchKeyword && matchKategori;
                 });
 
                 hadiahSelect.innerHTML = '';
@@ -676,6 +704,7 @@
                     const optionElement = document.createElement('option');
                     optionElement.value = option.value;
                     optionElement.textContent = option.label;
+                    optionElement.dataset.kategori = option.kategori;
                     hadiahSelect.appendChild(optionElement);
                 });
 
@@ -731,7 +760,11 @@
             });
 
             hadiahSearch.addEventListener('input', (event) => {
-                renderHadiahOptions(event.target.value);
+                renderHadiahOptions(event.target.value, hadiahCategory.value);
+            });
+
+            hadiahCategory.addEventListener('change', (event) => {
+                renderHadiahOptions(hadiahSearch.value, event.target.value);
             });
 
             hadiahSelect.addEventListener('change', () => {
@@ -740,7 +773,7 @@
                 }
             });
 
-            renderHadiahOptions();
+            renderHadiahOptions(hadiahSearch.value, hadiahCategory.value);
             updateClock();
             window.setInterval(updateClock, 1000);
         })();
