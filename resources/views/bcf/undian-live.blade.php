@@ -271,6 +271,118 @@
             text-transform: uppercase;
         }
 
+        .live-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: rgba(7, 6, 16, 0.82);
+            backdrop-filter: blur(16px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .24s ease, visibility .24s ease;
+            z-index: 60;
+        }
+
+        .live-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .live-modal-dialog {
+            position: relative;
+            width: min(100%, 1320px);
+            padding: 34px;
+            border-radius: 36px;
+            border: 1px solid rgba(255, 211, 28, 0.18);
+            background:
+                radial-gradient(circle at top center, rgba(255, 211, 28, 0.12), transparent 32%),
+                linear-gradient(180deg, rgba(31, 8, 48, 0.96), rgba(11, 10, 21, 0.98));
+            box-shadow:
+                0 30px 120px rgba(0, 0, 0, 0.46),
+                0 0 44px rgba(255, 211, 28, 0.12);
+        }
+
+        .live-modal-close {
+            position: absolute;
+            right: 22px;
+            top: 22px;
+            min-width: 52px;
+            min-height: 52px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--live-text);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .live-modal-card {
+            border-radius: 34px;
+            border: 2px solid rgba(255, 211, 28, 0.26);
+            background: linear-gradient(180deg, rgba(58, 8, 86, 0.94), rgba(10, 10, 20, 0.96));
+            box-shadow:
+                0 34px 90px rgba(0, 0, 0, 0.34),
+                0 0 50px rgba(255, 211, 28, 0.14);
+            padding: 46px 40px 38px;
+            text-align: center;
+        }
+
+        .live-modal-card .live-winner-badge {
+            font-size: 1rem;
+            padding: 12px 20px;
+        }
+
+        .live-modal-name {
+            margin: 26px 0 12px;
+            font-size: clamp(2.8rem, 6vw, 6.3rem);
+            line-height: .96;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.16);
+        }
+
+        .live-modal-prize {
+            color: var(--live-gold);
+            font-size: clamp(1.4rem, 2.5vw, 2.4rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 0 0 26px rgba(255, 211, 28, 0.24);
+        }
+
+        .live-modal-meta {
+            margin-top: 18px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 1.08rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .live-modal-actions {
+            margin-top: 28px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .live-modal-dismiss {
+            min-height: 62px;
+            padding: 0 30px;
+            border-radius: 18px;
+            border: 0;
+            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 18px 36px rgba(29, 132, 226, 0.26);
+        }
+
         .live-panel {
             border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -691,6 +803,20 @@
             .live-watermark {
                 display: none;
             }
+
+            .live-modal {
+                padding: 18px;
+            }
+
+            .live-modal-dialog,
+            .live-modal-card {
+                padding: 26px 20px 24px;
+            }
+
+            .live-modal-meta {
+                font-size: .92rem;
+                letter-spacing: .1em;
+            }
         }
     </style>
 @endpush
@@ -846,6 +972,24 @@
             </div>
         </section>
     </main>
+
+    <div class="live-modal" id="liveWinnerModal" aria-hidden="true">
+        <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
+            <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
+            <div class="live-modal-card">
+                <div class="live-winner-badge" id="liveWinnerModalTitle">
+                    <i class="fa-solid fa-crown"></i>
+                    {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Hasil Undian' }}
+                </div>
+                <div class="live-modal-name" id="liveWinnerModalName">{{ $displayWinnerName }}</div>
+                <div class="live-modal-prize" id="liveWinnerModalPrize">{{ $displayWinnerHadiah }}</div>
+                <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerPn }} | {{ $recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi' }} | {{ $recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi' }}</div>
+                <div class="live-modal-actions">
+                    <button class="live-modal-dismiss" type="button" id="liveWinnerModalDismiss">Tutup Tampilan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -857,6 +1001,9 @@
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const liveStage = document.getElementById('liveStage');
             const confettiLayer = document.getElementById('liveConfettiLayer');
+            const winnerModal = document.getElementById('liveWinnerModal');
+            const winnerModalClose = document.getElementById('liveWinnerModalClose');
+            const winnerModalDismiss = document.getElementById('liveWinnerModalDismiss');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
@@ -887,6 +1034,26 @@
                     minute: '2-digit',
                     second: '2-digit',
                 });
+            };
+
+            const openWinnerModal = () => {
+                if (!winnerModal) {
+                    return;
+                }
+
+                winnerModal.classList.add('is-open');
+                winnerModal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            };
+
+            const closeWinnerModal = () => {
+                if (!winnerModal) {
+                    return;
+                }
+
+                winnerModal.classList.remove('is-open');
+                winnerModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
             };
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
@@ -1218,8 +1385,25 @@
             window.setInterval(updateClock, 1000);
 
             if (liveStage?.dataset.shouldCelebrate === '1') {
-                window.setTimeout(celebrateWinner, 180);
+                window.setTimeout(() => {
+                    celebrateWinner();
+                    openWinnerModal();
+                }, 180);
             }
+
+            winnerModalClose?.addEventListener('click', closeWinnerModal);
+            winnerModalDismiss?.addEventListener('click', closeWinnerModal);
+            winnerModal?.addEventListener('click', (event) => {
+                if (event.target === winnerModal) {
+                    closeWinnerModal();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && winnerModal?.classList.contains('is-open')) {
+                    closeWinnerModal();
+                }
+            });
         })();
     </script>
 @endpush
