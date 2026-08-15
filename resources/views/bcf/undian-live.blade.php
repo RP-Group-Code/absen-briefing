@@ -379,6 +379,12 @@
             margin: 0 auto 14px;
         }
 
+        .live-modal-card .live-brand-logo {
+            width: min(100%, 168px);
+            margin: 0 auto 18px;
+            filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.24));
+        }
+
         .live-modal-card.is-batch .live-modal-name {
             margin: 0 0 10px;
             font-size: clamp(2.2rem, 4.8vw, 4.8rem);
@@ -1110,9 +1116,8 @@
         <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
             <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
             <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerModalCard">
-                @if ($isBatchWinner)
-                    <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
-                @else
+                <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
+                @if (! $isBatchWinner)
                     <div class="live-winner-badge" id="liveWinnerModalTitle">
                         <i class="fa-solid fa-crown"></i>
                         {{ $displayWinnerBadge }}
