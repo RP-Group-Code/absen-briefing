@@ -238,6 +238,32 @@
             font-size: clamp(1rem, 1.8vw, 1.35rem);
         }
 
+        .live-winner-box.is-grandprize .live-winner-badge {
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            color: var(--live-gold);
+            font-size: clamp(2.6rem, 5vw, 4.9rem);
+            font-weight: 900;
+            letter-spacing: .12em;
+            line-height: .92;
+            text-shadow: 0 0 30px rgba(255, 211, 28, 0.28);
+        }
+
+        .live-winner-box.is-grandprize .live-winner-badge i {
+            display: none;
+        }
+
+        .live-winner-box.is-grandprize .live-winner-name {
+            margin-top: 12px;
+            min-height: clamp(3rem, 5vw, 4rem);
+            font-size: clamp(1.8rem, 3vw, 3.25rem);
+        }
+
         .live-winner-badge {
             display: inline-flex;
             align-items: center;
@@ -414,6 +440,32 @@
             z-index: 2;
             background: rgba(10, 78, 173, 0.96);
             backdrop-filter: blur(8px);
+        }
+
+        .live-modal-card.is-grandprize .live-winner-badge {
+            display: block;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            color: var(--live-gold);
+            font-size: clamp(3.3rem, 6.2vw, 6.6rem);
+            font-weight: 900;
+            letter-spacing: .12em;
+            line-height: .9;
+            text-shadow: 0 0 40px rgba(255, 211, 28, 0.32);
+        }
+
+        .live-modal-card.is-grandprize .live-winner-badge i {
+            display: none;
+        }
+
+        .live-modal-card.is-grandprize .live-modal-name {
+            margin-top: 14px;
+            font-size: clamp(2.2rem, 4.7vw, 4.9rem);
+            line-height: .95;
         }
 
         .live-modal-card .live-winner-badge {
@@ -991,7 +1043,7 @@
 
             <div class="live-watermark">BRILIAN CULTURE FEST SYSTEM {{ now()->format('m.d.Y') }}</div>
 
-            <div class="live-winner-box {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerBox">
+            <div class="live-winner-box {{ $isBatchWinner ? 'is-batch' : '' }} {{ $isGrandPrizeWinner ? 'is-grandprize' : '' }}" id="liveWinnerBox">
                 <div class="live-winner-badge" id="liveWinnerBadge">
                     <i class="fa-solid fa-sparkles"></i>
                     {{ $displayWinnerBadge }}
@@ -1119,7 +1171,7 @@
     <div class="live-modal" id="liveWinnerModal" aria-hidden="true">
         <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
             <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
-            <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerModalCard">
+            <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }} {{ $isGrandPrizeWinner ? 'is-grandprize' : '' }}" id="liveWinnerModalCard">
                 <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
                 @if (! $isBatchWinner)
                     <div class="live-winner-badge" id="liveWinnerModalTitle">
@@ -1240,7 +1292,9 @@
                 }
 
                 winnerBox?.classList.remove('is-batch');
+                winnerBox?.classList.remove('is-grandprize');
                 winnerModalCard?.classList.remove('is-batch');
+                winnerModalCard?.classList.remove('is-grandprize');
                 batchResults?.classList.remove('is-visible');
                 modalBatchResults?.classList.remove('is-visible');
                 winnerName.textContent = '???';
@@ -1505,7 +1559,9 @@
 
             const resetDisplayedBatchState = () => {
                 winnerBox?.classList.remove('is-batch');
+                winnerBox?.classList.remove('is-grandprize');
                 winnerModalCard?.classList.remove('is-batch');
+                winnerModalCard?.classList.remove('is-grandprize');
                 batchResults?.classList.remove('is-visible');
                 modalBatchResults?.classList.remove('is-visible');
             };
