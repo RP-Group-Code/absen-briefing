@@ -1208,11 +1208,15 @@
 
             let spinTimer = null;
             let winnerCurrentPage = 1;
-            const isMassCategory = (value) => batchCategoryLabels.includes(String(value || '').trim().toLowerCase());
+            const normalizeCategoryValue = (value) => String(value || '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+            const isMassCategory = (value) => batchCategoryLabels.includes(normalizeCategoryValue(value));
             const hasSelectedHadiah = () => String(hadiahSelect?.value || '').trim() !== '';
             const isBatchSelection = () => isMassCategory(hadiahCategory?.value);
             const currentBatchCategoryLabel = () => {
-                const value = String(hadiahCategory?.value || '').trim();
+                const value = String(hadiahCategory?.value || '').replace(/\s+/g, ' ').trim();
                 return value === '' ? 'Hadiah Batch' : value;
             };
 
