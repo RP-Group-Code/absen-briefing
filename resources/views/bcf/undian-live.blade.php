@@ -218,7 +218,6 @@
             z-index: 2;
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.28);
-            background: linear-gradient(180deg, rgba(45, 6, 68, 0.86), rgba(12, 10, 20, 0.92));
             background: linear-gradient(180deg, rgba(10, 78, 173, 0.9), rgba(5, 31, 78, 0.95));
             box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
             padding: 34px 30px 28px;
@@ -351,17 +350,17 @@
             min-width: 52px;
             min-height: 52px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(147, 198, 255, 0.28);
+            background: rgba(10, 78, 173, 0.42);
             color: var(--live-text);
             font-size: 1.4rem;
             cursor: pointer;
+            box-shadow: 0 12px 28px rgba(10, 78, 173, 0.2);
         }
 
         .live-modal-card {
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.26);
-            background: linear-gradient(180deg, rgba(58, 8, 86, 0.94), rgba(10, 10, 20, 0.96));
             background: linear-gradient(180deg, rgba(10, 78, 173, 0.95), rgba(4, 27, 72, 0.98));
             box-shadow:
                 0 34px 90px rgba(0, 0, 0, 0.34),
@@ -407,7 +406,7 @@
             position: sticky;
             top: 0;
             z-index: 2;
-            background: rgba(61, 29, 87, 0.96);
+            background: rgba(10, 78, 173, 0.96);
             backdrop-filter: blur(8px);
         }
 
@@ -452,14 +451,14 @@
             padding: 0 30px;
             border-radius: 18px;
             border: 0;
-            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
+            background: linear-gradient(135deg, #1d9cff 0%, #0f6fe0 52%, #0a4ead 100%);
             color: #fff;
             font-size: 1rem;
             font-weight: 900;
             letter-spacing: .12em;
             text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 18px 36px rgba(29, 132, 226, 0.26);
+            box-shadow: 0 18px 36px rgba(10, 78, 173, 0.3);
         }
 
         .live-panel {
@@ -593,9 +592,9 @@
         }
 
         .live-btn-start {
-            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
-            color: #111;
-            box-shadow: 0 18px 36px rgba(29, 132, 226, 0.26);
+            background: linear-gradient(135deg, #24b9f1 0%, #0f7be7 54%, #0a4ead 100%);
+            color: #fff;
+            box-shadow: 0 18px 36px rgba(10, 78, 173, 0.3);
         }
 
         .live-btn-stop {
@@ -774,7 +773,7 @@
         }
 
         .live-table-pagination button.is-active {
-            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
+            background: linear-gradient(135deg, #24b9f1 0%, #0f7be7 54%, #0a4ead 100%);
             border-color: transparent;
             color: #fff;
         }
