@@ -134,19 +134,25 @@
         }
 
         .brand-icon {
-            width: 64px; height: 64px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, rgba(99,102,241,.8), rgba(168,85,247,.8));
+            width: 84px; height: 84px;
+            border-radius: 22px;
+            background: rgba(255,255,255,.12);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
-            color: #fff;
             margin-bottom: 1rem;
             box-shadow:
-                0 6px 20px rgba(99,102,241,.45),
-                inset 0 1px 0 rgba(255,255,255,.3);
+                0 6px 20px rgba(15,12,41,.28),
+                inset 0 1px 0 rgba(255,255,255,.18);
             animation: iconPulse 3s ease-in-out infinite;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .brand-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
         @keyframes iconPulse {
             0%,100% { box-shadow: 0 6px 20px rgba(99,102,241,.45), inset 0 1px 0 rgba(255,255,255,.3); }
@@ -411,9 +417,9 @@
         {{-- Header --}}
         <div class="card-header-glass">
             <div class="brand-icon">
-                <i class="fa-solid fa-fingerprint"></i>
+                <img src="{{ asset('images/LogoPPOIT.png') }}" alt="Logo PPOIT">
             </div>
-            <div class="brand-title">Sistem Briefing Absensi</div>
+            <div class="brand-title">Sistem SWJ #342</div>
             <div class="brand-sub">Masuk ke akun Anda</div>
         </div>
 
@@ -512,7 +518,7 @@
 
         {{-- Footer --}}
         <div class="card-footer-glass">
-            &copy; {{ date('Y') }} <strong>Briefing Absensi SWJ342</strong> — All rights reserved
+            &copy; {{ date('Y') }} <strong>Integrated Sistem SWJ342</strong> — All rights reserved
         </div>
 
     </div>{{-- /login-card --}}

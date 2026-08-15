@@ -287,8 +287,8 @@
                                 </select>
                             </div>
                             <div id="manualEntryWrap" hidden>
-                                <label for="create_nama_manual" class="bcf-label"><i class="fa-solid fa-keyboard me-2"></i>Nama Peserta Manual <span class="bcf-required">*</span></label>
-                                <input id="create_nama_manual" class="form-control bcf-input mt-1" placeholder="Ketik nama peserta" disabled>
+                                <label for="create_nama_manual" class="bcf-label"><i class="fa-solid fa-keyboard me-2"></i>NamaLengkap Peserta Manual <span class="bcf-required">*</span></label>
+                                <input id="create_nama_manual" class="form-control bcf-input mt-1" placeholder="Ketik Nama Lengkap Anda !!" disabled>
                             </div>
                             <div class="bcf-picker-mode"><button type="button" id="manualEntryToggle" class="bcf-manual-toggle">Isi nama manual</button></div>
                             <div class="bcf-help mt-2">Ketik nama atau PN pada kolom pencarian, lalu klik hasil peserta yang sesuai.</div>
