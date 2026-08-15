@@ -128,7 +128,7 @@
                 @endforeach
             </div>
 
-            <section class="admin-card">
+            <section id="daftar-peserta-admin" class="admin-card">
                 <div class="admin-card-head"><h2>Daftar Peserta</h2><p>Perubahan team otomatis memperbarui hitungan kuota di atas.</p></div>
                 <div class="admin-list-meta">
                     <span>Menampilkan {{ $registrasi->firstItem() ?? 0 }}-{{ $registrasi->lastItem() ?? 0 }} dari {{ $registrasi->total() }} peserta</span>
@@ -160,7 +160,7 @@
                     </tbody></table>
                 </div>
                 @if ($registrasi->hasPages())
-                    <div class="admin-pagination">{{ $registrasi->onEachSide(1)->links('pagination::bootstrap-5') }}</div>
+                    <div class="admin-pagination">{{ $registrasi->fragment('daftar-peserta-admin')->onEachSide(1)->links('pagination::bootstrap-5') }}</div>
                 @endif
             </section>
         </div>
