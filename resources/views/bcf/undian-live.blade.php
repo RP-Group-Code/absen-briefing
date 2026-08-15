@@ -373,6 +373,42 @@
             overflow: auto;
         }
 
+        .live-modal-card.is-batch .live-brand-logo {
+            width: min(100%, 172px);
+            margin: 0 auto 14px;
+        }
+
+        .live-modal-card.is-batch .live-modal-name {
+            margin: 0 0 10px;
+            font-size: clamp(2.2rem, 4.8vw, 4.8rem);
+        }
+
+        .live-modal-card.is-batch .live-modal-prize {
+            font-size: clamp(1.2rem, 2.2vw, 2rem);
+        }
+
+        .live-modal-card.is-batch .live-modal-meta {
+            display: none;
+        }
+
+        .live-modal-card.is-batch .live-batch-summary {
+            display: none;
+        }
+
+        .live-modal-card.is-batch .live-batch-table-wrap {
+            max-height: 420px;
+            overflow: auto;
+            border-radius: 22px;
+        }
+
+        .live-modal-card.is-batch .live-batch-table-wrap .live-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: rgba(61, 29, 87, 0.96);
+            backdrop-filter: blur(8px);
+        }
+
         .live-modal-card .live-winner-badge {
             font-size: 1rem;
             padding: 12px 20px;
@@ -877,13 +913,13 @@
         $winnerBatchItems = collect($winner['items'] ?? []);
         $isBatchWinner = $winnerMode === 'batch' && $winnerBatchItems->isNotEmpty();
         $displayWinnerName = $isBatchWinner
-            ? 'Undian ' . ($winner['kategori'] ?? 'Hadiah Kecil') . ' Selesai'
+            ? 'Undian Hadiah Kecil'
             : ($winner['peserta'] ?? $recentWinner?->peserta?->nama ?? '???');
         $displayWinnerPn = $isBatchWinner
             ? ($winnerBatchItems->count() . ' pemenang terpilih')
             : ($winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi');
         $displayWinnerHadiah = $isBatchWinner
-            ? (($winner['kategori'] ?? 'Hadiah Kecil') . ' • ' . $winnerBatchItems->count() . ' penerima')
+            ? ($winnerBatchItems->count() . ' Penerima')
             : ($winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah');
         $displayWinnerRound = $isBatchWinner
             ? ($winner['undian_ke_selesai'] ?? null)
@@ -1072,10 +1108,14 @@
         <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
             <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
             <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }}" id="liveWinnerModalCard">
-                <div class="live-winner-badge" id="liveWinnerModalTitle">
-                    <i class="fa-solid fa-crown"></i>
-                    {{ $displayWinnerBadge }}
-                </div>
+                @if ($isBatchWinner)
+                    <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
+                @else
+                    <div class="live-winner-badge" id="liveWinnerModalTitle">
+                        <i class="fa-solid fa-crown"></i>
+                        {{ $displayWinnerBadge }}
+                    </div>
+                @endif
                 <div class="live-modal-name" id="liveWinnerModalName">{{ $displayWinnerName }}</div>
                 <div class="live-modal-prize" id="liveWinnerModalPrize">{{ $displayWinnerHadiah }}</div>
                 <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerMeta }}</div>
