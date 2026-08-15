@@ -25,63 +25,90 @@
         }
 
         .undi-shell {
-            width: min(1600px, calc(100% - 16px));
-            margin: 8px auto 0;
+            width: calc(100% - 24px);
+            max-width: none;
+            margin: 12px auto 0;
         }
 
-        .undi-hero {
-            background: linear-gradient(135deg, rgba(13, 63, 145, .97), rgba(21, 96, 216, .92));
-            color: #fff;
+        .undi-navbar {
+            position: sticky;
+            top: 10px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 20px;
             border-radius: 22px;
-            padding: 24px 28px;
-            box-shadow: 0 24px 60px rgba(9, 47, 108, .22);
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(135deg, rgba(13, 63, 145, .98), rgba(21, 96, 216, .95));
+            color: #fff;
+            box-shadow: 0 24px 60px rgba(9, 47, 108, .18);
+            border: 1px solid rgba(255,255,255,.08);
         }
 
-        .undi-hero::after {
-            content: '';
-            position: absolute;
-            inset: auto -80px -80px auto;
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,.16) 0%, transparent 70%);
+        .undi-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .undi-brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.14);
+            color: #fff;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .undi-brand-copy {
+            min-width: 0;
         }
 
         .undi-kicker {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: rgba(255,255,255,.82);
-            font-size: .82rem;
+            display: block;
+            color: rgba(255,255,255,.76);
+            font-size: .72rem;
             font-weight: 800;
-            letter-spacing: .14em;
+            letter-spacing: .16em;
             text-transform: uppercase;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
         }
 
         .undi-title {
-            font-size: clamp(2rem, 4vw, 3.2rem);
-            line-height: .96;
+            font-size: clamp(1.2rem, 2vw, 1.8rem);
+            line-height: 1.05;
             font-weight: 900;
-            letter-spacing: -.04em;
+            letter-spacing: -.03em;
             margin: 0;
-            max-width: 820px;
+        }
+
+        .undi-intro {
+            margin-top: 12px;
+            padding: 18px 22px;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.74));
+            border: 1px solid rgba(217, 231, 246, .96);
+            box-shadow: 0 16px 40px rgba(18, 59, 108, .06);
         }
 
         .undi-subtitle {
-            max-width: 760px;
-            margin: 14px 0 0;
-            color: rgba(255,255,255,.74);
+            margin: 0;
+            color: var(--undi-muted);
             font-size: .98rem;
+            max-width: 980px;
         }
 
         .undi-nav {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 18px;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         .undi-nav a, .undi-admin-back {
@@ -89,22 +116,23 @@
             align-items: center;
             gap: 8px;
             border-radius: 12px;
-            padding: 12px 14px;
+            padding: 12px 16px;
             text-decoration: none;
             font-weight: 800;
             letter-spacing: .02em;
+            white-space: nowrap;
         }
 
         .undi-nav a {
             background: rgba(255,255,255,.12);
-            border: 1px solid rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.16);
             color: #fff;
         }
 
         .undi-admin-back {
             background: #fff;
             color: var(--undi-navy);
-            margin-top: 18px;
+            border: 1px solid rgba(255,255,255,.16);
         }
 
         .undi-grid {
@@ -387,27 +415,49 @@
 
         @media (max-width: 1100px) {
             .undi-shell {
-                width: min(100% - 12px, 1600px);
+                width: calc(100% - 12px);
                 margin-top: 6px;
             }
 
-            .undi-hero {
-                padding: 20px 18px;
+            .undi-navbar {
+                position: static;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+            }
+
+            .undi-nav {
+                justify-content: flex-start;
             }
 
             .undi-grid { grid-template-columns: repeat(2, 1fr); }
             .undi-content { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 720px) {
+            .undi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .undi-nav a,
+            .undi-admin-back {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 @endpush
 
 @section('content')
     <main class="undi-shell">
-        <section class="undi-hero">
-            <span class="undi-kicker"><i class="fa-solid fa-star"></i> UNDIAN BCF BO SRIWIJAYA</span>
-            <h1 class="undi-title">UNDIAN BCF BO SRIWIJAYA</h1>
-            <p class="undi-subtitle">Portal desktop-first untuk mengelola peserta, hadiah, undian, pemenang, dan rekap akhir dengan nuansa warna BCF yang seragam.</p>
-
+        <section class="undi-navbar">
+            <div class="undi-brand">
+                <div class="undi-brand-icon"><i class="fa-solid fa-star"></i></div>
+                <div class="undi-brand-copy">
+                    <span class="undi-kicker">Undian BCF BO Sriwijaya</span>
+                    <h1 class="undi-title">Dashboard Pengelolaan Undian</h1>
+                </div>
+            </div>
             <nav class="undi-nav">
                 <a href="#dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
                 <a href="#hadiah"><i class="fa-solid fa-gift"></i> Hadiah</a>
@@ -415,9 +465,12 @@
                 <a href="{{ route('bcf.undian.live') }}"><i class="fa-solid fa-wand-magic-sparkles"></i> Undian</a>
                 <a href="#pemenang"><i class="fa-solid fa-trophy"></i> Pemenang</a>
                 <a href="#rekap"><i class="fa-solid fa-file-export"></i> Rekap</a>
+                <a href="{{ route('bcf.registrasi.admin') }}" class="undi-admin-back"><i class="fa-solid fa-arrow-left"></i> Portal Admin</a>
             </nav>
+        </section>
 
-            <a href="{{ route('bcf.registrasi.admin') }}" class="undi-admin-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Portal Admin</a>
+        <section class="undi-intro">
+            <p class="undi-subtitle">Portal desktop-first untuk mengelola peserta, hadiah, undian, pemenang, dan rekap akhir dengan nuansa warna BCF yang seragam. Struktur atas kini dibuat model navbar agar area utama lebih penuh dan lebih lega untuk konten.</p>
         </section>
 
         <section id="dashboard" class="undi-section undi-grid">
