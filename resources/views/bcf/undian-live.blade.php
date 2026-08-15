@@ -112,6 +112,7 @@
             z-index: 2;
             margin-top: 34px;
             flex: 1;
+            text-align: center;
         }
 
         .live-headline h1 {
@@ -130,6 +131,7 @@
             margin-top: 18px;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 12px;
             color: var(--live-cyan);
             font-size: 1rem;
@@ -139,7 +141,7 @@
         }
 
         .live-brand-logo {
-            margin-top: 28px;
+            margin: 24px auto 0;
             width: min(100%, 340px);
             display: block;
             filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
@@ -162,7 +164,7 @@
             position: relative;
             z-index: 2;
             width: min(100%, 1120px);
-            margin: 110px auto 0;
+            margin: 58px auto 0;
             z-index: 2;
             border-radius: 34px;
             border: 2px solid rgba(255, 211, 28, 0.28);
@@ -377,7 +379,7 @@
 
             .live-winner-box {
                 width: 100%;
-                margin-top: 52px;
+                margin-top: 38px;
             }
 
             .live-watermark {
