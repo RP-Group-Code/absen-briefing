@@ -190,11 +190,11 @@
 
         .live-winner-name {
             margin: 18px 0 8px;
-            min-height: clamp(4.4rem, 8vw, 6rem);
+            min-height: clamp(3.6rem, 6.4vw, 4.8rem);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(2.4rem, 4.8vw, 4.9rem);
+            font-size: clamp(2rem, 4vw, 4rem);
             line-height: 1;
             font-weight: 900;
             letter-spacing: .03em;
@@ -373,32 +373,59 @@
             color: var(--live-text);
         }
 
-        .live-list {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-            max-height: 100%;
-            overflow: auto;
-            padding-right: 4px;
-        }
-
-        .live-list-item {
-            border-radius: 18px;
+        .live-table-wrap {
+            margin-top: 10px;
+            border-radius: 22px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(255, 255, 255, 0.04);
-            padding: 14px 16px;
+            overflow: auto;
         }
 
-        .live-list-item strong {
-            display: block;
-            font-size: 1rem;
+        .live-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .live-table th,
+        .live-table td {
+            padding: 16px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .live-table th {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: .76rem;
+            font-weight: 800;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+        }
+
+        .live-table td {
             color: var(--live-text);
+            font-size: .97rem;
         }
 
-        .live-list-item span {
-            display: block;
+        .live-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .live-table-rank {
+            width: 90px;
+            white-space: nowrap;
+            font-weight: 900;
+            color: var(--live-gold);
+        }
+
+        .live-table-name {
+            font-weight: 800;
+        }
+
+        .live-table-subtext {
             color: var(--live-muted);
-            margin-top: 4px;
             font-size: .88rem;
         }
 
@@ -424,8 +451,8 @@
                 left: 24%;
             }
 
-            .live-list {
-                grid-template-columns: 1fr;
+            .live-table {
+                min-width: 0;
             }
         }
 
@@ -443,6 +470,10 @@
             .live-stats,
             .live-buttons {
                 grid-template-columns: 1fr;
+            }
+
+            .live-table {
+                min-width: 640px;
             }
 
             .live-watermark {
@@ -543,18 +574,38 @@
 
                 <div>
                     <h3 class="live-panel-title" style="font-size:1rem;">Pemenang Terbaru</h3>
-                    <div class="live-list">
+                    <div class="live-table-wrap">
+                        <table class="live-table">
+                            <thead>
+                                <tr>
+                                    <th>No Undian</th>
+                                    <th>Nama Peserta</th>
+                                    <th>Hadiah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                         @forelse ($pemenangTerbaru as $item)
-                            <article class="live-list-item">
-                                <strong>#{{ $item->undian_ke }} • {{ $item->peserta?->nama }}</strong>
-                                <span>{{ $item->hadiah?->nama_hadiah }}{{ $item->hadiah?->kategori ? ' • ' . $item->hadiah?->kategori : '' }}</span>
-                            </article>
+                                <tr>
+                                    <td class="live-table-rank">#{{ $item->undian_ke }}</td>
+                                    <td>
+                                        <div class="live-table-name">{{ $item->peserta?->nama ?: '-' }}</div>
+                                        <div class="live-table-subtext">{{ $item->peserta?->pn ?: 'PN tidak tersedia' }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="live-table-name">{{ $item->hadiah?->nama_hadiah ?: '-' }}</div>
+                                        <div class="live-table-subtext">{{ $item->hadiah?->kategori ?: 'Tanpa kategori' }}</div>
+                                    </td>
+                                </tr>
                         @empty
-                            <article class="live-list-item">
-                                <strong>Belum ada pemenang</strong>
-                                <span>Mulai undian pertama untuk menampilkan riwayat pemenang di sini.</span>
-                            </article>
+                                <tr>
+                                    <td colspan="3">
+                                        <div class="live-table-name">Belum ada pemenang</div>
+                                        <div class="live-table-subtext">Mulai undian pertama untuk menampilkan riwayat pemenang di sini.</div>
+                                    </td>
+                                </tr>
                         @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
