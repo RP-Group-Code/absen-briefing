@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->unsignedInteger('stock_total')->default(1);
             $table->unsignedInteger('stock_sisa')->default(1);
-            $table->boolean('is_active')->default(true);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

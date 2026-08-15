@@ -138,7 +138,7 @@ class BcfUndianController extends Controller
             'stock_total' => $validated['stock_total'],
             'stock_sisa' => $validated['stock_total'],
             'harga' => $validated['harga'] ?? null,
-            'is_active' => true,
+            'status' => true,
         ]);
 
         Alert::success('Hadiah Ditambahkan', 'Hadiah undian berhasil disimpan.');
@@ -193,7 +193,7 @@ class BcfUndianController extends Controller
                 'stock_total' => $stockTotal,
                 'stock_sisa' => $stockSisa,
                 'harga' => $harga,
-                'is_active' => $this->isHadiahStatusActive($status, $stockSisa),
+                'status' => $this->isHadiahStatusActive($status, $stockSisa),
             ]);
             $created++;
         }
@@ -222,7 +222,7 @@ class BcfUndianController extends Controller
             }
 
             $hadiahQuery = HadiahUndi::query()
-                ->where('is_active', true)
+                ->where('status', true)
                 ->where('stock_sisa', '>', 0)
                 ->lockForUpdate();
 
@@ -284,7 +284,7 @@ class BcfUndianController extends Controller
         ];
 
         $hadiahTersedia = HadiahUndi::query()
-            ->where('is_active', true)
+            ->where('status', true)
             ->where('stock_sisa', '>', 0)
             ->orderBy('kategori')
             ->orderBy('nama_hadiah')

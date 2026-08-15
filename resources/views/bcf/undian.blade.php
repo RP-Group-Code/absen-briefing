@@ -545,7 +545,7 @@
                                             <td><strong>{{ $row->nama_hadiah }}</strong><br><span style="color:var(--undi-muted)">{{ $row->deskripsi ?: '-' }}</span></td>
                                             <td>{{ $row->kategori ?: '-' }}</td>
                                             <td>{{ $row->stock_sisa }}/{{ $row->stock_total }}</td>
-                                            <td>{{ $row->is_active ? 'Aktif' : 'Nonaktif' }}</td>
+                                            <td>{{ $row->status ? 'Aktif' : 'Nonaktif' }}</td>
                                         </tr>
                                     @empty
                                         <tr><td colspan="4">Belum ada hadiah.</td></tr>

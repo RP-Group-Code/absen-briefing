@@ -16,15 +16,20 @@ class HadiahUndi extends Model
         'stock_total',
         'stock_sisa',
         'harga',
-        'is_active',
+        'status',
     ];
 
     protected $casts = [
         'stock_total' => 'integer',
         'stock_sisa' => 'integer',
         'harga' => 'integer',
-        'is_active' => 'boolean',
+        'status' => 'boolean',
     ];
+
+    public function getIsActiveAttribute(): bool
+    {
+        return (bool) $this->status;
+    }
 
     public function pemenang(): HasMany
     {
