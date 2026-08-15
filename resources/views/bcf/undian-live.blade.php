@@ -195,17 +195,6 @@
             overflow: hidden;
         }
 
-        .live-winner-name-track {
-            display: flex;
-            flex-direction: column;
-            transform: translateY(-100%);
-        }
-
-        .live-winner-name-track.is-animating {
-            transition: transform .18s cubic-bezier(.2, .72, .28, 1);
-            transform: translateY(-200%);
-        }
-
         .live-winner-name {
             min-height: clamp(6.4rem, 11vw, 8rem);
             display: flex;
@@ -217,11 +206,50 @@
             letter-spacing: .03em;
             text-transform: uppercase;
             text-shadow: 0 0 24px rgba(255, 255, 255, 0.14);
+            width: 100%;
+        }
+
+        .live-winner-name-current,
+        .live-winner-name-incoming {
+            position: absolute;
+            inset: 0;
+            transition: transform .18s cubic-bezier(.2, .72, .28, 1), opacity .18s ease;
+        }
+
+        .live-winner-name-current {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .live-winner-name-incoming {
+            transform: translateY(-115%);
+            opacity: 0;
+        }
+
+        .live-winner-name-viewport.is-animating .live-winner-name-current {
+            transform: translateY(115%);
+            opacity: .18;
+        }
+
+        .live-winner-name-viewport.is-animating .live-winner-name-incoming {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .live-winner-prize {
+            margin-top: 4px;
+            color: var(--live-gold);
+            font-size: clamp(1.1rem, 2vw, 1.7rem);
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            text-shadow: 0 0 22px rgba(255, 211, 28, 0.24);
         }
 
         .live-winner-meta {
+            margin-top: 10px;
             color: rgba(255, 255, 255, 0.78);
-            font-size: .9rem;
+            font-size: 1rem;
             letter-spacing: .14em;
             text-transform: uppercase;
         }
@@ -499,13 +527,11 @@
                     {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi' }}
                 </div>
                 <div class="live-winner-name-viewport">
-                    <div class="live-winner-name-track" id="liveWinnerNameTrack">
-                        <div class="live-winner-name" id="liveWinnerNamePrev">{{ $displayWinnerName }}</div>
-                        <div class="live-winner-name" id="liveWinnerName">{{ $displayWinnerName }}</div>
-                        <div class="live-winner-name" id="liveWinnerNameNext">{{ $displayWinnerName }}</div>
-                    </div>
+                    <div class="live-winner-name live-winner-name-current" id="liveWinnerName">{{ $displayWinnerName }}</div>
+                    <div class="live-winner-name live-winner-name-incoming" id="liveWinnerNameIncoming">{{ $displayWinnerName }}</div>
                 </div>
-                <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $displayWinnerHadiah }}</div>
+                <div class="live-winner-prize" id="liveWinnerPrize">{{ $displayWinnerHadiah }}</div>
+                <div class="live-winner-meta" id="liveWinnerMeta">{{ $displayWinnerPn }} | {{ $recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi' }} | {{ $recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi' }}</div>
             </div>
 
             <div class="live-panel">
@@ -576,10 +602,10 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
-            const winnerNameTrack = document.getElementById('liveWinnerNameTrack');
-            const winnerNamePrev = document.getElementById('liveWinnerNamePrev');
+            const winnerViewport = document.querySelector('.live-winner-name-viewport');
             const winnerName = document.getElementById('liveWinnerName');
-            const winnerNameNext = document.getElementById('liveWinnerNameNext');
+            const winnerNameIncoming = document.getElementById('liveWinnerNameIncoming');
+            const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
@@ -609,8 +635,18 @@
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
 
+            const currentHadiahLabel = () => {
+                const selectedOption = hadiahSelect.options[hadiahSelect.selectedIndex];
+                if (!selectedOption || !selectedOption.value) {
+                    return winnerPrize.textContent || 'Silakan pilih hadiah';
+                }
+
+                return selectedOption.textContent;
+            };
+
             const renderParticipant = (participant) => {
                 winnerName.textContent = participant.nama;
+                winnerPrize.textContent = currentHadiahLabel();
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
             };
 
@@ -626,11 +662,12 @@
 
                 isRollingName = true;
                 queuedParticipant = null;
-                winnerNameNext.textContent = participant.nama;
+                winnerNameIncoming.textContent = participant.nama;
+                winnerPrize.textContent = currentHadiahLabel();
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
 
                 requestAnimationFrame(() => {
-                    winnerNameTrack.classList.add('is-animating');
+                    winnerViewport.classList.add('is-animating');
                 });
             };
 
@@ -667,19 +704,13 @@
                 startButton.disabled = false;
             };
 
-            winnerNameTrack.addEventListener('transitionend', () => {
-                if (!winnerNameTrack.classList.contains('is-animating')) {
+            winnerNameIncoming.addEventListener('transitionend', () => {
+                if (!winnerViewport.classList.contains('is-animating')) {
                     return;
                 }
 
-                winnerNamePrev.textContent = winnerName.textContent;
-                winnerName.textContent = winnerNameNext.textContent;
-                winnerNameTrack.classList.remove('is-animating');
-                winnerNameTrack.style.transition = 'none';
-                winnerNameTrack.style.transform = 'translateY(-100%)';
-                winnerNameTrack.offsetHeight;
-                winnerNameTrack.style.transition = '';
-                winnerNameTrack.style.transform = '';
+                winnerName.textContent = winnerNameIncoming.textContent;
+                winnerViewport.classList.remove('is-animating');
                 isRollingName = false;
 
                 if (queuedParticipant) {
@@ -692,12 +723,16 @@
             startButton.addEventListener('click', () => {
                 if (!pool.length) {
                     winnerName.textContent = 'Peserta Habis';
+                    winnerNameIncoming.textContent = 'Peserta Habis';
+                    winnerPrize.textContent = currentHadiahLabel();
                     winnerMeta.textContent = 'Tidak ada peserta aktif yang bisa diundi';
                     return;
                 }
 
                 if (hadiahSelect.options.length <= 1) {
                     winnerName.textContent = 'Hadiah Habis';
+                    winnerNameIncoming.textContent = 'Hadiah Habis';
+                    winnerPrize.textContent = 'Tidak ada hadiah aktif';
                     winnerMeta.textContent = 'Tidak ada hadiah aktif yang bisa diundi';
                     return;
                 }
@@ -726,6 +761,12 @@
 
             hadiahSearch.addEventListener('input', (event) => {
                 renderHadiahOptions(event.target.value);
+            });
+
+            hadiahSelect.addEventListener('change', () => {
+                if (!spinTimer) {
+                    winnerPrize.textContent = currentHadiahLabel();
+                }
             });
 
             renderHadiahOptions();
