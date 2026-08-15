@@ -886,7 +886,7 @@
             <div class="live-watermark">BRILIAN CULTURE FEST SYSTEM {{ now()->format('m.d.Y') }}</div>
 
             <div class="live-winner-box">
-                <div class="live-winner-badge">
+                <div class="live-winner-badge" id="liveWinnerBadge">
                     <i class="fa-solid fa-sparkles"></i>
                     {{ $displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi' }}
                 </div>
@@ -1004,9 +1004,11 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
+            const initialShouldCelebrate = @json($shouldCelebrate);
             const winnerName = document.getElementById('liveWinnerName');
             const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
+            const winnerBadge = document.getElementById('liveWinnerBadge');
             const liveStage = document.getElementById('liveStage');
             const confettiLayer = document.getElementById('liveConfettiLayer');
             const winnerModal = document.getElementById('liveWinnerModal');
@@ -1044,6 +1046,16 @@
                 });
             };
 
+            const resetWinnerDisplay = () => {
+                if (winnerBadge) {
+                    winnerBadge.innerHTML = '<i class="fa-solid fa-sparkles"></i> Siap Diundi';
+                }
+
+                winnerName.textContent = '???';
+                winnerPrize.textContent = 'Silakan pilih hadiah';
+                winnerMeta.textContent = 'Peserta siap diundi';
+            };
+
             const openWinnerModal = () => {
                 if (!winnerModal) {
                     return;
@@ -1062,6 +1074,10 @@
                 winnerModal.classList.remove('is-open');
                 winnerModal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
+
+                if (initialShouldCelebrate) {
+                    resetWinnerDisplay();
+                }
             };
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
