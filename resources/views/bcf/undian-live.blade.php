@@ -385,6 +385,15 @@
         $displayWinnerPn = $winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi';
         $displayWinnerHadiah = $winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah';
         $displayWinnerRound = $winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null;
+        $pesertaPoolJson = $pesertaPool
+            ->map(function ($item) {
+                return [
+                    'nama' => $item->nama,
+                    'pn' => $item->pn ?: 'PN tidak tersedia',
+                    'uker' => $item->unit_kerja ?: 'Unit kerja belum diisi',
+                ];
+            })
+            ->values();
     @endphp
 
     <main class="live-shell">
@@ -480,11 +489,7 @@
 @push('scripts')
     <script>
         (() => {
-            const pool = @json($pesertaPool->map(fn ($item) => [
-                'nama' => $item->nama,
-                'pn' => $item->pn ?: 'PN tidak tersedia',
-                'uker' => $item->unit_kerja ?: 'Unit kerja belum diisi',
-            ])->values());
+            const pool = @json($pesertaPoolJson);
             const winnerName = document.getElementById('liveWinnerName');
             const winnerMeta = document.getElementById('liveWinnerMeta');
             const startButton = document.getElementById('liveStartButton');

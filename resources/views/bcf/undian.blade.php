@@ -460,7 +460,7 @@
         <section class="undi-navbar">
             <div class="undi-brand">
                 <div class="undi-brand-icon">
-                    <img src="{{ asset('images/bcf-logo0.png') }}" alt="Logo BCF">
+                    <img src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF">
                 </div>
                 <div class="undi-brand-copy">
                     <span class="undi-kicker">Berkolaborasi Memberi Arti</span>

@@ -128,6 +128,7 @@ class BcfUndianController extends Controller
             'kategori' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'stock_total' => 'required|integer|min:1|max:100000',
+            'harga' => 'nullable|integer|min:0|max:999999999999',
         ]);
 
         HadiahUndi::create([
@@ -136,6 +137,7 @@ class BcfUndianController extends Controller
             'deskripsi' => $validated['deskripsi'] ?? null,
             'stock_total' => $validated['stock_total'],
             'stock_sisa' => $validated['stock_total'],
+            'harga' => $validated['harga'] ?? null,
             'is_active' => true,
         ]);
 
@@ -155,21 +157,43 @@ class BcfUndianController extends Controller
 
         $created = 0;
         foreach ($records as $row) {
-            $namaHadiah = trim((string) $this->cellValue($row, $headers, ['nama hadiah', 'nama_hadiah', 'hadiah']));
+            $namaHadiah = trim((string) $this->cellValue($row, $headers, [
+                'nama hadiah',
+                'nama_hadiah',
+                'hadiah',
+                'nama barang',
+                'nama bararang',
+            ]));
             if ($namaHadiah === '') {
                 continue;
             }
 
-            $qty = (int) ($this->cellValue($row, $headers, ['qty', 'jumlah', 'stock_total']) ?? 1);
-            $qty = max(1, $qty);
+            $stockTotal = $this->sanitizeInteger($this->cellValue($row, $headers, [
+                'qty',
+                'jumlah',
+                'stock_total',
+                'stok total',
+            ]), 1);
+            $stockTotal = max(1, $stockTotal);
+
+            $stockSisa = $this->sanitizeInteger($this->cellValue($row, $headers, [
+                'stock_sisa',
+                'stok sisa',
+                'sisa stok',
+            ]), $stockTotal);
+            $stockSisa = max(0, min($stockTotal, $stockSisa));
+
+            $status = $this->nullableString($this->cellValue($row, $headers, ['status']));
+            $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), null);
 
             HadiahUndi::create([
                 'nama_hadiah' => $namaHadiah,
                 'kategori' => $this->nullableString($this->cellValue($row, $headers, ['kategori'])),
                 'deskripsi' => $this->nullableString($this->cellValue($row, $headers, ['deskripsi', 'keterangan'])),
-                'stock_total' => $qty,
-                'stock_sisa' => $qty,
-                'is_active' => true,
+                'stock_total' => $stockTotal,
+                'stock_sisa' => $stockSisa,
+                'harga' => $harga,
+                'is_active' => $this->isHadiahStatusActive($status, $stockSisa),
             ]);
             $created++;
         }
@@ -311,6 +335,36 @@ class BcfUndianController extends Controller
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    private function sanitizeInteger(mixed $value, ?int $default = 0): ?int
+    {
+        $text = trim((string) $value);
+        if ($text === '') {
+            return $default;
+        }
+
+        $digits = preg_replace('/[^\d-]/', '', $text);
+        if ($digits === '' || $digits === '-') {
+            return $default;
+        }
+
+        return (int) $digits;
+    }
+
+    private function isHadiahStatusActive(?string $status, int $stockSisa): bool
+    {
+        if ($stockSisa <= 0) {
+            return false;
+        }
+
+        if ($status === null) {
+            return true;
+        }
+
+        $normalized = Str::lower(Str::of($status)->squish()->value());
+
+        return ! in_array($normalized, ['habis', 'nonaktif', 'tidak tersedia', 'false', '0'], true);
     }
 
     private function cellValue(array $row, array $headers, array $aliases): mixed

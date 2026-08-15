@@ -15,12 +15,14 @@ class HadiahUndi extends Model
         'deskripsi',
         'stock_total',
         'stock_sisa',
+        'harga',
         'is_active',
     ];
 
     protected $casts = [
         'stock_total' => 'integer',
         'stock_sisa' => 'integer',
+        'harga' => 'integer',
         'is_active' => 'boolean',
     ];
 
