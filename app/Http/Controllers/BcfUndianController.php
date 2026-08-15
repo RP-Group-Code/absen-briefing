@@ -294,6 +294,60 @@ class BcfUndianController extends Controller
                 ];
             }
 
+            if ($this->isPerItemBatchUndianCategory($selectedKategori) && ! empty($validated['hadiah_undi_id'])) {
+                $hadiah = $hadiahPool->first();
+                $qty = max(0, (int) $hadiah?->stock_sisa);
+
+                if (! $hadiah || $qty <= 0) {
+                    throw ValidationException::withMessages([
+                        'hadiah_undi_id' => 'Hadiah besar yang dipilih sudah tidak tersedia.',
+                    ]);
+                }
+
+                if ($pesertaPool->count() < $qty) {
+                    throw ValidationException::withMessages([
+                        'undian' => 'Peserta tersedia tidak mencukupi untuk mengundi seluruh kuota hadiah ' . $hadiah->nama_hadiah . '.',
+                    ]);
+                }
+
+                $pesertaQueue = $pesertaPool->shuffle()->values();
+                $nextUndianKe = (Pemenang::max('undian_ke') ?? 0) + 1;
+                $createdWinners = collect();
+                $wonAt = now();
+
+                for ($index = 0; $index < $qty; $index++) {
+                    $peserta = $pesertaQueue->shift();
+
+                    if (! $peserta) {
+                        break;
+                    }
+
+                    $pemenang = Pemenang::create([
+                        'peserta_undi_id' => $peserta->id,
+                        'hadiah_undi_id' => $hadiah->id,
+                        'undian_ke' => $nextUndianKe,
+                        'won_at' => $wonAt,
+                    ]);
+
+                    $peserta->forceFill(['status' => 'Menang'])->save();
+                    $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
+                    $nextUndianKe++;
+                }
+
+                $hadiah->forceFill([
+                    'stock_sisa' => 0,
+                    'status' => false,
+                ])->save();
+
+                return [
+                    'mode' => 'batch',
+                    'kategori' => $selectedKategori,
+                    'winners' => $createdWinners,
+                    'undian_ke_mulai' => $createdWinners->first()?->undian_ke,
+                    'undian_ke_selesai' => $createdWinners->last()?->undian_ke,
+                ];
+            }
+
             $peserta = $pesertaPool->random();
             $hadiah = $hadiahPool->random();
 
@@ -672,6 +726,13 @@ class BcfUndianController extends Controller
         $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
 
         return in_array($normalized, ['hadiah kecil', 'hadiah sedang'], true);
+    }
+
+    private function isPerItemBatchUndianCategory(?string $kategori): bool
+    {
+        $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
+
+        return $normalized === 'hadiah besar';
     }
 
     private function hadiahUndiHasNoUrutColumn(): bool
