@@ -57,7 +57,6 @@ class BcfUndianController extends Controller
             ->with(['peserta', 'hadiah'])
             ->latest('won_at')
             ->latest('id')
-            ->take(8)
             ->get();
 
         $pesertaPool = PesertaUndi::query()

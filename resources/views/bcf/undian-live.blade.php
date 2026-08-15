@@ -54,6 +54,14 @@
             flex-direction: column;
         }
 
+        .live-stage.is-celebrating .live-winner-box {
+            animation: liveWinnerPulse 1.2s ease-in-out 2;
+            box-shadow:
+                0 0 0 1px rgba(255, 211, 28, 0.16),
+                0 34px 90px rgba(0, 0, 0, 0.34),
+                0 0 48px rgba(255, 211, 28, 0.22);
+        }
+
         .live-stage::before {
             content: '';
             position: absolute;
@@ -63,6 +71,48 @@
                 radial-gradient(circle at 72% 18%, rgba(255, 211, 28, 0.12), transparent 24%),
                 radial-gradient(circle at 82% 72%, rgba(153, 0, 255, 0.14), transparent 28%);
             pointer-events: none;
+        }
+
+        .live-confetti-layer {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .live-confetti {
+            position: absolute;
+            top: -8%;
+            width: 14px;
+            height: 22px;
+            opacity: 0;
+            border-radius: 4px;
+            animation: liveConfettiFall linear forwards;
+            transform-origin: center;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.14);
+        }
+
+        .live-confetti.is-streamer {
+            width: 8px;
+            height: 32px;
+            border-radius: 999px;
+        }
+
+        .live-celebrate-ring {
+            position: absolute;
+            left: 50%;
+            top: 43%;
+            width: 160px;
+            height: 160px;
+            margin-left: -80px;
+            margin-top: -80px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 211, 28, 0.5);
+            box-shadow: 0 0 42px rgba(255, 211, 28, 0.18);
+            animation: liveCelebrateRing 920ms ease-out forwards;
+            pointer-events: none;
+            z-index: 3;
         }
 
         .live-topbar,
@@ -387,6 +437,61 @@
             overflow: auto;
         }
 
+        .live-table-toolbar {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .live-table-search {
+            width: min(100%, 420px);
+            min-height: 54px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--live-text);
+            font-size: .98rem;
+            padding: 0 18px;
+            outline: none;
+        }
+
+        .live-table-search::placeholder {
+            color: rgba(247, 247, 249, 0.44);
+        }
+
+        .live-table-search:focus {
+            box-shadow: 0 0 0 4px rgba(39, 210, 246, 0.1);
+            border-color: rgba(39, 210, 246, 0.24);
+        }
+
+        .live-table-page-size {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 700;
+        }
+
+        .live-table-page-size select {
+            min-width: 92px;
+            min-height: 54px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--live-text);
+            font-size: .98rem;
+            padding: 0 14px;
+            outline: none;
+        }
+
+        .live-table-page-size select:focus {
+            box-shadow: 0 0 0 4px rgba(39, 210, 246, 0.1);
+            border-color: rgba(39, 210, 246, 0.24);
+        }
+
         .live-table {
             width: 100%;
             border-collapse: collapse;
@@ -435,10 +540,101 @@
             font-size: .88rem;
         }
 
+        .live-table-summary {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            color: rgba(255, 255, 255, 0.64);
+        }
+
+        .live-table-pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .live-table-pagination button {
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--live-text);
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+        }
+
+        .live-table-pagination button:hover {
+            transform: translateY(-1px);
+        }
+
+        .live-table-pagination button.is-active {
+            background: linear-gradient(135deg, #27d2f6 0%, #1a86e2 56%, #1456c5 100%);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .live-table-pagination button:disabled {
+            opacity: .42;
+            cursor: default;
+            transform: none;
+        }
+
         .live-clock {
             color: rgba(255, 211, 28, 0.42);
             font-size: .92rem;
             letter-spacing: .08em;
+        }
+
+        @keyframes liveConfettiFall {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(.85);
+            }
+
+            8% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 1;
+                transform: translate3d(var(--confetti-drift, 0px), 118vh, 0) rotate(var(--confetti-spin, 520deg)) scale(1);
+            }
+        }
+
+        @keyframes liveCelebrateRing {
+            0% {
+                opacity: .9;
+                transform: scale(.3);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(3.3);
+            }
+        }
+
+        @keyframes liveWinnerPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            25% {
+                transform: scale(1.018);
+            }
+
+            55% {
+                transform: scale(.996);
+            }
+
+            75% {
+                transform: scale(1.012);
+            }
         }
 
         @media (max-width: 1400px) {
@@ -479,6 +675,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .live-table-toolbar,
+            .live-table-summary {
+                align-items: stretch;
+            }
+
+            .live-table-search {
+                width: 100%;
+            }
+
             .live-table {
                 min-width: 640px;
             }
@@ -497,12 +702,24 @@
         $displayWinnerPn = $winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi';
         $displayWinnerHadiah = $winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah';
         $displayWinnerRound = $winner['undian_ke'] ?? $recentWinner?->undian_ke ?? null;
+        $shouldCelebrate = (bool) session()->has('undian_winner');
         $hadiahCategories = $hadiahTersedia
             ->pluck('kategori')
             ->filter(fn ($item) => filled($item))
             ->map(fn ($item) => trim((string) $item))
             ->unique()
             ->sort()
+            ->values();
+        $pemenangTerbaruJson = $pemenangTerbaru
+            ->map(function ($item) {
+                return [
+                    'undian_ke' => $item->undian_ke,
+                    'nama' => $item->peserta?->nama ?: '-',
+                    'pn' => $item->peserta?->pn ?: 'PN tidak tersedia',
+                    'hadiah' => $item->hadiah?->nama_hadiah ?: '-',
+                    'kategori' => $item->hadiah?->kategori ?: 'Tanpa kategori',
+                ];
+            })
             ->values();
         $pesertaPoolJson = $pesertaPool
             ->map(function ($item) {
@@ -517,7 +734,8 @@
     @endphp
 
     <main class="live-shell">
-        <section class="live-stage">
+        <section class="live-stage" id="liveStage" data-should-celebrate="{{ $shouldCelebrate ? '1' : '0' }}">
+            <div class="live-confetti-layer" id="liveConfettiLayer" aria-hidden="true"></div>
             <div class="live-topbar">
                 <div class="live-links">
                     <a class="live-link primary" href="{{ route('bcf.undian.index') }}"><i class="fa-solid fa-table-columns"></i> Dashboard Undian</a>
@@ -596,6 +814,18 @@
 
                 <div>
                     <h3 class="live-panel-title" style="font-size:1rem;">Pemenang Terbaru</h3>
+                    <div class="live-table-toolbar">
+                        <input class="live-table-search" type="text" id="liveWinnerSearch" placeholder="Cari nama pemenang, PN, hadiah, atau kategori...">
+                        <label class="live-table-page-size">
+                            <span>Baris per halaman</span>
+                            <select id="liveWinnerPageSize">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                            </select>
+                        </label>
+                    </div>
                     <div class="live-table-wrap">
                         <table class="live-table">
                             <thead>
@@ -605,29 +835,12 @@
                                     <th>Hadiah</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                        @forelse ($pemenangTerbaru as $item)
-                                <tr>
-                                    <td class="live-table-rank">#{{ $item->undian_ke }}</td>
-                                    <td>
-                                        <div class="live-table-name">{{ $item->peserta?->nama ?: '-' }}</div>
-                                        <div class="live-table-subtext">{{ $item->peserta?->pn ?: 'PN tidak tersedia' }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="live-table-name">{{ $item->hadiah?->nama_hadiah ?: '-' }}</div>
-                                        <div class="live-table-subtext">{{ $item->hadiah?->kategori ?: 'Tanpa kategori' }}</div>
-                                    </td>
-                                </tr>
-                        @empty
-                                <tr>
-                                    <td colspan="3">
-                                        <div class="live-table-name">Belum ada pemenang</div>
-                                        <div class="live-table-subtext">Mulai undian pertama untuk menampilkan riwayat pemenang di sini.</div>
-                                    </td>
-                                </tr>
-                        @endforelse
-                            </tbody>
+                            <tbody id="liveWinnerTableBody"></tbody>
                         </table>
+                    </div>
+                    <div class="live-table-summary">
+                        <div id="liveWinnerSummary">Menampilkan 0 data</div>
+                        <div class="live-table-pagination" id="liveWinnerPagination"></div>
                     </div>
                 </div>
             </div>
@@ -642,13 +855,21 @@
             const winnerName = document.getElementById('liveWinnerName');
             const winnerPrize = document.getElementById('liveWinnerPrize');
             const winnerMeta = document.getElementById('liveWinnerMeta');
+            const liveStage = document.getElementById('liveStage');
+            const confettiLayer = document.getElementById('liveConfettiLayer');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
             const hadiahSelect = document.getElementById('liveHadiahSelect');
             const hadiahSearch = document.getElementById('liveHadiahSearch');
             const hadiahCategory = document.getElementById('liveHadiahCategory');
+            const winnerSearch = document.getElementById('liveWinnerSearch');
+            const winnerPageSize = document.getElementById('liveWinnerPageSize');
+            const winnerTableBody = document.getElementById('liveWinnerTableBody');
+            const winnerSummary = document.getElementById('liveWinnerSummary');
+            const winnerPagination = document.getElementById('liveWinnerPagination');
             const clock = document.getElementById('liveClock');
+            const winnerRows = @json($pemenangTerbaruJson);
             const hadiahOptions = Array.from(hadiahSelect.options).map((option) => ({
                 value: option.value,
                 label: option.textContent,
@@ -656,6 +877,7 @@
             }));
 
             let spinTimer = null;
+            let winnerCurrentPage = 1;
             const updateClock = () => {
                 clock.textContent = new Date().toLocaleString('id-ID', {
                     day: '2-digit',
@@ -668,6 +890,213 @@
             };
 
             const randomParticipant = () => pool[Math.floor(Math.random() * pool.length)];
+
+            const filteredWinnerRows = () => {
+                const keyword = String(winnerSearch?.value || '').trim().toLowerCase();
+
+                if (keyword === '') {
+                    return winnerRows;
+                }
+
+                return winnerRows.filter((item) => {
+                    return [
+                        '#' + item.undian_ke,
+                        item.nama,
+                        item.pn,
+                        item.hadiah,
+                        item.kategori,
+                    ].some((value) => String(value || '').toLowerCase().includes(keyword));
+                });
+            };
+
+            const renderWinnerTable = () => {
+                if (!winnerTableBody || !winnerSummary || !winnerPagination || !winnerPageSize) {
+                    return;
+                }
+
+                const rows = filteredWinnerRows();
+                const pageSize = Math.max(1, parseInt(winnerPageSize.value, 10) || 10);
+                const totalRows = rows.length;
+                const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+                if (winnerCurrentPage > totalPages) {
+                    winnerCurrentPage = totalPages;
+                }
+
+                const startIndex = (winnerCurrentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, totalRows);
+                const pageRows = rows.slice(startIndex, endIndex);
+
+                winnerTableBody.innerHTML = '';
+
+                if (!pageRows.length) {
+                    winnerTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3">
+                                <div class="live-table-name">Data tidak ditemukan</div>
+                                <div class="live-table-subtext">Coba ubah kata kunci pencarian rekap pemenang.</div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    pageRows.forEach((item) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="live-table-rank">#${item.undian_ke}</td>
+                            <td>
+                                <div class="live-table-name">${item.nama}</div>
+                                <div class="live-table-subtext">${item.pn}</div>
+                            </td>
+                            <td>
+                                <div class="live-table-name">${item.hadiah}</div>
+                                <div class="live-table-subtext">${item.kategori}</div>
+                            </td>
+                        `;
+                        winnerTableBody.appendChild(row);
+                    });
+                }
+
+                if (!totalRows) {
+                    winnerSummary.textContent = 'Menampilkan 0 dari 0 data pemenang';
+                } else {
+                    winnerSummary.textContent = `Menampilkan ${startIndex + 1}-${endIndex} dari ${totalRows} data pemenang`;
+                }
+
+                winnerPagination.innerHTML = '';
+
+                const previousButton = document.createElement('button');
+                previousButton.type = 'button';
+                previousButton.textContent = '‹';
+                previousButton.disabled = winnerCurrentPage === 1;
+                previousButton.addEventListener('click', () => {
+                    if (winnerCurrentPage > 1) {
+                        winnerCurrentPage -= 1;
+                        renderWinnerTable();
+                    }
+                });
+                winnerPagination.appendChild(previousButton);
+
+                for (let page = 1; page <= totalPages; page += 1) {
+                    const pageButton = document.createElement('button');
+                    pageButton.type = 'button';
+                    pageButton.textContent = String(page);
+                    pageButton.classList.toggle('is-active', page === winnerCurrentPage);
+                    pageButton.addEventListener('click', () => {
+                        winnerCurrentPage = page;
+                        renderWinnerTable();
+                    });
+                    winnerPagination.appendChild(pageButton);
+                }
+
+                const nextButton = document.createElement('button');
+                nextButton.type = 'button';
+                nextButton.textContent = '›';
+                nextButton.disabled = winnerCurrentPage === totalPages || totalRows === 0;
+                nextButton.addEventListener('click', () => {
+                    if (winnerCurrentPage < totalPages) {
+                        winnerCurrentPage += 1;
+                        renderWinnerTable();
+                    }
+                });
+                winnerPagination.appendChild(nextButton);
+            };
+
+            const celebrateWinner = () => {
+                if (!liveStage || !confettiLayer) {
+                    return;
+                }
+
+                liveStage.classList.add('is-celebrating');
+                confettiLayer.innerHTML = '';
+
+                const palette = ['#ffd31c', '#27d2f6', '#ff5f86', '#ffffff', '#7d5cff', '#4ef0b7'];
+                const pieceCount = 120;
+
+                for (let index = 0; index < pieceCount; index += 1) {
+                    const piece = document.createElement('span');
+                    const left = Math.random() * 100;
+                    const drift = (Math.random() - 0.5) * 220;
+                    const duration = 2.4 + (Math.random() * 1.8);
+                    const delay = Math.random() * 0.45;
+                    const spin = ((Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 720)).toFixed(0) + 'deg';
+                    const color = palette[Math.floor(Math.random() * palette.length)];
+
+                    piece.className = 'live-confetti' + (Math.random() > 0.72 ? ' is-streamer' : '');
+                    piece.style.left = left.toFixed(2) + '%';
+                    piece.style.background = color;
+                    piece.style.animationDuration = duration.toFixed(2) + 's';
+                    piece.style.animationDelay = delay.toFixed(2) + 's';
+                    piece.style.setProperty('--confetti-drift', drift.toFixed(0) + 'px');
+                    piece.style.setProperty('--confetti-spin', spin);
+                    confettiLayer.appendChild(piece);
+
+                    piece.addEventListener('animationend', () => piece.remove(), { once: true });
+                }
+
+                for (let burst = 0; burst < 3; burst += 1) {
+                    const ring = document.createElement('span');
+                    ring.className = 'live-celebrate-ring';
+                    ring.style.animationDelay = (burst * 0.16).toFixed(2) + 's';
+                    confettiLayer.appendChild(ring);
+                    ring.addEventListener('animationend', () => ring.remove(), { once: true });
+                }
+
+                window.setTimeout(() => {
+                    liveStage.classList.remove('is-celebrating');
+                }, 2600);
+
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContextClass) {
+                        return;
+                    }
+
+                    const audioContext = new AudioContextClass();
+                    const now = audioContext.currentTime + 0.02;
+
+                    const playTone = (frequency, start, duration, type, gainValue) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        oscillator.type = type;
+                        oscillator.frequency.setValueAtTime(frequency, start);
+                        gainNode.gain.setValueAtTime(0.0001, start);
+                        gainNode.gain.exponentialRampToValueAtTime(gainValue, start + 0.02);
+                        gainNode.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        oscillator.start(start);
+                        oscillator.stop(start + duration + 0.04);
+                    };
+
+                    [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+                        playTone(frequency, now + (index * 0.11), 0.28, 'triangle', 0.07);
+                        playTone(frequency * 2, now + (index * 0.11), 0.18, 'sine', 0.035);
+                    });
+
+                    const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.35, audioContext.sampleRate);
+                    const channel = buffer.getChannelData(0);
+                    for (let index = 0; index < channel.length; index += 1) {
+                        channel[index] = (Math.random() * 2 - 1) * (1 - (index / channel.length));
+                    }
+
+                    const noise = audioContext.createBufferSource();
+                    const noiseFilter = audioContext.createBiquadFilter();
+                    const noiseGain = audioContext.createGain();
+                    noise.buffer = buffer;
+                    noiseFilter.type = 'highpass';
+                    noiseFilter.frequency.setValueAtTime(1100, now);
+                    noiseGain.gain.setValueAtTime(0.0001, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.045, now + 0.02);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+                    noise.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(audioContext.destination);
+                    noise.start(now + 0.08);
+                    noise.stop(now + 0.42);
+                } catch (error) {
+                    console.debug('Celebration audio skipped:', error);
+                }
+            };
 
             const currentHadiahLabel = () => {
                 const selectedOption = hadiahSelect.options[hadiahSelect.selectedIndex];
@@ -767,6 +1196,16 @@
                 renderHadiahOptions(hadiahSearch.value, event.target.value);
             });
 
+            winnerSearch?.addEventListener('input', () => {
+                winnerCurrentPage = 1;
+                renderWinnerTable();
+            });
+
+            winnerPageSize?.addEventListener('change', () => {
+                winnerCurrentPage = 1;
+                renderWinnerTable();
+            });
+
             hadiahSelect.addEventListener('change', () => {
                 if (!spinTimer) {
                     winnerPrize.textContent = currentHadiahLabel();
@@ -774,8 +1213,13 @@
             });
 
             renderHadiahOptions(hadiahSearch.value, hadiahCategory.value);
+            renderWinnerTable();
             updateClock();
             window.setInterval(updateClock, 1000);
+
+            if (liveStage?.dataset.shouldCelebrate === '1') {
+                window.setTimeout(celebrateWinner, 180);
+            }
         })();
     </script>
 @endpush
