@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\BcfRegistrasi;
+use App\Models\BcfTeamQuota;
 use App\Models\Pegawai;
 use App\Models\Uker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -80,44 +82,61 @@ class BcfRegistrasiController extends Controller
             ];
         }
 
-        if (BcfRegistrasi::where('nama', $worker['nama'])->exists()) {
-            throw ValidationException::withMessages(['nama' => 'Peserta ini sudah melakukan registrasi.']);
-        }
+        $assignment = DB::transaction(function () use ($validated, $worker) {
+            // Lock all quota rows so concurrent registrations cannot claim the same last slot.
+            $this->lockQuotaRows();
 
-        $team = $this->teamFromToken($validated['assignment_token'] ?? null);
-        if (!$team || BcfRegistrasi::where('team', $team['team'])->count() >= $team['capacity']) {
-            $team = $this->nextTeam();
-        }
-        if (!$team) {
-            throw ValidationException::withMessages(['nama' => 'Kuota seluruh team BCF sudah penuh.']);
-        }
+            if (BcfRegistrasi::where('nama', $worker['nama'])->exists()) {
+                throw ValidationException::withMessages(['nama' => 'Peserta ini sudah melakukan registrasi.']);
+            }
 
-        $nourut = (BcfRegistrasi::max('nourut') ?? 0) + 1;
+            $capacities = BcfTeamQuota::query()->pluck('capacity', 'team');
+            $team = $this->teamFromToken($validated['assignment_token'] ?? null);
+            $teamCapacity = $capacities->get($team['team'] ?? '') ?? ($team['capacity'] ?? 0);
 
-        BcfRegistrasi::create([
-            'nama' => $worker['nama'],
-            'pn' => $worker['pn'] ?: 'Non PN',
-            'unit_kerja' => $worker['uker'],
-            'warna' => $team['warna'],
-            'nourut' => $nourut,
-            'team' => $team['team'],
-        ]);
+            if (!$team || BcfRegistrasi::where('team', $team['team'])->count() >= $teamCapacity) {
+                $team = $this->nextTeam($capacities);
+            }
+            if (!$team) {
+                throw ValidationException::withMessages(['nama' => 'Kuota seluruh team BCF sudah penuh.']);
+            }
+
+            $nourut = (BcfRegistrasi::max('nourut') ?? 0) + 1;
+
+            BcfRegistrasi::create([
+                'nama' => $worker['nama'],
+                'pn' => $worker['pn'] ?: 'Non PN',
+                'unit_kerja' => $worker['uker'],
+                'warna' => $team['warna'],
+                'nourut' => $nourut,
+                'team' => $team['team'],
+            ]);
+
+            return compact('nourut', 'team') + ['nama' => $worker['nama']];
+        });
 
         return redirect()->route('bcf.registrasi.index')->with('bcf_assignment', [
-            'nama' => $worker['nama'],
-            'nourut' => $nourut,
-            'warna' => $team['warna'],
-            'team' => $team['team'],
-            'penanggung_jawab' => $team['penanggung_jawab'],
+            'nama' => $assignment['nama'],
+            'nourut' => $assignment['nourut'],
+            'warna' => $assignment['team']['warna'],
+            'team' => $assignment['team']['team'],
+            'penanggung_jawab' => $assignment['team']['penanggung_jawab'],
         ]);
     }
 
-    private function nextTeam(): ?array
+    private function lockQuotaRows(): void
     {
+        BcfTeamQuota::query()->orderBy('id')->lockForUpdate()->get();
+    }
+
+    private function nextTeam($capacities = null): ?array
+    {
+        $capacities ??= BcfTeamQuota::query()->pluck('capacity', 'team');
         $availableTeams = [];
 
         foreach (self::TEAM_OPTIONS as $team) {
-            if (BcfRegistrasi::where('team', $team['team'])->count() < $team['capacity']) {
+            $capacity = $capacities->get($team['team']) ?? $team['capacity'];
+            if (BcfRegistrasi::where('team', $team['team'])->count() < $capacity) {
                 $availableTeams[] = $team;
             }
         }
@@ -224,12 +243,15 @@ class BcfRegistrasiController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $teamSummary = collect(self::TEAM_OPTIONS)->map(function (array $team) use ($allRegistrasi) {
+        $capacities = BcfTeamQuota::query()->pluck('capacity', 'team');
+        $teamSummary = collect(self::TEAM_OPTIONS)->map(function (array $team) use ($allRegistrasi, $capacities) {
             $used = $allRegistrasi->where('team', $team['team'])->count();
+            $capacity = $capacities->get($team['team']) ?? $team['capacity'];
 
             return array_merge($team, [
                 'used' => $used,
-                'remaining' => max(0, $team['capacity'] - $used),
+                'capacity' => $capacity,
+                'remaining' => max(0, $capacity - $used),
             ]);
         });
 
@@ -262,14 +284,22 @@ class BcfRegistrasiController extends Controller
             throw ValidationException::withMessages(['warna' => "Warna untuk {$team['team']} harus {$team['warna']}."]);
         }
 
-        $teamUsed = BcfRegistrasi::where('team', $team['team'])
-            ->where('id', '!=', $bcf->id)
-            ->count();
-        if ($teamUsed >= $team['capacity']) {
-            throw ValidationException::withMessages(['team' => "Kuota team {$team['team']} sudah penuh."]);
-        }
+        DB::transaction(function () use ($bcf, $validated, $team) {
+            // Keep admin edits in the same quota lock as public registrations.
+            $this->lockQuotaRows();
 
-        $bcf->update($validated);
+            $capacity = BcfTeamQuota::query()
+                ->where('team', $team['team'])
+                ->value('capacity') ?? $team['capacity'];
+            $teamUsed = BcfRegistrasi::where('team', $team['team'])
+                ->where('id', '!=', $bcf->id)
+                ->count();
+            if ($teamUsed >= $capacity) {
+                throw ValidationException::withMessages(['team' => "Kuota team {$team['team']} sudah penuh."]);
+            }
+
+            $bcf->update($validated);
+        });
 
         Alert::success('Berhasil Diperbarui', 'Data registrasi BCF berhasil diperbarui.');
 
