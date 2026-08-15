@@ -9,6 +9,7 @@ use App\Models\Pemenang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -101,7 +102,7 @@ class BcfUndianController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        $rows = Excel::toArray([], $request->file('file'))[0] ?? [];
+        $rows = $this->readImportRows($request->file('file'));
         [$headers, $records] = $this->extractSheetRecords($rows);
 
         $created = 0;
@@ -118,6 +119,12 @@ class BcfUndianController extends Controller
                 'status' => $this->normalizePesertaStatus($this->nullableString($this->cellValue($row, $headers, ['status']))),
             ]);
             $created++;
+        }
+
+        if ($created === 0) {
+            throw ValidationException::withMessages([
+                'file' => 'Tidak ada data peserta yang berhasil dibaca dari file import.',
+            ]);
         }
 
         Alert::success('Import Peserta Selesai', $created . ' peserta berhasil diimport.');
@@ -156,50 +163,37 @@ class BcfUndianController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        $rows = Excel::toArray([], $request->file('file'))[0] ?? [];
-        [$headers, $records] = $this->extractSheetRecords($rows);
+        $rows = $this->readImportRows($request->file('file'));
+        [$headers, $records, $hasHeader] = $this->extractSheetRecordsWithDetection($rows, [
+            'nama hadiah',
+            'nama_hadiah',
+            'hadiah',
+            'nama barang',
+            'nama bararang',
+            'stok total',
+            'stock_total',
+            'status',
+            'harga',
+        ]);
 
         $created = 0;
         foreach ($records as $row) {
-            $namaHadiah = trim((string) $this->cellValue($row, $headers, [
-                'nama hadiah',
-                'nama_hadiah',
-                'hadiah',
-                'nama barang',
-                'nama bararang',
-            ]));
-            if ($namaHadiah === '') {
+            $payload = $hasHeader
+                ? $this->mapHadiahRowWithHeaders($row, $headers)
+                : $this->mapHadiahRowByPosition($row);
+
+            if ($payload === null) {
                 continue;
             }
 
-            $stockTotal = $this->sanitizeInteger($this->cellValue($row, $headers, [
-                'qty',
-                'jumlah',
-                'stock_total',
-                'stok total',
-            ]), 1);
-            $stockTotal = max(1, $stockTotal);
-
-            $stockSisa = $this->sanitizeInteger($this->cellValue($row, $headers, [
-                'stock_sisa',
-                'stok sisa',
-                'sisa stok',
-            ]), $stockTotal);
-            $stockSisa = max(0, min($stockTotal, $stockSisa));
-
-            $status = $this->nullableString($this->cellValue($row, $headers, ['status']));
-            $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), null);
-
-            HadiahUndi::create([
-                'nama_hadiah' => $namaHadiah,
-                'kategori' => $this->nullableString($this->cellValue($row, $headers, ['kategori'])),
-                'deskripsi' => $this->nullableString($this->cellValue($row, $headers, ['deskripsi', 'keterangan'])),
-                'stock_total' => $stockTotal,
-                'stock_sisa' => $stockSisa,
-                'harga' => $harga,
-                'status' => $this->isHadiahStatusActive($status, $stockSisa),
-            ]);
+            HadiahUndi::create($payload);
             $created++;
+        }
+
+        if ($created === 0) {
+            throw ValidationException::withMessages([
+                'file' => 'Format file hadiah tidak dikenali atau seluruh baris kosong.',
+            ]);
         }
 
         Alert::success('Import Hadiah Selesai', $created . ' hadiah berhasil diimport.');
@@ -316,6 +310,21 @@ class BcfUndianController extends Controller
         return [$headers, $records];
     }
 
+    private function extractSheetRecordsWithDetection(array $rows, array $expectedAliases): array
+    {
+        $headers = array_map(fn ($value) => $this->normalizeHeading((string) $value), $rows[0] ?? []);
+        $hasHeader = false;
+
+        foreach ($expectedAliases as $alias) {
+            if (in_array($this->normalizeHeading($alias), $headers, true)) {
+                $hasHeader = true;
+                break;
+            }
+        }
+
+        return [$headers, $hasHeader ? array_slice($rows, 1) : $rows, $hasHeader];
+    }
+
     private function headerKey(array $headers, array $aliases): ?int
     {
         foreach ($aliases as $alias) {
@@ -339,6 +348,59 @@ class BcfUndianController extends Controller
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    private function readImportRows(UploadedFile $file): array
+    {
+        $extension = Str::lower($file->getClientOriginalExtension());
+
+        if ($extension === 'csv') {
+            return $this->readCsvRows($file->getRealPath());
+        }
+
+        return Excel::toArray([], $file)[0] ?? [];
+    }
+
+    private function readCsvRows(string $path): array
+    {
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            return [];
+        }
+
+        $firstLine = fgets($handle);
+        rewind($handle);
+
+        $delimiter = $this->detectCsvDelimiter((string) $firstLine);
+        $rows = [];
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            if ($row === [null] || $row === false) {
+                continue;
+            }
+
+            if (isset($row[0])) {
+                $row[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $row[0]);
+            }
+
+            if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
+                continue;
+            }
+
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return $rows;
+    }
+
+    private function detectCsvDelimiter(string $line): string
+    {
+        $commaCount = substr_count($line, ',');
+        $semicolonCount = substr_count($line, ';');
+
+        return $semicolonCount > $commaCount ? ';' : ',';
     }
 
     private function sanitizeInteger(mixed $value, ?int $default = 0): ?int
@@ -369,6 +431,80 @@ class BcfUndianController extends Controller
         $normalized = Str::lower(Str::of($status)->squish()->value());
 
         return ! in_array($normalized, ['habis', 'nonaktif', 'tidak tersedia', 'false', '0'], true);
+    }
+
+    private function mapHadiahRowWithHeaders(array $row, array $headers): ?array
+    {
+        $namaHadiah = trim((string) $this->cellValue($row, $headers, [
+            'nama hadiah',
+            'nama_hadiah',
+            'hadiah',
+            'nama barang',
+            'nama bararang',
+        ]));
+
+        if ($namaHadiah === '') {
+            return null;
+        }
+
+        $stockTotal = $this->sanitizeInteger($this->cellValue($row, $headers, [
+            'qty',
+            'jumlah',
+            'stock_total',
+            'stok total',
+        ]), 1);
+        $stockTotal = max(1, $stockTotal);
+
+        $stockSisa = $this->sanitizeInteger($this->cellValue($row, $headers, [
+            'stock_sisa',
+            'stok sisa',
+            'sisa stok',
+        ]), $stockTotal);
+        $stockSisa = max(0, min($stockTotal, $stockSisa));
+
+        $status = $this->nullableString($this->cellValue($row, $headers, ['status']));
+        $harga = $this->sanitizeInteger($this->cellValue($row, $headers, ['harga', 'price']), null);
+
+        return [
+            'nama_hadiah' => $namaHadiah,
+            'kategori' => $this->nullableString($this->cellValue($row, $headers, ['kategori'])),
+            'deskripsi' => $this->nullableString($this->cellValue($row, $headers, ['deskripsi', 'keterangan'])),
+            'stock_total' => $stockTotal,
+            'stock_sisa' => $stockSisa,
+            'harga' => $harga,
+            'status' => $this->isHadiahStatusActive($status, $stockSisa),
+        ];
+    }
+
+    private function mapHadiahRowByPosition(array $row): ?array
+    {
+        $row = array_values($row);
+
+        if (isset($row[0]) && is_numeric(trim((string) $row[0])) && count($row) >= 7) {
+            array_shift($row);
+        }
+
+        $namaHadiah = trim((string) ($row[0] ?? ''));
+        if ($namaHadiah === '') {
+            return null;
+        }
+
+        $kategori = $this->nullableString($row[1] ?? null);
+        $deskripsi = $this->nullableString($row[2] ?? null);
+        $stockTotal = max(1, $this->sanitizeInteger($row[3] ?? null, 1));
+        $stockSisa = max(0, min($stockTotal, $this->sanitizeInteger($row[4] ?? null, $stockTotal)));
+        $harga = $this->sanitizeInteger($row[5] ?? null, null);
+        $status = $this->nullableString($row[6] ?? null);
+
+        return [
+            'nama_hadiah' => $namaHadiah,
+            'kategori' => $kategori,
+            'deskripsi' => $deskripsi === '_' ? null : $deskripsi,
+            'stock_total' => $stockTotal,
+            'stock_sisa' => $stockSisa,
+            'harga' => $harga,
+            'status' => $this->isHadiahStatusActive($status, $stockSisa),
+        ];
     }
 
     private function normalizePesertaStatus(?string $status): string
