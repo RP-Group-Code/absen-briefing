@@ -78,7 +78,7 @@
             inset: 0;
             overflow: hidden;
             pointer-events: none;
-            z-index: 4;
+            z-index: 80;
         }
 
         .live-confetti {
