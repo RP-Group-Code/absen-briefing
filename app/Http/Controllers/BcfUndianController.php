@@ -82,7 +82,7 @@ class BcfUndianController extends Controller
             'nama' => 'required|string|max:255',
             'pn' => 'nullable|string|max:100',
             'unit_kerja' => 'nullable|string|max:255',
-            'jabatan' => 'nullable|string|max:144',
+            'jabatan' => 'required|string|max:155',
             'status' => 'nullable|string|max:255',
         ]);
 
@@ -90,7 +90,7 @@ class BcfUndianController extends Controller
             'nama' => $validated['nama'],
             'pn' => $validated['pn'] ?? null,
             'unit_kerja' => $validated['unit_kerja'] ?? null,
-            'jabatan' => $validated['jabatan'] ?? null,
+            'jabatan' => $this->normalizePesertaJabatan($validated['jabatan'] ?? null),
             'status' => $this->normalizePesertaStatus($validated['status'] ?? null),
         ]));
 
@@ -119,7 +119,7 @@ class BcfUndianController extends Controller
                 'nama' => $nama,
                 'pn' => $this->nullableString($this->cellValue($row, $headers, ['pn', 'nip'])),
                 'unit_kerja' => $this->nullableString($this->cellValue($row, $headers, ['unit kerja', 'unit_kerja', 'uker'])),
-                'jabatan' => $this->nullableString($this->cellValue($row, $headers, ['jabatan', 'job title', 'posisi'])),
+                'jabatan' => $this->normalizePesertaJabatan($this->cellValue($row, $headers, ['jabatan', 'job title', 'posisi'])),
                 'status' => $this->normalizePesertaStatus($this->nullableString($this->cellValue($row, $headers, ['status']))),
             ]));
             $created++;
@@ -550,27 +550,49 @@ class BcfUndianController extends Controller
         return $semicolonCount > $commaCount ? ';' : ',';
     }
 
-    private function pesertaUndiHasJabatanColumn(): bool
+    private function pesertaUndiJabatanColumnName(): ?string
     {
-        return Schema::hasColumn('peserta_undi', 'jabatan');
+        if (Schema::hasColumn('peserta_undi', 'Jabatan')) {
+            return 'Jabatan';
+        }
+
+        if (Schema::hasColumn('peserta_undi', 'jabatan')) {
+            return 'jabatan';
+        }
+
+        return null;
     }
 
     private function pesertaUndiPayload(array $attributes): array
     {
-        if (! $this->pesertaUndiHasJabatanColumn()) {
+        $jabatanColumn = $this->pesertaUndiJabatanColumnName();
+
+        if (! $jabatanColumn) {
             unset($attributes['jabatan']);
+            unset($attributes['Jabatan']);
+
+            return $attributes;
         }
+
+        $jabatanValue = $this->normalizePesertaJabatan($attributes['jabatan'] ?? $attributes['Jabatan'] ?? null);
+        unset($attributes['jabatan'], $attributes['Jabatan']);
+        $attributes[$jabatanColumn] = $jabatanValue;
 
         return $attributes;
     }
 
     private function pesertaUndiSelectColumns(array $columns): array
     {
-        if ($this->pesertaUndiHasJabatanColumn()) {
-            return $columns;
+        $jabatanColumn = $this->pesertaUndiJabatanColumnName();
+
+        if (! $jabatanColumn) {
+            return array_values(array_filter($columns, fn (string $column) => $column !== 'jabatan'));
         }
 
-        return array_values(array_filter($columns, fn (string $column) => $column !== 'jabatan'));
+        return array_map(
+            fn (string $column) => $column === 'jabatan' ? $jabatanColumn . ' as jabatan' : $column,
+            $columns
+        );
     }
 
     private function sanitizeInteger(mixed $value, ?int $default = 0): ?int
@@ -720,6 +742,13 @@ class BcfUndianController extends Controller
         }
 
         return trim((string) $status) ?: 'Belum Menang';
+    }
+
+    private function normalizePesertaJabatan(mixed $jabatan): string
+    {
+        $value = trim((string) ($jabatan ?? ''));
+
+        return $value !== '' ? $value : 'Jabatan belum diisi';
     }
 
     private function isMassUndianCategory(?string $kategori): bool
