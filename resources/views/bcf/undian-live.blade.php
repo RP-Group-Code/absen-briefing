@@ -1010,6 +1010,12 @@
         $displayWinnerPn = $isBatchWinner
             ? ($winnerBatchItems->count() . ' pemenang terpilih')
             : ($winner['pn'] ?? $recentWinner?->peserta?->pn ?? 'Peserta siap diundi');
+        $displayWinnerJabatan = $isBatchWinner
+            ? null
+            : ($winner['jabatan'] ?? $recentWinner?->peserta?->jabatan ?? 'Jabatan belum diisi');
+        $displayWinnerUnitKerja = $isBatchWinner
+            ? null
+            : ($winner['uker'] ?? $recentWinner?->peserta?->unit_kerja ?? 'Unit kerja belum diisi');
         $displayWinnerHadiah = $isBatchWinner
             ? ($winnerBatchItems->count() . ' Penerima')
             : ($winner['hadiah'] ?? $recentWinner?->hadiah?->nama_hadiah ?? 'Silakan pilih hadiah');
@@ -1021,7 +1027,7 @@
             : ($isGrandPrizeWinner ? 'GrandPrize' : ($displayWinnerRound ? 'Pemenang Undian ke-' . $displayWinnerRound : 'Siap Diundi'));
         $displayWinnerMeta = $isBatchWinner
             ? ('Undian #' . ($winner['undian_ke_mulai'] ?? '-') . ' sampai #' . ($winner['undian_ke_selesai'] ?? '-') . ' | Tutup modal untuk lanjut undian berikutnya')
-            : (($displayWinnerPn ?: 'Peserta siap diundi') . ' | ' . ($recentWinner?->peserta?->jabatan ?: 'Jabatan belum diisi') . ' | ' . ($recentWinner?->peserta?->unit_kerja ?: 'Unit kerja belum diisi'));
+            : (($displayWinnerPn ?: 'Peserta siap diundi') . ' | ' . ($displayWinnerJabatan ?: 'Jabatan belum diisi') . ' | ' . ($displayWinnerUnitKerja ?: 'Unit kerja belum diisi'));
         $shouldCelebrate = (bool) session()->has('undian_winner');
         $hadiahCategories = $hadiahTersedia
             ->pluck('kategori')

@@ -399,6 +399,8 @@ class BcfUndianController extends Controller
                 'mode' => 'single',
                 'peserta' => $result['winner']->peserta?->nama,
                 'pn' => $result['winner']->peserta?->pn,
+                'jabatan' => $result['winner']->peserta?->jabatan,
+                'uker' => $result['winner']->peserta?->unit_kerja,
                 'hadiah' => $result['winner']->hadiah?->nama_hadiah,
                 'kategori' => $result['winner']->hadiah?->kategori,
                 'undian_ke' => $result['winner']->undian_ke,
