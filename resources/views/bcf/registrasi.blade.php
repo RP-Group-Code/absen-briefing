@@ -291,7 +291,7 @@
                         <input type="hidden" name="assignment_token" value="{{ $assignmentToken }}">
                         <div class="bcf-picker">
                             <div id="dropdownEntryWrap">
-                                <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass me-2"></i>Cari Nama / PN Peserta <span class="bcf-required">*</span></label>
+                                <label for="select_pekerja_create" class="bcf-label"><i class="fa-solid fa-magnifying-glass mwe-2"></i>Cari Nama / PN Peserta <span class="bcf-required">*</span></label>
                                 <select id="select_pekerja_create" name="nama" class="form-select bcf-select mt-1" required>
                                     <option value="">-- Pilih Nama Anda --</option>
                                     @foreach ($bcfWorkers as $worker)

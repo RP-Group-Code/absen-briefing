@@ -703,6 +703,34 @@
             flex-wrap: wrap;
         }
 
+        .live-table-toolbar-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .live-table-export {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 54px;
+            padding: 0 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(39, 210, 246, 0.2);
+            background: linear-gradient(135deg, #24b9f1 0%, #0f7be7 54%, #0a4ead 100%);
+            color: #fff;
+            font-size: .94rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            box-shadow: 0 16px 32px rgba(10, 78, 173, 0.28);
+        }
+
         .live-table-search {
             width: min(100%, 420px);
             min-height: 54px;
@@ -1006,6 +1034,7 @@
             ->map(function ($item) {
                 return [
                     'undian_ke' => $item->undian_ke,
+                    'no_hadiah' => $item->hadiah?->no_urut ?: '-',
                     'nama' => $item->peserta?->nama ?: '-',
                     'pn' => $item->peserta?->pn ?: 'PN tidak tersedia',
                     'hadiah' => $item->hadiah?->nama_hadiah ?: '-',
@@ -1058,6 +1087,7 @@
                             <thead>
                                 <tr>
                                     <th>No Undian</th>
+                                    <th>No Hadiah</th>
                                     <th>Nama Peserta</th>
                                     <th>Hadiah</th>
                                 </tr>
@@ -1066,6 +1096,7 @@
                                 @foreach ($winnerBatchItems as $batchItem)
                                     <tr>
                                         <td class="live-table-rank">#{{ $batchItem['undian_ke'] ?? '-' }}</td>
+                                        <td class="live-table-rank">{{ $batchItem['no_hadiah'] ?? '-' }}</td>
                                         <td>
                                             <div class="live-table-name">{{ $batchItem['peserta'] ?? '-' }}</div>
                                             <div class="live-table-subtext">{{ $batchItem['pn'] ?: 'PN tidak tersedia' }}</div>
@@ -1137,21 +1168,28 @@
                     <h3 class="live-panel-title" style="font-size:1rem;">Pemenang Terbaru</h3>
                     <div class="live-table-toolbar">
                         <input class="live-table-search" type="text" id="liveWinnerSearch" placeholder="Cari nama pemenang, PN, hadiah, atau kategori...">
-                        <label class="live-table-page-size">
-                            <span>Baris per halaman</span>
-                            <select id="liveWinnerPageSize">
-                                <option value="5">5</option>
-                                <option value="10" selected>10</option>
-                                <option value="15">15</option>
-                                <option value="20">20</option>
-                            </select>
-                        </label>
+                        <div class="live-table-toolbar-actions">
+                            <a class="live-table-export" href="{{ route('bcf.undian.rekap.export') }}">
+                                <i class="fa-solid fa-file-excel"></i>
+                                Export Excel
+                            </a>
+                            <label class="live-table-page-size">
+                                <span>Baris per halaman</span>
+                                <select id="liveWinnerPageSize">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
                     <div class="live-table-wrap">
                         <table class="live-table">
                             <thead>
                                 <tr>
                                     <th>No Undian</th>
+                                    <th>No Hadiah</th>
                                     <th>Nama Peserta</th>
                                     <th>Hadiah</th>
                                 </tr>
@@ -1189,6 +1227,7 @@
                             <thead>
                                 <tr>
                                     <th>No Undian</th>
+                                    <th>No Hadiah</th>
                                     <th>Nama Peserta</th>
                                     <th>Hadiah</th>
                                 </tr>
@@ -1197,6 +1236,7 @@
                                 @foreach ($winnerBatchItems as $batchItem)
                                     <tr>
                                         <td class="live-table-rank">#{{ $batchItem['undian_ke'] ?? '-' }}</td>
+                                        <td class="live-table-rank">{{ $batchItem['no_hadiah'] ?? '-' }}</td>
                                         <td>
                                             <div class="live-table-name">{{ $batchItem['peserta'] ?? '-' }}</div>
                                             <div class="live-table-subtext">{{ $batchItem['pn'] ?: 'PN tidak tersedia' }}</div>
@@ -1347,6 +1387,7 @@
                 return winnerRows.filter((item) => {
                     return [
                         '#' + item.undian_ke,
+                        item.no_hadiah,
                         item.nama,
                         item.pn,
                         item.hadiah,
@@ -1378,7 +1419,7 @@
                 if (!pageRows.length) {
                     winnerTableBody.innerHTML = `
                         <tr>
-                            <td colspan="3">
+                            <td colspan="4">
                                 <div class="live-table-name">Data tidak ditemukan</div>
                                 <div class="live-table-subtext">Coba ubah kata kunci pencarian rekap pemenang.</div>
                             </td>
@@ -1389,6 +1430,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td class="live-table-rank">#${item.undian_ke}</td>
+                            <td class="live-table-rank">${item.no_hadiah ?? '-'}</td>
                             <td>
                                 <div class="live-table-name">${item.nama}</div>
                                 <div class="live-table-subtext">${item.pn}</div>

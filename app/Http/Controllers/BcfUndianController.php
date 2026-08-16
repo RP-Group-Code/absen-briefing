@@ -385,6 +385,7 @@ class BcfUndianController extends Controller
                 'items' => $result['winners']->map(function ($winner) {
                     return [
                         'undian_ke' => $winner->undian_ke,
+                        'no_hadiah' => $winner->hadiah?->no_urut ?: '-',
                         'peserta' => $winner->peserta?->nama,
                         'pn' => $winner->peserta?->pn,
                         'jabatan' => $winner->peserta?->jabatan,
