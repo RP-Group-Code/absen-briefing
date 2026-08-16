@@ -14,8 +14,27 @@ class PesertaUndi extends Model
         'pn',
         'unit_kerja',
         'jabatan',
+        'Jabatan',
         'status',
     ];
+
+    public function getJabatanAttribute(mixed $value): ?string
+    {
+        return $value ?? ($this->attributes['Jabatan'] ?? null);
+    }
+
+    public function setJabatanAttribute(mixed $value): void
+    {
+        $jabatan = trim((string) ($value ?? ''));
+
+        if (array_key_exists('Jabatan', $this->attributes) && ! array_key_exists('jabatan', $this->attributes)) {
+            $this->attributes['Jabatan'] = $jabatan;
+
+            return;
+        }
+
+        $this->attributes['jabatan'] = $jabatan;
+    }
 
     public function getIsActiveAttribute(): bool
     {
