@@ -1305,6 +1305,7 @@
             const pool = @json($pesertaPoolJson);
             const initialShouldCelebrate = @json($shouldCelebrate);
             const isInitialBatchWinner = @json($isBatchWinner);
+            let isServerResultModal = initialShouldCelebrate;
             const batchCategoryLabels = ['hadiah kecil', 'hadiah sedang'];
             const winnerName = document.getElementById('liveWinnerName');
             const winnerPrize = document.getElementById('liveWinnerPrize');
@@ -1415,7 +1416,7 @@
                 winnerModal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
 
-                if (initialShouldCelebrate) {
+                if (isServerResultModal) {
                     resetWinnerDisplay();
                 }
             };
@@ -1747,6 +1748,7 @@
 
                 resetDisplayedBatchState();
                 clearPendingParticipant();
+                isServerResultModal = false;
                 startButton.disabled = true;
                 stopButton.classList.remove('is-disabled');
 
@@ -1830,7 +1832,7 @@
             }
 
             winnerModalApprove?.addEventListener('click', () => {
-                if (initialShouldCelebrate) {
+                if (isServerResultModal) {
                     closeWinnerModal();
                     return;
                 }
@@ -1844,7 +1846,7 @@
                 winnerModalReject.disabled = true;
                 winnerModalApprove.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
-                if (form && !form.reportValidity()) {
+                if (form && typeof form.reportValidity === 'function' && !form.reportValidity()) {
                     isSavingWinner = false;
                     winnerModalApprove.disabled = false;
                     winnerModalReject.disabled = false;
@@ -1853,7 +1855,11 @@
                 }
 
                 closeWinnerModal();
-                form.requestSubmit();
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    HTMLFormElement.prototype.submit.call(form);
+                }
             });
 
             winnerModalReject?.addEventListener('click', () => {
