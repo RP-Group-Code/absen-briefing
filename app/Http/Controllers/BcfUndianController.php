@@ -97,6 +97,7 @@ class BcfUndianController extends Controller
         return view('bcf.undian-live', compact(
             'dashboard',
             'hadiahTersedia',
+            'pesertaTersedia',
             'recentWinner',
             'pemenangTerbaru',
             'pesertaPool',
