@@ -1363,8 +1363,18 @@
                 .trim();
             const isMassCategory = (value) => batchCategoryLabels.includes(normalizeCategoryValue(value));
             const hasSelectedHadiah = () => String(hadiahSelect?.value || '').trim() !== '';
-            const isBatchSelection = () => isMassCategory(hadiahCategory?.value);
+            const selectedHadiahOption = () => hadiahOptions.find((hadiah) => String(hadiah.value) === String(hadiahSelect?.value || '')) || null;
+            const isPerItemBatchSelection = () => {
+                const hadiah = selectedHadiahOption();
+
+                return normalizeCategoryValue(hadiahCategory?.value) === 'hadiah besar' && (hadiah?.stock || 0) > 1;
+            };
+            const isBatchSelection = () => isMassCategory(hadiahCategory?.value) || isPerItemBatchSelection();
             const currentBatchCategoryLabel = () => {
+                if (isPerItemBatchSelection()) {
+                    return selectedHadiahOption()?.label.replace(/\s*\(\d+\s+tersisa\)\s*$/, '') || 'Hadiah Besar';
+                }
+
                 const value = String(hadiahCategory?.value || '').replace(/\s+/g, ' ').trim();
                 return value === '' ? 'Hadiah Batch' : value;
             };
@@ -1380,6 +1390,12 @@
             };
             const getBatchPrizeSlots = () => {
                 const selectedCategory = normalizeCategoryValue(hadiahCategory?.value);
+
+                if (isPerItemBatchSelection()) {
+                    const hadiah = selectedHadiahOption();
+
+                    return Array.from({ length: Math.max(0, hadiah.stock) }, () => hadiah);
+                }
 
                 return hadiahOptions.flatMap((hadiah) => {
                     if (!hadiah.value || normalizeCategoryValue(hadiah.kategori) !== selectedCategory) {

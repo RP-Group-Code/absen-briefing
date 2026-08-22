@@ -370,28 +370,68 @@ class BcfUndianController extends Controller
                     ]);
                 }
 
-                $pesertaQueue = $pesertaPool->shuffle()->values();
                 $nextUndianKe = (Pemenang::max('undian_ke') ?? 0) + 1;
                 $createdWinners = collect();
                 $wonAt = now();
 
-                for ($index = 0; $index < $qty; $index++) {
-                    $peserta = $pesertaQueue->shift();
-
-                    if (! $peserta) {
-                        break;
+                if ($batchAssignments !== []) {
+                    if (count($batchAssignments) !== $qty) {
+                        throw ValidationException::withMessages([
+                            'undian' => 'Daftar pemenang tidak sesuai dengan jumlah hadiah yang tersedia. Silakan undi ulang.',
+                        ]);
                     }
 
-                    $pemenang = Pemenang::create([
-                        'peserta_undi_id' => $peserta->id,
-                        'hadiah_undi_id' => $hadiah->id,
-                        'undian_ke' => $nextUndianKe,
-                        'won_at' => $wonAt,
-                    ]);
+                    $pesertaById = $pesertaPool->keyBy('id');
+                    $assignedPesertaIds = [];
 
-                    $peserta->forceFill(['status' => 'Menang'])->save();
-                    $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
-                    $nextUndianKe++;
+                    foreach ($batchAssignments as $assignment) {
+                        $pesertaId = (int) ($assignment['peserta_undi_id'] ?? 0);
+                        $hadiahId = (int) ($assignment['hadiah_undi_id'] ?? 0);
+
+                        if (! $pesertaById->has($pesertaId) || $hadiahId !== (int) $hadiah->id || isset($assignedPesertaIds[$pesertaId])) {
+                            throw ValidationException::withMessages([
+                                'undian' => 'Data pemenang atau hadiah sudah berubah. Silakan undi ulang.',
+                            ]);
+                        }
+
+                        $assignedPesertaIds[$pesertaId] = true;
+                    }
+
+                    foreach ($batchAssignments as $assignment) {
+                        $peserta = $pesertaById->get((int) $assignment['peserta_undi_id']);
+
+                        $pemenang = Pemenang::create([
+                            'peserta_undi_id' => $peserta->id,
+                            'hadiah_undi_id' => $hadiah->id,
+                            'undian_ke' => $nextUndianKe,
+                            'won_at' => $wonAt,
+                        ]);
+
+                        $peserta->forceFill(['status' => 'Menang'])->save();
+                        $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
+                        $nextUndianKe++;
+                    }
+                } else {
+                    $pesertaQueue = $pesertaPool->shuffle()->values();
+
+                    for ($index = 0; $index < $qty; $index++) {
+                        $peserta = $pesertaQueue->shift();
+
+                        if (! $peserta) {
+                            break;
+                        }
+
+                        $pemenang = Pemenang::create([
+                            'peserta_undi_id' => $peserta->id,
+                            'hadiah_undi_id' => $hadiah->id,
+                            'undian_ke' => $nextUndianKe,
+                            'won_at' => $wonAt,
+                        ]);
+
+                        $peserta->forceFill(['status' => 'Menang'])->save();
+                        $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
+                        $nextUndianKe++;
+                    }
                 }
 
                 $hadiah->forceFill([
