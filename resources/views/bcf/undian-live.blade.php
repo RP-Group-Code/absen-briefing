@@ -673,6 +673,14 @@
             box-shadow: 0 18px 36px rgba(220, 53, 69, 0.24);
         }
 
+        .live-toast-compact {
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: 420px !important;
+            border-radius: 14px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38) !important;
+        }
+
         .live-btn-stop.is-disabled {
             opacity: .5;
             pointer-events: none;
@@ -1780,12 +1788,19 @@
                 closeWinnerModal();
                 Swal.fire({
                     toast: true,
-                    position: 'top-end',
+                    position: 'top',
                     icon: 'success',
                     title: 'Pemenang disetujui & disimpan!',
                     showConfirmButton: false,
                     timer: 3000,
-                    timerProgressBar: true
+                    timerProgressBar: true,
+                    width: 'auto',
+                    padding: '0.75em 1.25em',
+                    background: 'rgba(10, 78, 173, 0.92)',
+                    color: '#f7f7f9',
+                    customClass: {
+                        popup: 'live-toast-compact'
+                    }
                 });
             });
 
