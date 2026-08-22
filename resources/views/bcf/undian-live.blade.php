@@ -341,7 +341,6 @@
             justify-content: center;
             padding: 28px;
             background: rgba(7, 6, 16, 0.82);
-            backdrop-filter: blur(16px);
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
@@ -353,6 +352,7 @@
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
+            backdrop-filter: blur(16px);
         }
 
         .live-modal-dialog {
