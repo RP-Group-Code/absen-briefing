@@ -214,11 +214,14 @@ class BcfUndianController extends Controller
             'hadiah_undi_id' => 'nullable|exists:hadiah_undi,id',
             'hadiah_kategori' => 'nullable|string|max:255',
             'peserta_undi_id' => 'nullable|integer|exists:peserta_undi,id',
+            'batch_assignments' => 'nullable|string',
             'redirect_to' => 'nullable|string|in:index,live',
             'suppress_result_modal' => 'nullable|boolean',
         ]);
 
-        $result = DB::transaction(function () use ($validated) {
+        $batchAssignments = $this->decodeBatchAssignments($validated['batch_assignments'] ?? null);
+
+        $result = DB::transaction(function () use ($validated, $batchAssignments) {
             $pesertaPool = PesertaUndi::query()
                 ->where('status', 'Belum Menang')
                 ->whereDoesntHave('pemenang')
@@ -255,20 +258,47 @@ class BcfUndianController extends Controller
                     ]);
                 }
 
-                $pesertaQueue = $pesertaPool->shuffle()->values();
                 $nextUndianKe = (Pemenang::max('undian_ke') ?? 0) + 1;
                 $createdWinners = collect();
                 $wonAt = now();
 
-                foreach ($hadiahPool as $hadiah) {
-                    $qty = max(0, (int) $hadiah->stock_sisa);
+                if ($batchAssignments !== []) {
+                    $pesertaById = $pesertaPool->keyBy('id');
+                    $hadiahById = $hadiahPool->keyBy('id');
+                    $assignedPesertaIds = [];
+                    $assignedHadiahCounts = [];
 
-                    for ($index = 0; $index < $qty; $index++) {
-                        $peserta = $pesertaQueue->shift();
+                    if (count($batchAssignments) !== $totalSlotHadiah) {
+                        throw ValidationException::withMessages([
+                            'undian' => 'Daftar pemenang tidak sesuai dengan jumlah hadiah yang tersedia. Silakan undi ulang.',
+                        ]);
+                    }
 
-                        if (! $peserta) {
-                            break;
+                    foreach ($batchAssignments as $assignment) {
+                        $pesertaId = (int) ($assignment['peserta_undi_id'] ?? 0);
+                        $hadiahId = (int) ($assignment['hadiah_undi_id'] ?? 0);
+
+                        if (! $pesertaById->has($pesertaId) || ! $hadiahById->has($hadiahId) || isset($assignedPesertaIds[$pesertaId])) {
+                            throw ValidationException::withMessages([
+                                'undian' => 'Data pemenang atau hadiah sudah berubah. Silakan undi ulang.',
+                            ]);
                         }
+
+                        $assignedPesertaIds[$pesertaId] = true;
+                        $assignedHadiahCounts[$hadiahId] = ($assignedHadiahCounts[$hadiahId] ?? 0) + 1;
+                    }
+
+                    foreach ($hadiahPool as $hadiah) {
+                        if (($assignedHadiahCounts[$hadiah->id] ?? 0) !== (int) $hadiah->stock_sisa) {
+                            throw ValidationException::withMessages([
+                                'undian' => 'Jumlah penerima untuk setiap hadiah tidak sesuai. Silakan undi ulang.',
+                            ]);
+                        }
+                    }
+
+                    foreach ($batchAssignments as $assignment) {
+                        $peserta = $pesertaById->get((int) $assignment['peserta_undi_id']);
+                        $hadiah = $hadiahById->get((int) $assignment['hadiah_undi_id']);
 
                         $pemenang = Pemenang::create([
                             'peserta_undi_id' => $peserta->id,
@@ -281,7 +311,34 @@ class BcfUndianController extends Controller
                         $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
                         $nextUndianKe++;
                     }
+                } else {
+                    $pesertaQueue = $pesertaPool->shuffle()->values();
 
+                    foreach ($hadiahPool as $hadiah) {
+                        $qty = max(0, (int) $hadiah->stock_sisa);
+
+                        for ($index = 0; $index < $qty; $index++) {
+                            $peserta = $pesertaQueue->shift();
+
+                            if (! $peserta) {
+                                break;
+                            }
+
+                            $pemenang = Pemenang::create([
+                                'peserta_undi_id' => $peserta->id,
+                                'hadiah_undi_id' => $hadiah->id,
+                                'undian_ke' => $nextUndianKe,
+                                'won_at' => $wonAt,
+                            ]);
+
+                            $peserta->forceFill(['status' => 'Menang'])->save();
+                            $createdWinners->push($pemenang->load(['peserta', 'hadiah']));
+                            $nextUndianKe++;
+                        }
+                    }
+                }
+
+                foreach ($hadiahPool as $hadiah) {
                     $hadiah->forceFill([
                         'stock_sisa' => 0,
                         'status' => false,
@@ -924,6 +981,31 @@ class BcfUndianController extends Controller
         $normalized = Str::lower(Str::of((string) ($kategori ?? ''))->squish()->value());
 
         return in_array($normalized, ['hadiah kecil', 'hadiah sedang'], true);
+    }
+
+    private function decodeBatchAssignments(?string $serializedAssignments): array
+    {
+        if ($serializedAssignments === null || trim($serializedAssignments) === '') {
+            return [];
+        }
+
+        $assignments = json_decode($serializedAssignments, true);
+
+        if (! is_array($assignments) || ! array_is_list($assignments)) {
+            throw ValidationException::withMessages([
+                'undian' => 'Format daftar pemenang tidak valid. Silakan undi ulang.',
+            ]);
+        }
+
+        foreach ($assignments as $assignment) {
+            if (! is_array($assignment)) {
+                throw ValidationException::withMessages([
+                    'undian' => 'Format daftar pemenang tidak valid. Silakan undi ulang.',
+                ]);
+            }
+        }
+
+        return $assignments;
     }
 
     private function isPerItemBatchUndianCategory(?string $kategori): bool

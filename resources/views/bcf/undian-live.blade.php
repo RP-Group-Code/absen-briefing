@@ -436,7 +436,7 @@
         }
 
         .live-modal-card.is-batch .live-batch-summary {
-            display: none;
+            display: block;
         }
 
         .live-modal-card.is-batch .live-batch-table-wrap {
@@ -1179,6 +1179,7 @@
                     @csrf
                     <input type="hidden" name="redirect_to" value="live">
                     <input type="hidden" name="peserta_undi_id" id="liveSelectedParticipantId" value="">
+                    <input type="hidden" name="batch_assignments" id="liveBatchAssignments" value="">
                     <input type="hidden" name="suppress_result_modal" value="1">
                     <div class="live-filter-row">
                         <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
@@ -1192,7 +1193,7 @@
                     <select class="live-select" name="hadiah_undi_id" id="liveHadiahSelect">
                         <option value="">-- Pilih Hadiah --</option>
                         @foreach ($hadiahTersedia as $item)
-                            <option value="{{ $item->id }}" data-kategori="{{ $item->kategori ?: '' }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
+                            <option value="{{ $item->id }}" data-kategori="{{ $item->kategori ?: '' }}" data-stock="{{ $item->stock_sisa }}" data-no-hadiah="{{ $item->no_urut ?: '' }}">{{ $item->nama_hadiah }}{{ $item->kategori ? ' - ' . $item->kategori : '' }} ({{ $item->stock_sisa }} tersisa)</option>
                         @endforeach
                     </select>
 
@@ -1261,18 +1262,18 @@
                 <div class="live-modal-prize" id="liveWinnerModalPrize">{{ $displayWinnerHadiah }}</div>
                 <div class="live-modal-meta" id="liveWinnerModalMeta">{{ $displayWinnerMeta }}</div>
                 <div class="live-batch-results {{ $isBatchWinner ? 'is-visible' : '' }}" id="liveWinnerModalBatchResults">
-                    <div class="live-batch-summary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $batchWinnerKategori }}</div>
+                    <div class="live-batch-summary" id="liveWinnerModalBatchSummary">{{ $winnerBatchItems->count() }} pemenang menerima seluruh item {{ $batchWinnerKategori }}</div>
                     <div class="live-table-wrap live-batch-table-wrap">
                         <table class="live-table">
                             <thead>
                                 <tr>
-                                    <th>No Undian</th>
+                                    <th>Urutan</th>
                                     <th>No Hadiah</th>
                                     <th>Nama Peserta</th>
                                     <th>Hadiah</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="liveWinnerModalBatchTableBody">
                                 @foreach ($winnerBatchItems as $batchItem)
                                     <tr>
                                         <td class="live-table-rank">#{{ $batchItem['undian_ke'] ?? '-' }}</td>
@@ -1326,10 +1327,13 @@
             const winnerModalMeta = document.getElementById('liveWinnerModalMeta');
             const batchResults = document.getElementById('liveBatchResults');
             const modalBatchResults = document.getElementById('liveWinnerModalBatchResults');
+            const modalBatchSummary = document.getElementById('liveWinnerModalBatchSummary');
+            const modalBatchTableBody = document.getElementById('liveWinnerModalBatchTableBody');
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
             const selectedParticipantInput = document.getElementById('liveSelectedParticipantId');
+            const batchAssignmentsInput = document.getElementById('liveBatchAssignments');
             const hadiahSelect = document.getElementById('liveHadiahSelect');
             const hadiahSearch = document.getElementById('liveHadiahSearch');
             const hadiahCategory = document.getElementById('liveHadiahCategory');
@@ -1344,10 +1348,13 @@
                 value: option.value,
                 label: option.textContent,
                 kategori: option.dataset.kategori || '',
+                stock: Number(option.dataset.stock || 0),
+                noHadiah: option.dataset.noHadiah || '',
             }));
 
             let spinTimer = null;
             let currentDrawParticipant = null;
+            let pendingBatchAssignments = [];
             let isSavingWinner = false;
             let winnerCurrentPage = 1;
             const normalizeCategoryValue = (value) => String(value || '')
@@ -1360,6 +1367,41 @@
             const currentBatchCategoryLabel = () => {
                 const value = String(hadiahCategory?.value || '').replace(/\s+/g, ' ').trim();
                 return value === '' ? 'Hadiah Batch' : value;
+            };
+            const shuffle = (items) => {
+                const shuffledItems = [...items];
+
+                for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+                    const randomIndex = Math.floor(Math.random() * (index + 1));
+                    [shuffledItems[index], shuffledItems[randomIndex]] = [shuffledItems[randomIndex], shuffledItems[index]];
+                }
+
+                return shuffledItems;
+            };
+            const getBatchPrizeSlots = () => {
+                const selectedCategory = normalizeCategoryValue(hadiahCategory?.value);
+
+                return hadiahOptions.flatMap((hadiah) => {
+                    if (!hadiah.value || normalizeCategoryValue(hadiah.kategori) !== selectedCategory) {
+                        return [];
+                    }
+
+                    return Array.from({ length: Math.max(0, hadiah.stock) }, () => hadiah);
+                });
+            };
+            const createBatchAssignments = () => {
+                const prizeSlots = getBatchPrizeSlots();
+
+                if (prizeSlots.length === 0 || pool.length < prizeSlots.length) {
+                    return [];
+                }
+
+                return shuffle(pool).slice(0, prizeSlots.length).map((participant, index) => ({
+                    peserta_undi_id: participant.id,
+                    hadiah_undi_id: Number(prizeSlots[index].value),
+                    participant,
+                    hadiah: prizeSlots[index],
+                }));
             };
 
             const updateClock = () => {
@@ -1668,22 +1710,98 @@
 
             const clearPendingParticipant = () => {
                 currentDrawParticipant = null;
+                pendingBatchAssignments = [];
                 if (selectedParticipantInput) {
                     selectedParticipantInput.value = '';
                 }
+                if (batchAssignmentsInput) {
+                    batchAssignmentsInput.value = '';
+                }
+            };
+
+            const renderPendingBatchTable = (assignments) => {
+                if (!modalBatchTableBody || !modalBatchSummary) {
+                    return;
+                }
+
+                modalBatchSummary.textContent = `${assignments.length} pemenang hasil undian ${currentBatchCategoryLabel()}. Scroll untuk melihat seluruh nama.`;
+                modalBatchTableBody.replaceChildren();
+
+                assignments.forEach((assignment, index) => {
+                    const row = document.createElement('tr');
+                    const orderCell = document.createElement('td');
+                    const prizeNumberCell = document.createElement('td');
+                    const participantCell = document.createElement('td');
+                    const prizeCell = document.createElement('td');
+                    const participantName = document.createElement('div');
+                    const participantMeta = document.createElement('div');
+                    const prizeName = document.createElement('div');
+                    const prizeMeta = document.createElement('div');
+
+                    orderCell.className = 'live-table-rank';
+                    orderCell.textContent = `#${index + 1}`;
+                    prizeNumberCell.className = 'live-table-rank';
+                    prizeNumberCell.textContent = assignment.hadiah.noHadiah || '-';
+                    participantName.className = 'live-table-name';
+                    participantName.textContent = assignment.participant.nama || '-';
+                    participantMeta.className = 'live-table-subtext';
+                    participantMeta.textContent = assignment.participant.pn || 'PN tidak tersedia';
+                    prizeName.className = 'live-table-name';
+                    prizeName.textContent = assignment.hadiah.label || '-';
+                    prizeMeta.className = 'live-table-subtext';
+                    prizeMeta.textContent = assignment.hadiah.kategori || 'Tanpa kategori';
+
+                    participantCell.append(participantName, participantMeta);
+                    prizeCell.append(prizeName, prizeMeta);
+                    row.append(orderCell, prizeNumberCell, participantCell, prizeCell);
+                    modalBatchTableBody.appendChild(row);
+                });
             };
 
             const openPendingWinnerModal = () => {
+                if (isBatchSelection()) {
+                    const assignments = createBatchAssignments();
+
+                    if (assignments.length === 0) {
+                        winnerName.textContent = 'Undian Tidak Dapat Dilanjutkan';
+                        winnerPrize.textContent = currentHadiahLabel();
+                        winnerMeta.textContent = 'Hadiah atau peserta tersedia tidak mencukupi untuk undian batch.';
+                        return false;
+                    }
+
+                    pendingBatchAssignments = assignments;
+                    if (batchAssignmentsInput) {
+                        batchAssignmentsInput.value = JSON.stringify(assignments.map((assignment) => ({
+                            peserta_undi_id: assignment.peserta_undi_id,
+                            hadiah_undi_id: assignment.hadiah_undi_id,
+                        })));
+                    }
+
+                    winnerBox?.classList.add('is-batch');
+                    winnerModalCard?.classList.add('is-batch');
+                    modalBatchResults?.classList.add('is-visible');
+                    winnerName.textContent = `Hasil Undian ${currentBatchCategoryLabel()}`;
+                    winnerPrize.textContent = `${assignments.length} Pemenang Terpilih`;
+                    winnerMeta.textContent = 'Daftar lengkap pemenang ditampilkan pada modal persetujuan.';
+                    winnerModalName.textContent = `Hasil Undian ${currentBatchCategoryLabel()}`;
+                    winnerModalPrize.textContent = `${assignments.length} Pemenang Terpilih`;
+                    winnerModalMeta.textContent = 'Periksa daftar pemenang sebelum menyetujui hasil undian.';
+                    renderPendingBatchTable(assignments);
+                    openWinnerModal();
+
+                    return true;
+                }
+
                 if (!currentDrawParticipant) {
-                    return;
+                    return false;
                 }
 
                 winnerModalName.textContent = currentDrawParticipant.nama;
                 winnerModalPrize.textContent = currentHadiahLabel();
-                winnerModalMeta.textContent = isBatchSelection()
-                    ? `${currentDrawParticipant.pn} | ${currentDrawParticipant.jabatan} | ${currentDrawParticipant.uker} | Sistem akan mengundi seluruh item kategori ${currentBatchCategoryLabel()}`
-                    : `${currentDrawParticipant.pn} | ${currentDrawParticipant.jabatan} | ${currentDrawParticipant.uker}`;
+                winnerModalMeta.textContent = `${currentDrawParticipant.pn} | ${currentDrawParticipant.jabatan} | ${currentDrawParticipant.uker}`;
                 openWinnerModal();
+
+                return true;
             };
 
             const renderHadiahOptions = (keyword = '', kategori = '') => {
@@ -1707,6 +1825,8 @@
                     optionElement.value = option.value;
                     optionElement.textContent = option.label;
                     optionElement.dataset.kategori = option.kategori;
+                    optionElement.dataset.stock = String(option.stock);
+                    optionElement.dataset.noHadiah = option.noHadiah;
                     hadiahSelect.appendChild(optionElement);
                 });
 
@@ -1729,7 +1849,9 @@
                     return;
                 }
 
-                startButton.disabled = !isBatchSelection() && !hasSelectedHadiah();
+                startButton.disabled = isBatchSelection()
+                    ? getBatchPrizeSlots().length === 0
+                    : !hasSelectedHadiah();
             };
 
             startButton.addEventListener('click', () => {
@@ -1745,6 +1867,16 @@
                     winnerPrize.textContent = 'Tidak ada hadiah aktif';
                     winnerMeta.textContent = 'Tidak ada hadiah aktif yang bisa diundi';
                     return;
+                }
+
+                if (isBatchSelection()) {
+                    const prizeSlots = getBatchPrizeSlots();
+                    if (prizeSlots.length === 0 || pool.length < prizeSlots.length) {
+                        winnerName.textContent = 'Undian Tidak Dapat Dilanjutkan';
+                        winnerPrize.textContent = currentHadiahLabel();
+                        winnerMeta.textContent = 'Hadiah atau peserta tersedia tidak mencukupi untuk undian batch.';
+                        return;
+                    }
                 }
 
                 resetDisplayedBatchState();
@@ -1768,8 +1900,9 @@
 
                 event.preventDefault();
                 setIdleState();
-                openPendingWinnerModal();
-                celebrateWinner();
+                if (openPendingWinnerModal()) {
+                    celebrateWinner();
+                }
             });
 
             form.addEventListener('submit', () => {
@@ -1838,7 +1971,7 @@
                     return;
                 }
 
-                if (!currentDrawParticipant || isSavingWinner) {
+                if ((!currentDrawParticipant && pendingBatchAssignments.length === 0) || isSavingWinner) {
                     return;
                 }
 
@@ -1851,7 +1984,7 @@
                     isSavingWinner = false;
                     winnerModalApprove.disabled = false;
                     winnerModalReject.disabled = false;
-                    winnerModalApprove.innerHTML = '<i class="fa-solid fa-check"></i> Sah / Setujui';
+                    winnerModalApprove.innerHTML = '<i class="fa-solid fa-check"></i> Setujui / Sah';
                     return;
                 }
 
