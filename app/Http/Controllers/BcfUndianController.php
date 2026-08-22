@@ -214,6 +214,7 @@ class BcfUndianController extends Controller
             'hadiah_kategori' => 'nullable|string|max:255',
             'peserta_undi_id' => 'nullable|integer|exists:peserta_undi,id',
             'redirect_to' => 'nullable|string|in:index,live',
+            'suppress_result_modal' => 'nullable|boolean',
         ]);
 
         $result = DB::transaction(function () use ($validated) {
@@ -385,6 +386,10 @@ class BcfUndianController extends Controller
         $redirectRoute = ($validated['redirect_to'] ?? 'index') === 'live'
             ? 'bcf.undian.live'
             : 'bcf.undian.index';
+
+        if ($redirectRoute === 'bcf.undian.live' && ! empty($validated['suppress_result_modal'])) {
+            return redirect()->route($redirectRoute);
+        }
 
         $winnerFlash = $result['mode'] === 'batch'
             ? [

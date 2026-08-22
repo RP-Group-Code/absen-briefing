@@ -1179,6 +1179,7 @@
                     @csrf
                     <input type="hidden" name="redirect_to" value="live">
                     <input type="hidden" name="peserta_undi_id" id="liveSelectedParticipantId" value="">
+                    <input type="hidden" name="suppress_result_modal" value="1">
                     <div class="live-filter-row">
                         <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
                         <select class="live-search" id="liveHadiahCategory" name="hadiah_kategori">
@@ -1291,7 +1292,7 @@
                     </div>
                 </div>
                 <div class="live-modal-actions" style="display: flex; gap: 12px; justify-content: center; width: 100%; margin-top: 24px;">
-                    <button class="live-btn live-btn-approve" type="button" id="liveWinnerModalApprove" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-check"></i> {{ $shouldCelebrate ? 'Tutup Hasil' : 'Sah / Setujui' }}</button>
+                    <button class="live-btn live-btn-approve" type="button" id="liveWinnerModalApprove" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-check"></i> Setujui / Sah</button>
                     <button class="live-btn live-btn-reject" type="button" id="liveWinnerModalReject" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-xmark"></i> Batal / Gugurkan</button>
                 </div>
             </div>
