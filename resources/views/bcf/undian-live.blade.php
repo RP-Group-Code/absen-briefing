@@ -1321,19 +1321,7 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
-            const presetWinners = @json($presetWinners->map(function ($item) {
-                return [
-                    'peserta_undi_id' => $item->peserta_undi_id,
-                    'hadiah_undi_id' => $item->hadiah_undi_id,
-                    'peserta' => $item->peserta ? [
-                        'id' => $item->peserta->id,
-                        'nama' => $item->peserta->nama,
-                        'pn' => $item->peserta->pn ?: 'PN tidak tersedia',
-                        'uker' => $item->peserta->unit_kerja ?: 'Unit kerja belum diisi',
-                        'jabatan' => $item->peserta->jabatan ?: 'Jabatan belum diisi',
-                    ] : null,
-                ];
-            })->values());
+            const presetWinners = [];
 
             const getPresetWinnerForSelectedHadiah = () => {
                 const selectedHadiahId = Number(hadiahSelect?.value);
