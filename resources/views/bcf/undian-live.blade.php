@@ -1321,6 +1321,32 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
+            const presetWinners = @json($presetWinners->map(function ($item) {
+                return [
+                    'peserta_undi_id' => $item->peserta_undi_id,
+                    'hadiah_undi_id' => $item->hadiah_undi_id,
+                    'peserta' => $item->peserta ? [
+                        'id' => $item->peserta->id,
+                        'nama' => $item->peserta->nama,
+                        'pn' => $item->peserta->pn ?: 'PN tidak tersedia',
+                        'uker' => $item->peserta->unit_kerja ?: 'Unit kerja belum diisi',
+                        'jabatan' => $item->peserta->jabatan ?: 'Jabatan belum diisi',
+                    ] : null,
+                ];
+            })->values());
+
+            const getPresetWinnerForSelectedHadiah = () => {
+                const selectedHadiahId = Number(hadiahSelect?.value);
+                if (!selectedHadiahId) return null;
+
+                const preset = presetWinners.find(p => p.hadiah_undi_id === selectedHadiahId);
+                if (!preset || !preset.peserta) return null;
+
+                const inPool = pool.find(p => p.id === preset.peserta.id);
+                if (!inPool) return null;
+
+                return preset.peserta;
+            };
             const initialShouldCelebrate = @json($shouldCelebrate);
             const isInitialBatchWinner = @json($isBatchWinner);
             let isServerResultModal = initialShouldCelebrate;
@@ -1433,12 +1459,51 @@
                     return [];
                 }
 
-                return shuffle(pool).slice(0, prizeSlots.length).map((participant, index) => ({
-                    peserta_undi_id: participant.id,
-                    hadiah_undi_id: Number(prizeSlots[index].value),
-                    participant,
-                    hadiah: prizeSlots[index],
-                }));
+                let remainingPool = [...pool];
+                const assignments = [];
+
+                // First pass: assign preset winners
+                prizeSlots.forEach((prize) => {
+                    const prizeId = Number(prize.value);
+                    const preset = presetWinners.find(p => p.hadiah_undi_id === prizeId);
+                    if (preset && preset.peserta) {
+                        const poolIdx = remainingPool.findIndex(p => p.id === preset.peserta.id);
+                        if (poolIdx !== -1) {
+                            const participant = remainingPool.splice(poolIdx, 1)[0];
+                            assignments.push({
+                                peserta_undi_id: participant.id,
+                                hadiah_undi_id: prizeId,
+                                participant,
+                                hadiah: prize,
+                            });
+                            return;
+                        }
+                    }
+                    assignments.push({
+                        peserta_undi_id: null,
+                        hadiah_undi_id: prizeId,
+                        participant: null,
+                        hadiah: prize,
+                    });
+                });
+
+                // Second pass: fill in the remaining slots randomly
+                const shuffledRemaining = shuffle(remainingPool);
+                assignments.forEach((assignment) => {
+                    if (assignment.participant === null) {
+                        const randomParticipant = shuffledRemaining.shift();
+                        if (randomParticipant) {
+                            assignment.peserta_undi_id = randomParticipant.id;
+                            assignment.participant = randomParticipant;
+                        }
+                    }
+                });
+
+                if (assignments.some(a => !a.participant)) {
+                    return [];
+                }
+
+                return assignments;
             };
 
             const updateClock = () => {
@@ -1941,6 +2006,8 @@
                 }
 
                 event.preventDefault();
+                const presetWinner = getPresetWinnerForSelectedHadiah();
+
                 if (isGrandPrizeSelection()) {
                     isGrandPrizeStopping = true;
                     window.clearInterval(spinTimer);
@@ -1950,13 +2017,20 @@
                     const slowDownDelays = [100, 130, 170, 220, 290, 380, 500, 660, 850];
                     let slowDownStep = 0;
                     const slowDownSpin = () => {
-                        renderParticipant(randomParticipant());
                         const delay = slowDownDelays[slowDownStep];
                         slowDownStep += 1;
 
                         if (delay) {
+                            renderParticipant(randomParticipant());
                             grandPrizeStopTimer = window.setTimeout(slowDownSpin, delay);
                             return;
+                        }
+
+                        // Last step: select the preset winner if defined
+                        if (presetWinner) {
+                            renderParticipant(presetWinner);
+                        } else {
+                            renderParticipant(randomParticipant());
                         }
 
                         setIdleState();
@@ -1967,6 +2041,10 @@
 
                     slowDownSpin();
                     return;
+                }
+
+                if (presetWinner) {
+                    renderParticipant(presetWinner);
                 }
 
                 setIdleState();

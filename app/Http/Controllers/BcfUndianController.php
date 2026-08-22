@@ -6,6 +6,7 @@ use App\Exports\BcfUndianRekapExport;
 use App\Models\HadiahUndi;
 use App\Models\PesertaUndi;
 use App\Models\Pemenang;
+use App\Models\ManualUndian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +41,27 @@ class BcfUndianController extends Controller
             ->paginate(10, ['*'], 'pemenang_page')
             ->withQueryString();
 
+        $manualUndianList = ManualUndian::with(['peserta', 'hadiah'])->latest('id')->get();
+
+        $pesertaEligible = PesertaUndi::query()
+            ->where('status', 'Belum Menang')
+            ->whereDoesntHave('pemenang')
+            ->whereNotIn('id', ManualUndian::pluck('peserta_undi_id'))
+            ->orderBy('nama')
+            ->get();
+
+        $hadiahEligible = HadiahUndi::query()
+            ->where('status', true)
+            ->where('stock_sisa', '>', 0)
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(kategori) = ?', ['hadiah besar'])
+                    ->orWhereRaw('LOWER(kategori) = ?', ['grand prize'])
+                    ->orWhereRaw('LOWER(kategori) = ?', ['grandprize']);
+            })
+            ->when($this->hadiahUndiHasNoUrutColumn(), fn ($query) => $query->orderByRaw('CASE WHEN no_urut IS NULL THEN 1 ELSE 0 END')->orderBy('no_urut'))
+            ->orderBy('nama_hadiah')
+            ->get();
+
         return view('bcf.undian', compact(
             'peserta',
             'hadiah',
@@ -47,7 +69,10 @@ class BcfUndianController extends Controller
             'dashboard',
             'hadiahTersedia',
             'pesertaTersedia',
-            'recentWinner'
+            'recentWinner',
+            'manualUndianList',
+            'pesertaEligible',
+            'hadiahEligible'
         ));
     }
 
@@ -67,13 +92,15 @@ class BcfUndianController extends Controller
             ->inRandomOrder()
             ->get($this->pesertaUndiSelectColumns(['id', 'nama', 'pn', 'unit_kerja', 'jabatan']));
 
+        $presetWinners = ManualUndian::with(['peserta', 'hadiah'])->get();
+
         return view('bcf.undian-live', compact(
             'dashboard',
             'hadiahTersedia',
-            'pesertaTersedia',
             'recentWinner',
             'pemenangTerbaru',
-            'pesertaPool'
+            'pesertaPool',
+            'presetWinners'
         ));
     }
 
@@ -480,6 +507,23 @@ class BcfUndianController extends Controller
                 'winner' => $pemenang->load(['peserta', 'hadiah']),
             ];
         });
+
+        // Delete manual/preset assignments for participants who have won
+        try {
+            if ($result['mode'] === 'batch') {
+                $winnerPesertaIds = collect($result['winners'] ?? [])->pluck('peserta_undi_id')->filter()->all();
+                if (!empty($winnerPesertaIds)) {
+                    ManualUndian::whereIn('peserta_undi_id', $winnerPesertaIds)->delete();
+                }
+            } else {
+                $pesertaId = $result['winner']?->peserta_undi_id ?? null;
+                if ($pesertaId) {
+                    ManualUndian::where('peserta_undi_id', $pesertaId)->delete();
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal menghapus manual undian: ' . $e->getMessage());
+        }
 
         $redirectRoute = ($validated['redirect_to'] ?? 'index') === 'live'
             ? 'bcf.undian.live'
@@ -1074,5 +1118,37 @@ class BcfUndianController extends Controller
         $index = $this->headerKey($headers, $aliases);
 
         return $index === null ? null : ($row[$index] ?? null);
+    }
+    public function storeManualUndian(Request $request)
+    {
+        $validated = $request->validate([
+            'peserta_undi_id' => 'required|exists:peserta_undi,id',
+            'hadiah_undi_id' => 'required|exists:hadiah_undi,id',
+        ]);
+
+        $peserta = PesertaUndi::findOrFail($validated['peserta_undi_id']);
+        if ($peserta->status === 'Menang' || $peserta->pemenang()->exists()) {
+            Alert::error('Gagal', 'Peserta ini sudah menang undian.');
+            return redirect()->to(route('bcf.undian.index') . '#manual-undian');
+        }
+
+        if (ManualUndian::where('peserta_undi_id', $validated['peserta_undi_id'])->exists()) {
+            Alert::error('Gagal', 'Peserta ini sudah di-preset untuk hadiah lain.');
+            return redirect()->to(route('bcf.undian.index') . '#manual-undian');
+        }
+
+        ManualUndian::create($validated);
+
+        Alert::success('Berhasil', 'Manual undian berhasil disimpan.');
+        return redirect()->to(route('bcf.undian.index') . '#manual-undian');
+    }
+
+    public function destroyManualUndian($id)
+    {
+        $manual = ManualUndian::findOrFail($id);
+        $manual->delete();
+
+        Alert::success('Berhasil', 'Manual undian berhasil dibatalkan.');
+        return redirect()->to(route('bcf.undian.index') . '#manual-undian');
     }
 }

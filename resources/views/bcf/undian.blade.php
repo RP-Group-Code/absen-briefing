@@ -797,6 +797,91 @@
                             <a href="{{ route('bcf.undian.rekap.export') }}" class="undi-btn undi-btn-primary"><i class="fa-solid fa-file-excel"></i> Export Rekap Excel</a>
                         </div>
                         <p class="undi-help">Export berisi data undian ke-, nama peserta, PN, unit kerja, hadiah, kategori hadiah, waktu menang, dan catatan.</p>
+                </section>
+
+                <section id="manual-undian" class="undi-card undi-section">
+                    <div class="undi-card-head">
+                        <h2>Manual Undian (Preset)</h2>
+                        <p>Pre-assign pemenang untuk Hadiah Besar dan Grand Prize (pilihan dibatasi agar uforia terjaga).</p>
+                    </div>
+                    <div class="undi-card-body">
+                        <form method="POST" action="{{ route('bcf.undian.manual.store') }}">
+                            @csrf
+                            <div class="undi-form-grid">
+                                <div class="full">
+                                    <label class="undi-label">Pilih Peserta</label>
+                                    <select class="undi-select select2-manual" name="peserta_undi_id" required>
+                                        <option value="">-- Pilih Peserta --</option>
+                                        @foreach ($pesertaEligible as $row)
+                                            <option value="{{ $row->id }}">
+                                                {{ $row->nama }} (PN: {{ $row->pn ?: '-' }} | {{ $row->jabatan ?: '-' }} | {{ $row->unit_kerja ?: '-' }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="full">
+                                    <label class="undi-label">Pilih Hadiah (Hadiah Besar & Grand Prize)</label>
+                                    <select class="undi-select select2-manual" name="hadiah_undi_id" required>
+                                        <option value="">-- Pilih Hadiah --</option>
+                                        @foreach ($hadiahEligible as $row)
+                                            <option value="{{ $row->id }}">
+                                                {{ $row->nama_hadiah }} [{{ $row->kategori }}] (Stok: {{ $row->stock_sisa }}/{{ $row->stock_total }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="undi-actions">
+                                <button class="undi-btn undi-btn-primary" type="submit">
+                                    <i class="fa-solid fa-user-gear"></i> Simpan Preset Pemenang
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="undi-table-wrap" style="margin-top:22px;">
+                            <table class="undi-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Peserta</th>
+                                        <th>Preset Hadiah</th>
+                                        <th>Kategori</th>
+                                        <th style="width:100px; text-align:center;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($manualUndianList as $index => $row)
+                                        <tr>
+                                            <td>{{ $index + 1 }}</td>
+                                            <td>
+                                                <strong>{{ $row->peserta?->nama ?? 'Peserta Terhapus' }}</strong>
+                                                <br>
+                                                <span style="color:var(--undi-muted)">PN: {{ $row->peserta?->pn ?: '-' }} | Uker: {{ $row->peserta?->unit_kerja ?: '-' }}</span>
+                                            </td>
+                                            <td><strong>{{ $row->hadiah?->nama_hadiah ?? 'Hadiah Terhapus' }}</strong></td>
+                                            <td>
+                                                <span class="undi-badge" style="background:rgba(93, 201, 234, .12); color:var(--undi-navy); border: 1px solid rgba(93, 201, 234, .25); padding: 4px 10px;">
+                                                    {{ $row->hadiah?->kategori ?? '-' }}
+                                                </span>
+                                            </td>
+                                            <td style="text-align:center; vertical-align:middle;">
+                                                <form action="{{ route('bcf.undian.manual.destroy', $row->id) }}" method="POST" class="d-inline manual-delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-rem-row" title="Batalkan Preset" style="border:none; outline:none; display:inline-flex; align-items:center; justify-content:center; margin:0 auto; padding: 0; cursor: pointer;">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" style="text-align:center; color:var(--undi-muted);">Belum ada preset manual undian.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -964,6 +1049,35 @@
                     } else {
                         await chooseResetType(scope);
                     }
+                });
+            });
+
+            // Initialize Select2 for manual undian fields
+            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+                jQuery('.select2-manual').select2({
+                    dropdownParent: jQuery('#manual-undian'),
+                    width: '100%'
+                });
+            }
+
+            // Confirm delete preset
+            document.querySelectorAll('.manual-delete-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Batalkan Preset?',
+                        text: 'Preset pemenang ini akan dibatalkan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#bd2945',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Batalkan',
+                        cancelButtonText: 'Kembali'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
                 });
             });
         })();

@@ -64,6 +64,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/bcf-undian/reject', [BcfUndianController::class, 'reject'])->name('bcf.undian.reject');
     Route::post('/bcf-undian/reset', [BcfUndianController::class, 'resetUndianData'])->name('bcf.undian.reset');
     Route::get('/bcf-undian/rekap/export', [BcfUndianController::class, 'exportRekap'])->name('bcf.undian.rekap.export');
+    Route::post('/bcf-undian/manual', [BcfUndianController::class, 'storeManualUndian'])->name('bcf.undian.manual.store');
+    Route::delete('/bcf-undian/manual/{id}', [BcfUndianController::class, 'destroyManualUndian'])->name('bcf.undian.manual.destroy');
 });
 
 Route::middleware('guest')->group(function () {
