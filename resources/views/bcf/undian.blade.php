@@ -526,6 +526,53 @@
             .undi-reset-actions { width: 100%; }
             .undi-reset-btn { flex: 1 1 calc(50% - 8px); }
         }
+
+        /* Style Select2 inside Manual Undian to be readable (black/dark text on light theme) */
+        #manual-undian .select2-container--default .select2-selection--single {
+            background: #fff !important;
+            border: 1px solid #d6e3f2 !important;
+            height: 46px !important;
+            border-radius: 14px !important;
+        }
+        #manual-undian .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #000 !important;
+            line-height: 46px !important;
+            font-size: .92rem !important;
+        }
+        #manual-undian .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #000 !important;
+            opacity: 1;
+        }
+        #manual-undian .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 46px !important;
+        }
+        #manual-undian .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: var(--undi-navy) transparent transparent !important;
+        }
+        #manual-undian .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+            border-color: transparent transparent var(--undi-navy) !important;
+        }
+        #manual-undian .select2-dropdown {
+            background: #fff !important;
+            border: 1px solid #d6e3f2 !important;
+            box-shadow: 0 10px 30px rgba(18, 59, 108, .15) !important;
+        }
+        #manual-undian .select2-results__option {
+            color: #000 !important;
+        }
+        #manual-undian .select2-results__option--highlighted {
+            background: var(--undi-soft) !important;
+            color: #000 !important;
+        }
+        #manual-undian .select2-results__option--selected {
+            background: #e2eeff !important;
+            color: #000 !important;
+        }
+        #manual-undian .select2-search--dropdown .select2-search__field {
+            background: #f8fbff !important;
+            border: 1px solid #d6e3f2 !important;
+            color: #000 !important;
+        }
     </style>
 @endpush
 
