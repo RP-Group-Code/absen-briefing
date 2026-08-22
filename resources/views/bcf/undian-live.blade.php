@@ -1082,6 +1082,7 @@
         $pesertaPoolJson = $pesertaPool
             ->map(function ($item) {
                 return [
+                    'id' => $item->id,
                     'nama' => $item->nama,
                     'pn' => $item->pn ?: 'PN tidak tersedia',
                     'uker' => $item->unit_kerja ?: 'Unit kerja belum diisi',
@@ -1177,6 +1178,7 @@
                 <form class="live-form" method="POST" action="{{ route('bcf.undian.draw') }}" id="liveDrawForm">
                     @csrf
                     <input type="hidden" name="redirect_to" value="live">
+                    <input type="hidden" name="peserta_undi_id" id="liveSelectedParticipantId" value="">
                     <div class="live-filter-row">
                         <input class="live-search" type="text" id="liveHadiahSearch" placeholder="Cari nama hadiah...">
                         <select class="live-search" id="liveHadiahCategory" name="hadiah_kategori">
@@ -1195,7 +1197,7 @@
 
                     <div class="live-buttons">
                         <button class="live-btn live-btn-start" type="button" id="liveStartButton" disabled><i class="fa-solid fa-dice"></i> Mulai Undi</button>
-                        <button class="live-btn live-btn-stop is-disabled" type="submit" id="liveStopButton"><i class="fa-solid fa-stop"></i> Stop</button>
+                        <button class="live-btn live-btn-stop is-disabled" type="button" id="liveStopButton"><i class="fa-solid fa-stop"></i> Stop</button>
                     </div>
 
                     <div class="live-status"><strong>{{ $pesertaTersedia }}</strong> peserta tersedia • <strong>{{ $dashboard['total_pemenang'] }}</strong> pemenang tercatat</div>
@@ -1289,7 +1291,7 @@
                     </div>
                 </div>
                 <div class="live-modal-actions" style="display: flex; gap: 12px; justify-content: center; width: 100%; margin-top: 24px;">
-                    <button class="live-btn live-btn-approve" type="button" id="liveWinnerModalApprove" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-check"></i> Sah / Setujui</button>
+                    <button class="live-btn live-btn-approve" type="button" id="liveWinnerModalApprove" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-check"></i> {{ $shouldCelebrate ? 'Tutup Hasil' : 'Sah / Setujui' }}</button>
                     <button class="live-btn live-btn-reject" type="button" id="liveWinnerModalReject" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-xmark"></i> Batal / Gugurkan</button>
                 </div>
             </div>
@@ -1325,6 +1327,7 @@
             const startButton = document.getElementById('liveStartButton');
             const stopButton = document.getElementById('liveStopButton');
             const form = document.getElementById('liveDrawForm');
+            const selectedParticipantInput = document.getElementById('liveSelectedParticipantId');
             const hadiahSelect = document.getElementById('liveHadiahSelect');
             const hadiahSearch = document.getElementById('liveHadiahSearch');
             const hadiahCategory = document.getElementById('liveHadiahCategory');
@@ -1342,6 +1345,8 @@
             }));
 
             let spinTimer = null;
+            let currentDrawParticipant = null;
+            let isSavingWinner = false;
             let winnerCurrentPage = 1;
             const normalizeCategoryValue = (value) => String(value || '')
                 .toLowerCase()
@@ -1650,9 +1655,33 @@
 
             const renderParticipant = (participant) => {
                 resetDisplayedBatchState();
+                currentDrawParticipant = participant;
+                if (selectedParticipantInput) {
+                    selectedParticipantInput.value = participant.id || '';
+                }
                 winnerName.textContent = participant.nama;
                 winnerPrize.textContent = currentHadiahLabel();
                 winnerMeta.textContent = participant.pn + ' | ' + participant.jabatan + ' | ' + participant.uker;
+            };
+
+            const clearPendingParticipant = () => {
+                currentDrawParticipant = null;
+                if (selectedParticipantInput) {
+                    selectedParticipantInput.value = '';
+                }
+            };
+
+            const openPendingWinnerModal = () => {
+                if (!currentDrawParticipant) {
+                    return;
+                }
+
+                winnerModalName.textContent = currentDrawParticipant.nama;
+                winnerModalPrize.textContent = currentHadiahLabel();
+                winnerModalMeta.textContent = isBatchSelection()
+                    ? `${currentDrawParticipant.pn} | ${currentDrawParticipant.jabatan} | ${currentDrawParticipant.uker} | Sistem akan mengundi seluruh item kategori ${currentBatchCategoryLabel()}`
+                    : `${currentDrawParticipant.pn} | ${currentDrawParticipant.jabatan} | ${currentDrawParticipant.uker}`;
+                openWinnerModal();
             };
 
             const renderHadiahOptions = (keyword = '', kategori = '') => {
@@ -1717,9 +1746,11 @@
                 }
 
                 resetDisplayedBatchState();
+                clearPendingParticipant();
                 startButton.disabled = true;
                 stopButton.classList.remove('is-disabled');
 
+                renderParticipant(randomParticipant());
                 spinTimer = window.setInterval(() => {
                     const participant = randomParticipant();
                     renderParticipant(participant);
@@ -1732,7 +1763,10 @@
                     return;
                 }
 
+                event.preventDefault();
                 setIdleState();
+                openPendingWinnerModal();
+                celebrateWinner();
             });
 
             form.addEventListener('submit', () => {
@@ -1796,29 +1830,38 @@
             }
 
             winnerModalApprove?.addEventListener('click', () => {
+                if (initialShouldCelebrate) {
+                    closeWinnerModal();
+                    return;
+                }
+
+                if (!currentDrawParticipant || isSavingWinner) {
+                    return;
+                }
+
+                isSavingWinner = true;
+                winnerModalApprove.disabled = true;
+                winnerModalReject.disabled = true;
+                winnerModalApprove.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+                if (form && !form.reportValidity()) {
+                    isSavingWinner = false;
+                    winnerModalApprove.disabled = false;
+                    winnerModalReject.disabled = false;
+                    winnerModalApprove.innerHTML = '<i class="fa-solid fa-check"></i> Sah / Setujui';
+                    return;
+                }
+
                 closeWinnerModal();
-                Swal.fire({
-                    toast: true,
-                    position: 'top',
-                    icon: 'success',
-                    title: 'Pemenang disetujui & disimpan!',
-                    showConfirmButton: false,
-                    timer: 3500,
-                    timerProgressBar: true,
-                    width: 'auto',
-                    padding: '0.75em 1.25em',
-                    background: 'rgba(10, 78, 173, 0.92)',
-                    color: '#f7f7f9',
-                    backdrop: false,
-                    customClass: {
-                        popup: 'live-toast-compact'
-                    }
-                });
+                form.requestSubmit();
             });
 
             winnerModalReject?.addEventListener('click', () => {
                 if (!currentWinnerIds || currentWinnerIds.length === 0) {
                     closeWinnerModal();
+                    clearPendingParticipant();
+                    resetWinnerDisplay();
+                    syncStartButtonState();
                     return;
                 }
 

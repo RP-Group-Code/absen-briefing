@@ -64,7 +64,7 @@ class BcfUndianController extends Controller
             ->where('status', 'Belum Menang')
             ->whereDoesntHave('pemenang')
             ->inRandomOrder()
-            ->get($this->pesertaUndiSelectColumns(['nama', 'pn', 'unit_kerja', 'jabatan']));
+            ->get($this->pesertaUndiSelectColumns(['id', 'nama', 'pn', 'unit_kerja', 'jabatan']));
 
         return view('bcf.undian-live', compact(
             'dashboard',
@@ -212,6 +212,7 @@ class BcfUndianController extends Controller
         $validated = $request->validate([
             'hadiah_undi_id' => 'nullable|exists:hadiah_undi,id',
             'hadiah_kategori' => 'nullable|string|max:255',
+            'peserta_undi_id' => 'nullable|integer|exists:peserta_undi,id',
             'redirect_to' => 'nullable|string|in:index,live',
         ]);
 
@@ -348,7 +349,16 @@ class BcfUndianController extends Controller
                 ];
             }
 
-            $peserta = $pesertaPool->random();
+            $peserta = ! empty($validated['peserta_undi_id'])
+                ? $pesertaPool->firstWhere('id', (int) $validated['peserta_undi_id'])
+                : $pesertaPool->random();
+
+            if (! $peserta) {
+                throw ValidationException::withMessages([
+                    'undian' => 'Peserta yang dipilih sudah tidak tersedia untuk diundi.',
+                ]);
+            }
+
             $hadiah = $hadiahPool->random();
 
             $pemenang = Pemenang::create([
