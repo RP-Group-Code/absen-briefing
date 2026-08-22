@@ -1792,12 +1792,13 @@
                     icon: 'success',
                     title: 'Pemenang disetujui & disimpan!',
                     showConfirmButton: false,
-                    timer: 3000,
+                    timer: 3500,
                     timerProgressBar: true,
                     width: 'auto',
                     padding: '0.75em 1.25em',
                     background: 'rgba(10, 78, 173, 0.92)',
                     color: '#f7f7f9',
+                    backdrop: false,
                     customClass: {
                         popup: 'live-toast-compact'
                     }
