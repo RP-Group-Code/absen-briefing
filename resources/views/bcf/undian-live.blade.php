@@ -18,6 +18,17 @@
             --live-muted: rgba(247, 247, 249, 0.58);
         }
 
+        /* Nonaktifkan efek blur SweetAlert2 pada halaman */
+        body.swal2-shown:not(.swal2-no-backdrop),
+        body.swal2-blur,
+        .swal2-container ~ body {
+            filter: none !important;
+        }
+
+        body.swal2-shown > :not(.swal2-container) {
+            filter: none !important;
+        }
+
         body {
             margin: 0;
             background:
