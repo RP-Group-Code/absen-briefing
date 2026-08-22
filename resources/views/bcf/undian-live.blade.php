@@ -275,6 +275,22 @@
             font-size: clamp(1.8rem, 3vw, 3.25rem);
         }
 
+        .live-winner-box.is-grandprize-drawing {
+            border-color: rgba(255, 211, 28, 0.9);
+            box-shadow: 0 0 30px rgba(255, 211, 28, 0.38), 0 34px 90px rgba(0, 0, 0, 0.34);
+            animation: live-grandprize-pulse 1.1s ease-in-out infinite;
+        }
+
+        @keyframes live-grandprize-pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.012);
+            }
+        }
+
         .live-winner-badge {
             display: inline-flex;
             align-items: center;
@@ -1353,9 +1369,11 @@
             }));
 
             let spinTimer = null;
+            let grandPrizeStopTimer = null;
             let currentDrawParticipant = null;
             let pendingBatchAssignments = [];
             let isSavingWinner = false;
+            let isGrandPrizeStopping = false;
             let winnerCurrentPage = 1;
             const normalizeCategoryValue = (value) => String(value || '')
                 .toLowerCase()
@@ -1364,6 +1382,9 @@
             const isMassCategory = (value) => batchCategoryLabels.includes(normalizeCategoryValue(value));
             const hasSelectedHadiah = () => String(hadiahSelect?.value || '').trim() !== '';
             const selectedHadiahOption = () => hadiahOptions.find((hadiah) => String(hadiah.value) === String(hadiahSelect?.value || '')) || null;
+            const isGrandPrizeSelection = () => ['hadiah besar', 'grand prize', 'grandprize'].includes(
+                normalizeCategoryValue(hadiahCategory?.value || selectedHadiahOption()?.kategori)
+            );
             const isPerItemBatchSelection = () => {
                 const hadiah = selectedHadiahOption();
 
@@ -1855,13 +1876,17 @@
 
             const setIdleState = () => {
                 window.clearInterval(spinTimer);
+                window.clearTimeout(grandPrizeStopTimer);
                 spinTimer = null;
+                grandPrizeStopTimer = null;
+                isGrandPrizeStopping = false;
+                winnerBox?.classList.remove('is-grandprize-drawing');
                 stopButton.classList.add('is-disabled');
                 syncStartButtonState();
             };
 
             const syncStartButtonState = () => {
-                if (spinTimer) {
+                if (spinTimer || isGrandPrizeStopping) {
                     return;
                 }
 
@@ -1900,6 +1925,7 @@
                 isServerResultModal = false;
                 startButton.disabled = true;
                 stopButton.classList.remove('is-disabled');
+                winnerBox?.classList.toggle('is-grandprize-drawing', isGrandPrizeSelection());
 
                 renderParticipant(randomParticipant());
                 spinTimer = window.setInterval(() => {
@@ -1915,6 +1941,34 @@
                 }
 
                 event.preventDefault();
+                if (isGrandPrizeSelection()) {
+                    isGrandPrizeStopping = true;
+                    window.clearInterval(spinTimer);
+                    spinTimer = null;
+                    stopButton.classList.add('is-disabled');
+
+                    const slowDownDelays = [100, 130, 170, 220, 290, 380, 500, 660, 850];
+                    let slowDownStep = 0;
+                    const slowDownSpin = () => {
+                        renderParticipant(randomParticipant());
+                        const delay = slowDownDelays[slowDownStep];
+                        slowDownStep += 1;
+
+                        if (delay) {
+                            grandPrizeStopTimer = window.setTimeout(slowDownSpin, delay);
+                            return;
+                        }
+
+                        setIdleState();
+                        if (openPendingWinnerModal()) {
+                            celebrateWinner();
+                        }
+                    };
+
+                    slowDownSpin();
+                    return;
+                }
+
                 setIdleState();
                 if (openPendingWinnerModal()) {
                     celebrateWinner();
