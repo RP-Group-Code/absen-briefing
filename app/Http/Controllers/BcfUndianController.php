@@ -8,6 +8,7 @@ use App\Models\PesertaUndi;
 use App\Models\Pemenang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
@@ -466,12 +467,122 @@ class BcfUndianController extends Controller
         ]);
     }
 
+    public function resetUndianData(Request $request)
+    {
+        $validated = $request->validate([
+            'scope' => 'required|in:all,peserta,pemenang,hadiah',
+            'action' => 'required|in:wipe,status',
+            'password' => 'required|string',
+        ]);
+
+        $allowedActions = [
+            'all' => ['wipe'],
+            'peserta' => ['wipe', 'status'],
+            'pemenang' => ['wipe'],
+            'hadiah' => ['wipe', 'status'],
+        ];
+
+        if (! in_array($validated['action'], $allowedActions[$validated['scope']], true)) {
+            return response()->json([
+                'message' => 'Tipe reset yang dipilih tidak valid.',
+            ], 422);
+        }
+
+        if (! Hash::check($validated['password'], (string) $request->user()->password)) {
+            return response()->json([
+                'message' => 'Password login tidak sesuai.',
+            ], 422);
+        }
+
+        $resetTables = [];
+        $message = '';
+
+        DB::transaction(function () use ($validated, &$resetTables, &$message) {
+            if ($validated['scope'] === 'all') {
+                Pemenang::query()->delete();
+                HadiahUndi::query()->delete();
+                PesertaUndi::query()->delete();
+                $resetTables = ['pemenang', 'hadiah_undi', 'peserta_undi'];
+                $message = 'Seluruh data undian berhasil dihapus.';
+
+                return;
+            }
+
+            if ($validated['scope'] === 'peserta') {
+                if ($validated['action'] === 'wipe') {
+                    // Pemenang terkait juga dihapus agar tidak ada data referensi yang tersisa.
+                    Pemenang::query()->delete();
+                    PesertaUndi::query()->delete();
+                    $resetTables = ['pemenang', 'peserta_undi'];
+                    $message = 'Data peserta dan pemenang terkait berhasil dihapus.';
+                } else {
+                    PesertaUndi::query()->update(['status' => 'Belum Menang']);
+                    $message = 'Status seluruh peserta berhasil dikembalikan menjadi Belum Menang.';
+                }
+
+                return;
+            }
+
+            if ($validated['scope'] === 'pemenang') {
+                Pemenang::query()->delete();
+                $resetTables = ['pemenang'];
+                $message = 'Seluruh data pemenang berhasil dihapus.';
+
+                return;
+            }
+
+            if ($validated['action'] === 'wipe') {
+                // Pemenang terkait juga dihapus agar relasi hadiah tetap konsisten.
+                Pemenang::query()->delete();
+                HadiahUndi::query()->delete();
+                $resetTables = ['pemenang', 'hadiah_undi'];
+                $message = 'Data hadiah dan pemenang terkait berhasil dihapus.';
+            } else {
+                HadiahUndi::query()->update([
+                    'stock_sisa' => DB::raw('stock_total'),
+                    'status' => true,
+                ]);
+                $message = 'Stok seluruh hadiah berhasil dikembalikan ke stok awal.';
+            }
+        });
+
+        foreach ($resetTables as $table) {
+            $this->resetAutoIncrement($table);
+        }
+
+        $request->session()->forget('undian_winner');
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
     public function exportRekap()
     {
         return Excel::download(
             new BcfUndianRekapExport(),
             'bcf-undian-rekap-' . now()->format('Y-m-d_H-i-s') . '.xlsx'
         );
+    }
+
+    private function resetAutoIncrement(string $table): void
+    {
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `{$table}` AUTO_INCREMENT = 1");
+
+            return;
+        }
+
+        if (DB::getDriverName() === 'sqlite' && Schema::hasTable('sqlite_sequence')) {
+            DB::table('sqlite_sequence')->where('name', $table)->delete();
+
+            return;
+        }
+
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER SEQUENCE {$table}_id_seq RESTART WITH 1");
+        }
     }
 
     private function buildUndianSummary(): array

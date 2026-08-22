@@ -143,6 +143,74 @@
             border: 1px solid rgba(255,255,255,.16);
         }
 
+        .undi-reset-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 12px;
+            padding: 15px 18px;
+            border: 1px solid #f0ccd2;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #fff8f8, #fff 58%);
+            box-shadow: 0 12px 28px rgba(129, 39, 57, .08);
+        }
+
+        .undi-reset-copy strong {
+            display: block;
+            color: #9f1f39;
+            font-size: .88rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .undi-reset-copy span {
+            display: block;
+            margin-top: 4px;
+            color: var(--undi-muted);
+            font-size: .78rem;
+        }
+
+        .undi-reset-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .undi-reset-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 38px;
+            border: 1px solid #edbdc6;
+            border-radius: 10px;
+            padding: 0 12px;
+            background: #fff;
+            color: #9f1f39;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform .18s ease, background .18s ease, color .18s ease;
+        }
+
+        .undi-reset-btn:hover {
+            transform: translateY(-1px);
+            background: #fff0f2;
+        }
+
+        .undi-reset-btn.is-hard {
+            border-color: #bd2945;
+            background: #bd2945;
+            color: #fff;
+        }
+
+        .undi-reset-btn.is-hard:hover { background: #971d35; }
+
         .undi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -440,6 +508,8 @@
 
             .undi-grid { grid-template-columns: repeat(2, 1fr); }
             .undi-content { grid-template-columns: 1fr; }
+            .undi-reset-panel { align-items: flex-start; flex-direction: column; }
+            .undi-reset-actions { justify-content: flex-start; }
         }
 
         @media (max-width: 720px) {
@@ -452,6 +522,9 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .undi-reset-actions { width: 100%; }
+            .undi-reset-btn { flex: 1 1 calc(50% - 8px); }
         }
     </style>
 @endpush
@@ -477,6 +550,19 @@
                 <a href="#rekap"><i class="fa-solid fa-file-export"></i> Rekap</a>
                 <a href="{{ route('bcf.registrasi.admin') }}" class="undi-admin-back"><i class="fa-solid fa-arrow-left"></i> Portal Admin</a>
             </nav>
+        </section>
+
+        <section class="undi-reset-panel" aria-label="Kontrol reset data undian">
+            <div class="undi-reset-copy">
+                <strong><i class="fa-solid fa-triangle-exclamation me-1"></i> Kontrol Reset Data</strong>
+                <span>Setiap reset memerlukan konfirmasi dan password login.</span>
+            </div>
+            <div class="undi-reset-actions">
+                <button type="button" class="undi-reset-btn is-hard" data-reset-scope="all"><i class="fa-solid fa-bomb"></i> Hard Reset</button>
+                <button type="button" class="undi-reset-btn" data-reset-scope="peserta"><i class="fa-solid fa-users"></i> Reset Peserta</button>
+                <button type="button" class="undi-reset-btn" data-reset-scope="pemenang"><i class="fa-solid fa-trophy"></i> Reset Pemenang</button>
+                <button type="button" class="undi-reset-btn" data-reset-scope="hadiah"><i class="fa-solid fa-gift"></i> Reset Hadiah</button>
+            </div>
         </section>
 
         {{-- <section class="undi-intro">
@@ -717,3 +803,169 @@
         </div>
     </main>
 @endsection
+
+@push('scripts')
+    <script>
+        (() => {
+            const resetRoute = @json(route('bcf.undian.reset'));
+            const csrfToken = @json(csrf_token());
+
+            const requestPasswordAndReset = async (scope, action, label, description) => {
+                const passwordResult = await Swal.fire({
+                    title: `Verifikasi ${label}`,
+                    text: 'Masukkan password login untuk melanjutkan proses reset.',
+                    input: 'password',
+                    inputLabel: 'Password login',
+                    inputPlaceholder: 'Masukkan password',
+                    inputAttributes: {
+                        autocapitalize: 'off',
+                        autocomplete: 'current-password',
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Proses Reset',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#bd2945',
+                    reverseButtons: true,
+                    preConfirm: (password) => {
+                        if (!password) {
+                            Swal.showValidationMessage('Password login wajib diisi.');
+                        }
+
+                        return password;
+                    },
+                });
+
+                if (!passwordResult.isConfirmed) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Memproses reset...',
+                    text: description,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+
+                try {
+                    const response = await fetch(resetRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            scope,
+                            action,
+                            password: passwordResult.value,
+                        }),
+                    });
+                    const data = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Reset data gagal diproses.');
+                    }
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Reset Berhasil',
+                        text: data.message || 'Data berhasil diproses.',
+                        confirmButtonColor: '#0a4ead',
+                    });
+                    window.location.reload();
+                } catch (error) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Reset Gagal',
+                        text: error.message || 'Terjadi kesalahan saat memproses reset.',
+                        confirmButtonColor: '#bd2945',
+                    });
+                }
+            };
+
+            const confirmHardReset = async () => {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Apakah Anda yakin reset all data?',
+                    text: 'Peserta undian, hadiah undian, dan data pemenang akan dihapus permanen.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Reset',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#bd2945',
+                    reverseButtons: true,
+                });
+
+                if (result.isConfirmed) {
+                    await requestPasswordAndReset('all', 'wipe', 'Hard Reset', 'Menghapus seluruh data undian.');
+                }
+            };
+
+            const chooseResetType = async (scope) => {
+                const config = {
+                    peserta: {
+                        title: 'Pilih Tipe Reset Peserta',
+                        wipe: 'Menghapus seluruh peserta serta pemenang terkait.',
+                        status: 'Mengubah status seluruh peserta menjadi Belum Menang.',
+                    },
+                    hadiah: {
+                        title: 'Pilih Tipe Reset Hadiah',
+                        wipe: 'Menghapus seluruh hadiah serta pemenang terkait.',
+                        status: 'Mengembalikan stok sisa seluruh hadiah ke stok awal.',
+                    },
+                }[scope];
+
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: config.title,
+                    text: 'Pilih tindakan yang ingin dijalankan.',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Wipe Data',
+                    denyButtonText: 'Reset Status',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#bd2945',
+                    denyButtonColor: '#0a4ead',
+                    reverseButtons: true,
+                });
+
+                if (result.isConfirmed) {
+                    await requestPasswordAndReset(scope, 'wipe', `Wipe Data ${scope}`, config.wipe);
+                } else if (result.isDenied) {
+                    await requestPasswordAndReset(scope, 'status', `Reset Status ${scope}`, config.status);
+                }
+            };
+
+            const confirmWinnerReset = async () => {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih Tipe Reset Pemenang',
+                    text: 'Wipe Data akan menghapus seluruh isi tabel pemenang.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Wipe Data',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#bd2945',
+                    reverseButtons: true,
+                });
+
+                if (result.isConfirmed) {
+                    await requestPasswordAndReset('pemenang', 'wipe', 'Wipe Data Pemenang', 'Menghapus seluruh data pemenang.');
+                }
+            };
+
+            document.querySelectorAll('[data-reset-scope]').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const scope = button.dataset.resetScope;
+
+                    if (scope === 'all') {
+                        await confirmHardReset();
+                    } else if (scope === 'pemenang') {
+                        await confirmWinnerReset();
+                    } else {
+                        await chooseResetType(scope);
+                    }
+                });
+            });
+        })();
+    </script>
+@endpush
