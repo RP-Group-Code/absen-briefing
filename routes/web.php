@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bcf-undian/hadiah', [BcfUndianController::class, 'storeHadiah'])->name('bcf.undian.hadiah.store');
     Route::post('/bcf-undian/hadiah/import', [BcfUndianController::class, 'importHadiah'])->name('bcf.undian.hadiah.import');
     Route::post('/bcf-undian/draw', [BcfUndianController::class, 'draw'])->name('bcf.undian.draw');
+    Route::post('/bcf-undian/reject', [BcfUndianController::class, 'reject'])->name('bcf.undian.reject');
     Route::get('/bcf-undian/rekap/export', [BcfUndianController::class, 'exportRekap'])->name('bcf.undian.rekap.export');
 });
 

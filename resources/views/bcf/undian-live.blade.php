@@ -661,6 +661,18 @@
             box-shadow: 0 18px 36px rgba(177, 63, 114, 0.24);
         }
 
+        .live-btn-approve {
+            background: linear-gradient(135deg, #42c76a 0%, #28a745 54%, #1e7e34 100%);
+            color: #fff;
+            box-shadow: 0 18px 36px rgba(40, 167, 69, 0.24);
+        }
+
+        .live-btn-reject {
+            background: linear-gradient(135deg, #f75d6c 0%, #dc3545 55%, #b21f2d 100%);
+            color: #fff;
+            box-shadow: 0 18px 36px rgba(220, 53, 69, 0.24);
+        }
+
         .live-btn-stop.is-disabled {
             opacity: .5;
             pointer-events: none;
@@ -1214,7 +1226,7 @@
 
     <div class="live-modal" id="liveWinnerModal" aria-hidden="true">
         <div class="live-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="liveWinnerModalTitle">
-            <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian">&times;</button>
+            <button class="live-modal-close" type="button" id="liveWinnerModalClose" aria-label="Tutup pop up hasil undian" style="display: none;">&times;</button>
             <div class="live-modal-card {{ $isBatchWinner ? 'is-batch' : '' }} {{ $isGrandPrizeWinner ? 'is-grandprize' : '' }}" id="liveWinnerModalCard">
                 <img class="live-brand-logo" src="{{ asset('images/bcf-logo2.png') }}" alt="Logo BCF BO Sriwijaya">
                 @if (! $isBatchWinner)
@@ -1257,8 +1269,9 @@
                         </table>
                     </div>
                 </div>
-                <div class="live-modal-actions">
-                    <button class="live-modal-dismiss" type="button" id="liveWinnerModalDismiss">Tutup Tampilan</button>
+                <div class="live-modal-actions" style="display: flex; gap: 12px; justify-content: center; width: 100%; margin-top: 24px;">
+                    <button class="live-btn live-btn-approve" type="button" id="liveWinnerModalApprove" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-check"></i> Sah / Setujui</button>
+                    <button class="live-btn live-btn-reject" type="button" id="liveWinnerModalReject" style="flex: 1; margin: 0; padding: 14px; text-shadow: none;"><i class="fa-solid fa-xmark"></i> Batal / Gugurkan</button>
                 </div>
             </div>
         </div>
@@ -1281,7 +1294,9 @@
             const confettiLayer = document.getElementById('liveConfettiLayer');
             const winnerModal = document.getElementById('liveWinnerModal');
             const winnerModalClose = document.getElementById('liveWinnerModalClose');
-            const winnerModalDismiss = document.getElementById('liveWinnerModalDismiss');
+            const winnerModalApprove = document.getElementById('liveWinnerModalApprove');
+            const winnerModalReject = document.getElementById('liveWinnerModalReject');
+            const currentWinnerIds = @json($winner['ids'] ?? (!empty($winner['id']) ? [$winner['id']] : []));
             const winnerModalCard = document.getElementById('liveWinnerModalCard');
             const winnerModalName = document.getElementById('liveWinnerModalName');
             const winnerModalPrize = document.getElementById('liveWinnerModalPrize');
@@ -1761,18 +1776,84 @@
                 }, 180);
             }
 
-            winnerModalClose?.addEventListener('click', closeWinnerModal);
-            winnerModalDismiss?.addEventListener('click', closeWinnerModal);
-            winnerModal?.addEventListener('click', (event) => {
-                if (event.target === winnerModal) {
-                    closeWinnerModal();
-                }
+            winnerModalApprove?.addEventListener('click', () => {
+                closeWinnerModal();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Pemenang disetujui & disimpan!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
             });
 
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && winnerModal?.classList.contains('is-open')) {
+            winnerModalReject?.addEventListener('click', () => {
+                if (!currentWinnerIds || currentWinnerIds.length === 0) {
                     closeWinnerModal();
+                    return;
                 }
+
+                Swal.fire({
+                    title: 'Gugurkan Pemenang?',
+                    text: 'Apakah Anda yakin ingin membatalkan pemenang ini? Hadiah akan dikembalikan ke stok.',
+                    icon: 'warning',
+                    iconColor: '#ff4a72',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Gugurkan!',
+                    cancelButtonText: 'Batal',
+                    background: '#083b82',
+                    color: '#f7f7f9'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('{{ route("bcf.undian.reject") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                ids: currentWinnerIds
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Pemenang telah digugurkan.',
+                                    background: '#083b82',
+                                    color: '#f7f7f9',
+                                    confirmButtonColor: '#28a745'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message || 'Terjadi kesalahan saat menggugurkan pemenang.',
+                                    background: '#083b82',
+                                    color: '#f7f7f9'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Koneksi gagal atau terjadi kesalahan server.',
+                                background: '#083b82',
+                                color: '#f7f7f9'
+                            });
+                        });
+                    }
+                });
             });
         })();
     </script>

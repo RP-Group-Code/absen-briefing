@@ -382,8 +382,10 @@ class BcfUndianController extends Controller
                 'kategori' => $result['kategori'],
                 'undian_ke_mulai' => $result['undian_ke_mulai'],
                 'undian_ke_selesai' => $result['undian_ke_selesai'],
+                'ids' => $result['winners']->pluck('id')->all(),
                 'items' => $result['winners']->map(function ($winner) {
                     return [
+                        'id' => $winner->id,
                         'undian_ke' => $winner->undian_ke,
                         'no_hadiah' => $winner->hadiah?->no_urut ?: '-',
                         'peserta' => $winner->peserta?->nama,
@@ -397,6 +399,7 @@ class BcfUndianController extends Controller
             ]
             : [
                 'mode' => 'single',
+                'id' => $result['winner']->id,
                 'peserta' => $result['winner']->peserta?->nama,
                 'pn' => $result['winner']->peserta?->pn,
                 'jabatan' => $result['winner']->peserta?->jabatan,
@@ -409,6 +412,43 @@ class BcfUndianController extends Controller
         return redirect()
             ->route($redirectRoute, ['tab' => 'undian'])
             ->with('undian_winner', $winnerFlash);
+    }
+
+    public function reject(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:pemenang,id',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $pemenangList = Pemenang::whereIn('id', $validated['ids'])->get();
+
+            foreach ($pemenangList as $pemenang) {
+                // Revert peserta status
+                if ($pemenang->peserta) {
+                    $pemenang->peserta->forceFill(['status' => 'Belum Menang'])->save();
+                }
+
+                // Restore hadiah stock
+                if ($pemenang->hadiah) {
+                    $hadiah = $pemenang->hadiah;
+                    $newStock = $hadiah->stock_sisa + 1;
+                    $hadiah->forceFill([
+                        'stock_sisa' => $newStock,
+                        'status' => true,
+                    ])->save();
+                }
+
+                // Delete pemenang
+                $pemenang->delete();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pemenang berhasil digugurkan.',
+        ]);
     }
 
     public function exportRekap()
