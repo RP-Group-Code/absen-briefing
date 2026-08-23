@@ -1106,6 +1106,28 @@
                 ];
             })
             ->values();
+
+        $presetWinnersJson = $presetWinners
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'peserta_undi_id' => $item->peserta_undi_id,
+                    'hadiah_undi_id' => $item->hadiah_undi_id,
+                    'peserta' => $item->peserta ? [
+                        'id' => $item->peserta->id,
+                        'nama' => $item->peserta->nama,
+                        'pn' => $item->peserta->pn ?: 'PN tidak tersedia',
+                        'uker' => $item->peserta->unit_kerja ?: 'Unit kerja belum diisi',
+                        'jabatan' => $item->peserta->jabatan ?: 'Jabatan belum diisi',
+                    ] : null,
+                    'hadiah' => $item->hadiah ? [
+                        'id' => $item->hadiah->id,
+                        'nama_hadiah' => $item->hadiah->nama_hadiah,
+                        'kategori' => $item->hadiah->kategori ?: 'Tanpa kategori',
+                    ] : null,
+                ];
+            })
+            ->values();
     @endphp
 
     <main class="live-shell">
@@ -1321,19 +1343,19 @@
     <script>
         (() => {
             const pool = @json($pesertaPoolJson);
-            const presetWinners = [];
+            const presetWinners = @json($presetWinnersJson);
 
             const getPresetWinnerForSelectedHadiah = () => {
                 const selectedHadiahId = Number(hadiahSelect?.value);
                 if (!selectedHadiahId) return null;
 
-                const preset = presetWinners.find(p => p.hadiah_undi_id === selectedHadiahId);
-                if (!preset || !preset.peserta) return null;
+                const preset = presetWinners.find(p => {
+                    if (Number(p.hadiah_undi_id) !== selectedHadiahId || !p.peserta) return false;
+                    return pool.some(item => Number(item.id) === Number(p.peserta.id));
+                });
+                if (!preset) return null;
 
-                const inPool = pool.find(p => p.id === preset.peserta.id);
-                if (!inPool) return null;
-
-                return preset.peserta;
+                return pool.find(item => Number(item.id) === Number(preset.peserta.id)) || preset.peserta;
             };
             const initialShouldCelebrate = @json($shouldCelebrate);
             const isInitialBatchWinner = @json($isBatchWinner);
@@ -1451,12 +1473,17 @@
                 const assignments = [];
 
                 // First pass: assign preset winners
+                const assignedPresetIds = new Set();
                 prizeSlots.forEach((prize) => {
                     const prizeId = Number(prize.value);
-                    const preset = presetWinners.find(p => p.hadiah_undi_id === prizeId);
+                    const preset = presetWinners.find(p => {
+                        if (Number(p.hadiah_undi_id) !== prizeId || !p.peserta || assignedPresetIds.has(p.id)) return false;
+                        return remainingPool.some(item => Number(item.id) === Number(p.peserta.id));
+                    });
                     if (preset && preset.peserta) {
-                        const poolIdx = remainingPool.findIndex(p => p.id === preset.peserta.id);
+                        const poolIdx = remainingPool.findIndex(p => Number(p.id) === Number(preset.peserta.id));
                         if (poolIdx !== -1) {
+                            assignedPresetIds.add(preset.id);
                             const participant = remainingPool.splice(poolIdx, 1)[0];
                             assignments.push({
                                 peserta_undi_id: participant.id,
