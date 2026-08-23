@@ -1138,6 +1138,13 @@ class BcfUndianController extends Controller
             return redirect()->to(route('bcf.undian.index') . '#manual-undian');
         }
 
+        $hadiah = HadiahUndi::findOrFail($validated['hadiah_undi_id']);
+        $currentPresets = ManualUndian::where('hadiah_undi_id', $validated['hadiah_undi_id'])->count();
+        if ($currentPresets >= $hadiah->stock_sisa) {
+            Alert::error('Gagal', 'Preset untuk hadiah ini sudah penuh.');
+            return redirect()->to(route('bcf.undian.index') . '#manual-undian');
+        }
+
         ManualUndian::create($validated);
 
         Alert::success('Berhasil', 'Manual undian berhasil disimpan.');

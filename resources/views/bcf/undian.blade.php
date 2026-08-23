@@ -871,8 +871,12 @@
                                     <select class="undi-select select2-manual" name="hadiah_undi_id" required>
                                         <option value="">-- Pilih Hadiah --</option>
                                         @foreach ($hadiahEligible as $row)
-                                            <option value="{{ $row->id }}">
-                                                {{ $row->nama_hadiah }} [{{ $row->kategori }}] (Stok: {{ $row->stock_sisa }}/{{ $row->stock_total }})
+                                            @php
+                                                $presetCount = $manualUndianList->where('hadiah_undi_id', $row->id)->count();
+                                                $isDisabled = $presetCount >= $row->stock_sisa;
+                                            @endphp
+                                            <option value="{{ $row->id }}" {{ $isDisabled ? 'disabled' : '' }}>
+                                                {{ $row->nama_hadiah }} [{{ $row->kategori }}] (Stok: {{ $row->stock_sisa }}/{{ $row->stock_total }}){{ $isDisabled ? ' — [Sudah Di-preset]' : '' }}
                                             </option>
                                         @endforeach
                                     </select>
