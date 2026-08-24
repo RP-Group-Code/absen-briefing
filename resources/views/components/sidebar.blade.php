@@ -36,9 +36,15 @@
     {{-- Menu --}}
     <ul class="nav flex-column mt-2 pt-2">
 
-        {{-- Dashboard: tampil di semua mode --}}
+        {{-- Dashboard: link disesuaikan dengan mode --}}
         <li class="nav-item mt-1">
+            @if($mode === 'bcf')
+            <a href="{{ route('bcf.undian.index') }}" class="nav-link {{ request()->routeIs('bcf.undian.index') ? 'active' : '' }}" target="_blank">
+            @elseif($mode === 'briefing')
+            <a href="{{ route('absen.dashboard') }}" class="nav-link {{ request()->routeIs('absen.dashboard') ? 'active' : '' }}" target="_blank">
+            @else
             <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" target="_blank">
+            @endif
                 <i class="bi bi-speedometer2"></i>
                 <span class="nav-label">Dashboard</span>
             </a>
