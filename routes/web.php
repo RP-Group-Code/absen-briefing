@@ -74,18 +74,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/bcf-undian/rekap/export', [BcfUndianController::class, 'exportRekap'])->name('bcf.undian.rekap.export');
     Route::post('/bcf-undian/manual', [BcfUndianController::class, 'storeManualUndian'])->name('bcf.undian.manual.store');
     Route::delete('/bcf-undian/manual/{id}', [BcfUndianController::class, 'destroyManualUndian'])->name('bcf.undian.manual.destroy');
-    
-    Route::get('/absen-briefing', [InputAbsenController::class, 'index'])->name('Input.Index');
+
     Route::get('/absen-briefing-kanca', [InputAbsenController::class, 'indexKanca'])->name('Input-Index-Kanca');
     Route::get('/absen-briefing-kanca/export', [InputAbsenController::class, 'exportKanca'])->name('absen.kanca.export');
     Route::post('/absen-briefing-kanca/status', [InputAbsenController::class, 'saveKancaStatus'])->name('absen.kanca.status.save');
-
 });
 
 Route::middleware('guest')->group(function () {
     Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login',  [AuthController::class, 'login']);
 });
+
+Route::get('/absen-briefing', [InputAbsenController::class, 'index'])->name('Input.Index');
 
 Route::get('/pegawai/by-unit/{uker_id}', [InputAbsenController::class, 'getPegawaiByUnit']);
 Route::post('/submit/absen/briefing', [InputAbsenController::class, 'store'])->name('submit.absen');
