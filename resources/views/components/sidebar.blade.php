@@ -120,11 +120,51 @@
             </div>
         </li>
         <li class="nav-item">
-            <a href="{{ route('bcf.registrasi.index') }}"
-                class="nav-link {{ request()->routeIs('bcf.registrasi.*') ? 'active' : '' }}">
-                <i class="bi bi-file-earmark-text"></i>
-                <span class="nav-label">BCF Registrasi</span>
+
+            {{-- Trigger toggle --}}
+            <a class="nav-link d-flex align-items-center justify-content-between" href="#menuBCF"
+                data-bs-toggle="collapse" role="button"
+                aria-expanded="{{ request()->routeIs('bcf.*') ? 'true' : 'false' }}">
+
+                <span class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-label">BCF</span>
+                </span>
+                <i class="bi bi-chevron-down nav-label" style="font-size:.7rem;transition:transform .2s"
+                    id="chevronBCF"></i>
             </a>
+
+            {{-- Submenu --}}
+            <div class="collapse {{ request()->routeIs('bcf.*') ? 'show' : '' }}" id="menuBCF">
+                <ul class="nav flex-column ms-3 mt-1">
+
+                    <li class="nav-item">
+                        <a href="{{ route('bcf.registrasi.index') }}"
+                            class="nav-link {{ request()->routeIs('bcf.registrasi.index') ? 'active' : '' }}"
+                            style="padding:.55rem 1rem;font-size:.85rem">
+                            <i class="bi bi-file-earmark-text" style="font-size:.9rem"></i>
+                            <span class="nav-label">BCF Registrasi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('bcf.registrasi.admin') }}"
+                            class="nav-link {{ request()->routeIs('bcf.registrasi.admin') ? 'active' : '' }}"
+                            style="padding:.55rem 1rem;font-size:.85rem">
+                            <i class="bi bi-person-badge" style="font-size:.9rem"></i>
+                            <span class="nav-label">BCF Admin</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('bcf.undian.index') }}"
+                            class="nav-link {{ request()->routeIs('bcf.undian.*') ? 'active' : '' }}"
+                            style="padding:.55rem 1rem;font-size:.85rem">
+                            <i class="bi bi-gift" style="font-size:.9rem"></i>
+                            <span class="nav-label">BCF Undian</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
         </li>
         {{-- <li class="nav-item mt-2">
             <a href="{{ route('absen.dashboard') }}"
