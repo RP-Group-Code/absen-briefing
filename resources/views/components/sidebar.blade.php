@@ -46,10 +46,12 @@
 
         {{-- Dashboard: link disesuaikan dengan mode --}}
         <li class="nav-item mt-1">
-            @if($mode === 'bcf')
-            <a href="{{ route('bcf.undian.index') }}" class="nav-link {{ request()->routeIs('bcf.undian.index') ? 'active' : '' }}" target="_blank">
-            @elseif($mode === 'briefing')
+            @if($mode === 'briefing')
             <a href="{{ route('absen.dashboard') }}" class="nav-link {{ request()->routeIs('absen.dashboard') ? 'active' : '' }}" target="_blank">
+
+            @elseif($mode === 'bcf')
+            <a href="{{ route('bcf.undian.index') }}" class="nav-link {{ request()->routeIs('bcf.undian.index') ? 'active' : '' }}" target="_blank">
+            
             @elseif($mode === 'eyeforce')
             <a href="{{ route('portal.eyeforce') }}" class="nav-link {{ request()->routeIs('portal.eyeforce') ? 'active' : '' }}">
             @elseif($mode === 'analytics')
