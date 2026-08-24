@@ -142,8 +142,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('Input.Index') }}"
-                            class="nav-link {{ request()->routeIs('Input.Index*') ? 'active' : '' }}"
+                        <a href="{{ route('Input-Index') }}"
+                            class="nav-link {{ request()->routeIs('Input-Index*') ? 'active' : '' }}"
                             style="padding:.55rem 1rem;font-size:.85rem" target="_blank">
                             <i class="fa-solid fa-people-group" style="font-size:.9rem"></i>
                             <span class="nav-label">Briefing Uker</span>
