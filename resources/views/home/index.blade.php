@@ -26,7 +26,7 @@
     }
 
     .portal-logo-wrap img {
-        width: 180px;
+        width: 380px;
         filter: drop-shadow(0 8px 32px rgba(99,102,241,0.45));
     }
 
@@ -205,8 +205,8 @@
         <img src="{{ asset('images/LogoPPOIT.png') }}" alt="Logo PPOIT">
         <div>
             <div class="portal-logo-title">Portal SWJ-Tech</div>
-            <div class="portal-logo-subtitle">BO Sriwijaya — Pilih Sistem</div>
-        </div>
+            <div class="portal-logo-subtitle">BO Sriwijaya — Sustanable Force</div>
+        </div> 
     </div>
 
     {{-- Divider --}}
