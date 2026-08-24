@@ -11,7 +11,7 @@ class AuthController extends Controller
     {
         // Jika sudah login, langsung redirect ke dashboard
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('home');
         }
         return view('login.index');
     }
@@ -35,8 +35,8 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();  // cegah session fixation
  
-            return redirect()->intended(route('dashboard'))
-                             ->with('success', 'Selamat datang, ' . Auth::user()->name . '!');
+            return redirect()->intended(route('home'))
+                             ->with('success', 'Selamat datang, ' . (Auth::user()->nama ?? Auth::user()->name) . '!');
         }
  
         return back()

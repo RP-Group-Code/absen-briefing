@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BcfUndianController;
 use App\Http\Controllers\BcfRegistrasiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImportPegawaiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\IndexAbsenController;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\Auth;
 Route::get(
     '/',
     fn() => Auth::check()
-        ? redirect()->route('dashboard')
+        ? redirect()->route('home')
         : redirect()->route('login')
 );
 
@@ -35,6 +36,11 @@ Route::get(
 Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // ── Portal General ──
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/portal/bcf', [HomeController::class, 'bcf'])->name('portal.bcf');
+    Route::get('/portal/briefing', [HomeController::class, 'briefing'])->name('portal.briefing');
 
     Route::get('/dashboard/index', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/absen', [IndexAbsenController::class, 'index'])->name('absen.dashboard');
