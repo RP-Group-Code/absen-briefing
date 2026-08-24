@@ -51,7 +51,7 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 2rem;
         width: 100%;
-        max-width: 1080px;
+        max-width: 1440px;
     }
 
     /* ── Menu card ── */
@@ -77,6 +77,7 @@
     .portal-card:nth-child(1) { animation-delay: 0.15s; }
     .portal-card:nth-child(2) { animation-delay: 0.28s; }
     .portal-card:nth-child(3) { animation-delay: 0.41s; }
+    .portal-card:nth-child(4) { animation-delay: 0.54s; }
 
     .portal-card::before {
         content: '';
@@ -117,6 +118,13 @@
         --card-border: rgba(56,189,248,0.55);
     }
 
+    /* Analytics BDS card */
+    .portal-card.card-analytics {
+        --card-glow: linear-gradient(135deg, rgba(245,158,11,0.14), rgba(249,115,22,0.12));
+        --card-shadow: 0 0 40px rgba(245,158,11,0.26);
+        --card-border: rgba(251,191,36,0.55);
+    }
+
     /* ── Card icon ── */
     .portal-card-icon {
         width: 72px;
@@ -143,6 +151,11 @@
     .card-eyeforce .portal-card-icon {
         background: linear-gradient(135deg, rgba(14,165,233,0.85), rgba(37,99,235,0.85));
         box-shadow: 0 8px 24px rgba(14,165,233,0.42);
+    }
+
+    .card-analytics .portal-card-icon {
+        background: linear-gradient(135deg, rgba(245,158,11,0.88), rgba(234,88,12,0.84));
+        box-shadow: 0 8px 24px rgba(245,158,11,0.4);
     }
 
     /* ── Card text ── */
@@ -269,6 +282,22 @@
                 <div class="portal-card-title">EyeForce E-Channel</div>
                 <div class="portal-card-desc mt-1">
                     Portal monitoring dan layanan<br>EyeForce E-Channel
+                </div>
+            </div>
+            <span class="portal-card-arrow">
+                Masuk <i class="bi bi-arrow-right"></i>
+            </span>
+        </a>
+
+        {{-- ANALYTICS BDS --}}
+        <a href="{{ route('portal.analytics') }}" class="portal-card card-analytics" target="_blank">
+            <div class="portal-card-icon">
+                <i class="bi bi-bar-chart-line-fill"></i>
+            </div>
+            <div>
+                <div class="portal-card-title">Analytics BDS</div>
+                <div class="portal-card-desc mt-1">
+                    Analisa data<br>Branch Decision Support
                 </div>
             </div>
             <span class="portal-card-arrow">

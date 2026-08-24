@@ -1,5 +1,5 @@
 @php
-    $mode = session('sidebar_mode', 'all'); // 'bcf' | 'briefing' | 'eyeforce' | 'all'
+    $mode = session('sidebar_mode', 'all'); // 'bcf' | 'briefing' | 'eyeforce' | 'analytics' | 'all'
 @endphp
 
 <nav id="sidebar">
@@ -35,6 +35,10 @@
     <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(56,189,248,.9);font-weight:700;">
         ● EYEFORCE E-CHANNEL
     </div>
+    @elseif($mode === 'analytics')
+    <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(251,191,36,.9);font-weight:700;">
+        ● ANALYTICS BDS
+    </div>
     @endif
 
     {{-- Menu --}}
@@ -48,6 +52,8 @@
             <a href="{{ route('absen.dashboard') }}" class="nav-link {{ request()->routeIs('absen.dashboard') ? 'active' : '' }}" target="_blank">
             @elseif($mode === 'eyeforce')
             <a href="{{ route('portal.eyeforce') }}" class="nav-link {{ request()->routeIs('portal.eyeforce') ? 'active' : '' }}">
+            @elseif($mode === 'analytics')
+            <a href="{{ route('portal.analytics') }}" class="nav-link {{ request()->routeIs('portal.analytics') ? 'active' : '' }}">
             @else
             <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" target="_blank">
             @endif

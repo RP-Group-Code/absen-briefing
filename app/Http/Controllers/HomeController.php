@@ -43,4 +43,16 @@ class HomeController extends Controller
             'title' => 'EyeForce E-Channel',
         ]);
     }
+
+    /**
+     * Masuk ke mode Analytics BDS dengan halaman utama yang siap dikembangkan.
+     */
+    public function analytics(Request $request)
+    {
+        $request->session()->put('sidebar_mode', 'analytics');
+
+        return view('analytics.index', [
+            'title' => 'Analytics BDS',
+        ]);
+    }
 }
