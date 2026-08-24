@@ -1,4 +1,4 @@
-@extends('layouts.app-public')
+@extends('layouts.app-with-sidebar')
 
 @section('title', 'BCF Undian')
 @section('description', 'Portal undian BCF BO Sriwijaya.')

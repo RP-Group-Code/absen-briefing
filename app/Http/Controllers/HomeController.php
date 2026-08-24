@@ -15,12 +15,12 @@ class HomeController extends Controller
     }
 
     /**
-     * Masuk ke mode BCF: set session lalu redirect ke dashboard
+     * Masuk ke mode BCF: set session lalu redirect ke halaman BCF Undian
      */
     public function bcf(Request $request)
     {
         $request->session()->put('sidebar_mode', 'bcf');
-        return redirect()->route('dashboard');
+        return redirect()->route('bcf.undian.index');
     }
 
     /**
