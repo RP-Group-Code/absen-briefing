@@ -9,9 +9,12 @@ class Absen extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'attendance_date' => 'date',
+    ];
+
     public function pegawai()
     {
         return $this->belongsTo(Pegawai::class, 'pegawai_id', 'id', "created_at");
     }
 }
-    

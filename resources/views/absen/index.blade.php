@@ -263,9 +263,19 @@
 
             /* ── Build pegawai options ── */
             function buildPegawaiOptions($select, selectedValue = null) {
+                const selectedInOtherRows = new Set();
+                $modal.find('.pegawai-select').each(function() {
+                    if (this !== $select[0] && $(this).val()) {
+                        selectedInOtherRows.add(String($(this).val()));
+                    }
+                });
+
                 $select.empty().append(new Option('Cari Pegawai…', '', false, false));
                 cachedPegawai.forEach(p => {
                     const sel = String(p.id) === String(selectedValue);
+                    if (!sel && selectedInOtherRows.has(String(p.id))) {
+                        return;
+                    }
                     $select.append(new Option(p.nama, p.id, false, sel));
                 });
             }
@@ -376,7 +386,11 @@
             });
 
             /* ── Update summary saat nilai berubah ── */
-            $tbody.on('change', '.pegawai-select, .alasan-select', updateSummary);
+            $tbody.on('change', '.pegawai-select', function() {
+                refreshAllPegawaiSelects();
+                updateSummary();
+            });
+            $tbody.on('change', '.alasan-select', updateSummary);
 
             /* ── Form validation ── */
             $('#absenForm').on('submit', function(e) {

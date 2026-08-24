@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -27,7 +28,7 @@ class InputAbsenController extends Controller
     public function index()
     {
         $data['uker'] = Uker::all();
-        $data['pegawai'] = Pegawai::all();
+        $data['pegawai'] = $this->pegawaiBelumDiinputHariIni()->get();
 
         return view('absen.index', $data);
     }
@@ -230,7 +231,10 @@ class InputAbsenController extends Controller
 
     public function getPegawaiByUnit($uker_id)
     {
-        $pegawai = Pegawai::where('uker_id', $uker_id)->get();
+        $pegawai = $this->pegawaiBelumDiinputHariIni()
+            ->where('uker_id', $uker_id)
+            ->get();
+
         return response()->json($pegawai);
     }
 
@@ -247,14 +251,14 @@ class InputAbsenController extends Controller
         $validated = $request->validate([
             'uker'         => ['required'],
             'pegawai_id'   => ['required', 'array', 'min:1'],
-            'pegawai_id.*' => ['nullable'],   // ← nullable karena ada skip row kosong
+            'pegawai_id.*' => ['nullable', 'integer', Rule::exists('pegawais', 'id')],
             'alasan'       => ['required', 'array', 'min:1'],
             'alasan.*'     => ['nullable', 'string', 'max:50'],
         ]);
 
         $rows = [];
-        $now = now();
-        // dd($request->all());
+        $now = Carbon::now(config('app.timezone'));
+        $attendanceDate = $now->toDateString();
 
         foreach ($validated['pegawai_id'] as $i => $pegawai_id) {
             $alasan = $validated['alasan'][$i] ?? null;
@@ -263,26 +267,85 @@ class InputAbsenController extends Controller
             if (!$pegawai_id || !$alasan) continue;
 
             $rows[] = [
-                'pegawai_id'  => $pegawai_id,
+                'pegawai_id'  => (int) $pegawai_id,
                 'alasan'      => $alasan,
+                'attendance_date' => $attendanceDate,
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ];
         }
-
-        DB::transaction(function () use ($rows) {
-            if (count($rows)) {
-                Absen::insert($rows);
-            }
-        });
 
         if (count($rows) === 0) {
             return redirect()->route("Input-Index")
                 ->with('error', 'Tidak ada data yang disimpan. Pilih pegawai & alasan dulu ya.');
         }
 
+        $pegawaiIds = collect($rows)->pluck('pegawai_id');
+        $duplicateRequestIds = $pegawaiIds->duplicates()->unique()->values();
+
+        if ($duplicateRequestIds->isNotEmpty()) {
+            $this->throwDuplicateAttendanceValidation($duplicateRequestIds, $attendanceDate);
+        }
+
+        DB::transaction(function () use ($rows, $pegawaiIds, $attendanceDate) {
+            Pegawai::query()
+                ->whereIn('id', $pegawaiIds->unique())
+                ->lockForUpdate()
+                ->get(['id']);
+
+            $existingIds = Absen::query()
+                ->whereIn('pegawai_id', $pegawaiIds->unique())
+                ->where(function ($query) use ($attendanceDate) {
+                    $query->whereDate('attendance_date', $attendanceDate)
+                        ->orWhere(function ($legacyQuery) use ($attendanceDate) {
+                            $legacyQuery->whereNull('attendance_date')
+                                ->whereDate('created_at', $attendanceDate);
+                        });
+                })
+                ->pluck('pegawai_id')
+                ->unique()
+                ->values();
+
+            if ($existingIds->isNotEmpty()) {
+                $this->throwDuplicateAttendanceValidation($existingIds, $attendanceDate);
+            }
+
+            Absen::insert($rows);
+        });
+
         Alert::success('Tersimpan ' . count($rows) . ' Data Absensi Pegawai');
         return redirect()->route("Input-Index");
+    }
+
+    private function pegawaiBelumDiinputHariIni()
+    {
+        $today = Carbon::now(config('app.timezone'))->toDateString();
+
+        return Pegawai::query()->whereDoesntHave('absens', function ($query) use ($today) {
+            $query->whereDate('attendance_date', $today)
+                ->orWhere(function ($legacyQuery) use ($today) {
+                    $legacyQuery->whereNull('attendance_date')
+                        ->whereDate('created_at', $today);
+                });
+        });
+    }
+
+    private function throwDuplicateAttendanceValidation($pegawaiIds, string $attendanceDate): never
+    {
+        $names = Pegawai::query()
+            ->whereIn('id', collect($pegawaiIds)->all())
+            ->orderBy('nama')
+            ->pluck('nama')
+            ->implode(', ');
+
+        $formattedDate = Carbon::parse($attendanceDate)
+            ->locale('id')
+            ->translatedFormat('d F Y');
+
+        throw ValidationException::withMessages([
+            'pegawai_id' => ($names !== '' ? $names : 'Pegawai yang dipilih')
+                . ' sudah diinput pada tanggal ' . $formattedDate . ' dan tidak dapat diinput dua kali.',
+        ]);
     }
 
     public function saveKancaStatus(Request $request)
