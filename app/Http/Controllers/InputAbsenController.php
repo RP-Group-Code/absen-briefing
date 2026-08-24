@@ -28,7 +28,7 @@ class InputAbsenController extends Controller
     public function index()
     {
         $data['uker'] = Uker::all();
-        $data['pegawai'] = $this->pegawaiBelumDiinputHariIni()->get();
+        $data['pegawai'] = $this->pegawaiDenganAbsensiHariIni();
 
         return view('absen.index', $data);
     }
@@ -231,9 +231,7 @@ class InputAbsenController extends Controller
 
     public function getPegawaiByUnit($uker_id)
     {
-        $pegawai = $this->pegawaiBelumDiinputHariIni()
-            ->where('uker_id', $uker_id)
-            ->get();
+        $pegawai = $this->pegawaiDenganAbsensiHariIni((int) $uker_id);
 
         return response()->json($pegawai);
     }
@@ -317,16 +315,38 @@ class InputAbsenController extends Controller
         return redirect()->route("Input-Index");
     }
 
-    private function pegawaiBelumDiinputHariIni()
+    private function pegawaiDenganAbsensiHariIni(?int $ukerId = null)
     {
         $today = Carbon::now(config('app.timezone'))->toDateString();
+        $pegawaiQuery = Pegawai::query()->orderBy('nama');
 
-        return Pegawai::query()->whereDoesntHave('absens', function ($query) use ($today) {
-            $query->whereDate('attendance_date', $today)
-                ->orWhere(function ($legacyQuery) use ($today) {
-                    $legacyQuery->whereNull('attendance_date')
-                        ->whereDate('created_at', $today);
-                });
+        if ($ukerId !== null) {
+            $pegawaiQuery->where('uker_id', $ukerId);
+        }
+
+        $pegawai = $pegawaiQuery->get();
+        $attendanceMap = Absen::query()
+            ->whereIn('pegawai_id', $pegawai->pluck('id'))
+            ->where(function ($query) use ($today) {
+                $query->whereDate('attendance_date', $today)
+                    ->orWhere(function ($legacyQuery) use ($today) {
+                        $legacyQuery->whereNull('attendance_date')
+                            ->whereDate('created_at', $today);
+                    });
+            })
+            ->latest('id')
+            ->get(['pegawai_id', 'alasan'])
+            ->unique('pegawai_id')
+            ->keyBy('pegawai_id');
+
+        return $pegawai->map(function (Pegawai $pegawai) use ($attendanceMap, $today) {
+            $attendance = $attendanceMap->get($pegawai->id);
+            $pegawai->setAttribute('attendance_today', $attendance ? [
+                'date' => $today,
+                'alasan' => $attendance->alasan,
+            ] : null);
+
+            return $pegawai;
         });
     }
 

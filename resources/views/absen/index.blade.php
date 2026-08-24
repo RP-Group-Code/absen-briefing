@@ -2,6 +2,36 @@
 
 @section('title', 'Absen Briefing')
 
+@push('styles')
+    <style>
+        .swal2-container.absen-existing-alert-container {
+            z-index: 20000;
+        }
+
+        .absen-existing-alert-popup {
+            width: min(92vw, 440px) !important;
+            border: 1px solid rgba(251, 191, 36, .35) !important;
+            border-radius: 22px !important;
+            padding: 1.35rem !important;
+        }
+
+        @media (max-width: 576px) {
+            .absen-existing-alert-popup {
+                width: calc(100vw - 24px) !important;
+                padding: 1rem !important;
+            }
+
+            .absen-existing-alert-popup .swal2-title {
+                font-size: 1.25rem !important;
+            }
+
+            .absen-existing-alert-popup .swal2-html-container {
+                font-size: .95rem !important;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
     @if ($errors->any())
         <div style="position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:500px;width:90%">
@@ -276,7 +306,11 @@
                     if (!sel && selectedInOtherRows.has(String(p.id))) {
                         return;
                     }
-                    $select.append(new Option(p.nama, p.id, false, sel));
+                    const attendance = p.attendance_today;
+                    const label = attendance
+                        ? `${p.nama} — Sudah diabsen: ${attendance.alasan}`
+                        : p.nama;
+                    $select.append(new Option(label, p.id, false, sel));
                 });
             }
 
@@ -387,6 +421,34 @@
 
             /* ── Update summary saat nilai berubah ── */
             $tbody.on('change', '.pegawai-select', function() {
+                const $select = $(this);
+                const selected = cachedPegawai.find(p => String(p.id) === String($select.val()));
+
+                if (selected?.attendance_today) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Pegawai Telah Diabsen',
+                        text: `${selected.nama} - ${selected.attendance_today.alasan}`,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#6366f1',
+                        background: '#1a1a4e',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        timer: undefined,
+                        customClass: {
+                            container: 'absen-existing-alert-container',
+                            popup: 'absen-existing-alert-popup'
+                        }
+                    }).then(() => {
+                        $select.val('');
+                        $select.trigger('change.select2');
+                        refreshAllPegawaiSelects();
+                        updateSummary();
+                    });
+                    return;
+                }
+
                 refreshAllPegawaiSelects();
                 updateSummary();
             });
