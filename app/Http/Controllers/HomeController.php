@@ -31,4 +31,16 @@ class HomeController extends Controller
         $request->session()->put('sidebar_mode', 'briefing');
         return redirect()->route('dashboard');
     }
+
+    /**
+     * Masuk ke mode EyeForce dengan halaman utama yang siap dikembangkan.
+     */
+    public function eyeForce(Request $request)
+    {
+        $request->session()->put('sidebar_mode', 'eyeforce');
+
+        return view('eyeforce.index', [
+            'title' => 'EyeForce E-Channel',
+        ]);
+    }
 }

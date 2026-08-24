@@ -51,7 +51,7 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 2rem;
         width: 100%;
-        max-width: 720px;
+        max-width: 1080px;
     }
 
     /* ── Menu card ── */
@@ -76,6 +76,7 @@
 
     .portal-card:nth-child(1) { animation-delay: 0.15s; }
     .portal-card:nth-child(2) { animation-delay: 0.28s; }
+    .portal-card:nth-child(3) { animation-delay: 0.41s; }
 
     .portal-card::before {
         content: '';
@@ -109,6 +110,13 @@
         --card-border: rgba(16,185,129,0.5);
     }
 
+    /* EyeForce card */
+    .portal-card.card-eyeforce {
+        --card-glow: linear-gradient(135deg, rgba(14,165,233,0.14), rgba(59,130,246,0.12));
+        --card-shadow: 0 0 40px rgba(14,165,233,0.28);
+        --card-border: rgba(56,189,248,0.55);
+    }
+
     /* ── Card icon ── */
     .portal-card-icon {
         width: 72px;
@@ -130,6 +138,11 @@
     .card-briefing .portal-card-icon {
         background: linear-gradient(135deg, rgba(16,185,129,0.8), rgba(20,184,166,0.8));
         box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+    }
+
+    .card-eyeforce .portal-card-icon {
+        background: linear-gradient(135deg, rgba(14,165,233,0.85), rgba(37,99,235,0.85));
+        box-shadow: 0 8px 24px rgba(14,165,233,0.42);
     }
 
     /* ── Card text ── */
@@ -240,6 +253,22 @@
                 <div class="portal-card-title">BRIEFING KANCA-UKER</div>
                 <div class="portal-card-desc mt-1">
                     Data absen briefing Kanca<br>dan Unit Kerja
+                </div>
+            </div>
+            <span class="portal-card-arrow">
+                Masuk <i class="bi bi-arrow-right"></i>
+            </span>
+        </a>
+
+        {{-- EYEFORCE E-CHANNEL --}}
+        <a href="{{ route('portal.eyeforce') }}" class="portal-card card-eyeforce" target="_blank">
+            <div class="portal-card-icon">
+                <i class="bi bi-eye-fill"></i>
+            </div>
+            <div>
+                <div class="portal-card-title">EyeForce E-Channel</div>
+                <div class="portal-card-desc mt-1">
+                    Portal monitoring dan layanan<br>EyeForce E-Channel
                 </div>
             </div>
             <span class="portal-card-arrow">
