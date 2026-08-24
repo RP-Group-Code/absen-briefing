@@ -85,7 +85,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/login',  [AuthController::class, 'login']);
 });
 
-Route::get('/absen-briefing', [InputAbsenController::class, 'index'])->name('Input.Index');
+
+Route::get('/absen-briefing', [InputAbsenController::class, 'index'])->name('Input-Index');
 
 Route::get('/pegawai/by-unit/{uker_id}', [InputAbsenController::class, 'getPegawaiByUnit']);
 Route::post('/submit/absen/briefing', [InputAbsenController::class, 'store'])->name('submit.absen');
