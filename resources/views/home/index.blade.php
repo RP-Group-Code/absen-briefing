@@ -6,7 +6,7 @@
 <style>
     /* ── Portal Hero ── */
     .portal-hero {
-        min-height: calc(100vh - 70px);
+        min-height: calc(100vh - 250px);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -216,7 +216,7 @@
     <div class="portal-menu-grid">
 
         {{-- SISTEM BCF 2026 --}}
-        <a href="{{ route('portal.bcf') }}" class="portal-card card-bcf">
+        <a href="{{ route('portal.bcf') }}" class="portal-card card-bcf" target="__blank">
             <div class="portal-card-icon">
                 <i class="bi bi-file-earmark-text-fill"></i>
             </div>
@@ -232,7 +232,7 @@
         </a>
 
         {{-- BRIEFING KANCA-UKER --}}
-        <a href="{{ route('portal.briefing') }}" class="portal-card card-briefing">
+        <a href="{{ route('portal.briefing') }}" class="portal-card card-briefing" target="__blank">
             <div class="portal-card-icon">
                 <i class="bi bi-journal-check"></i>
             </div>
