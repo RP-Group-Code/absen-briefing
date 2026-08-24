@@ -2,7 +2,8 @@
 
     {{-- Brand --}}
     <div class="sidebar-brand">
-        <img src="{{ asset('LogoPOIT.png') }}" alt="Logo" style="height: 24px; margin-right: 8px;">
+
+        <img src="{{ asset('images/LogoPOIT.png') }}" alt="Logo" style="height: 24px; margin-right: 8px;">
         <span class="brand-text">Portal SWJ-Tech</span>
     </div>
 
