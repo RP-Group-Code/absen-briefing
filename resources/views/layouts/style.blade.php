@@ -85,7 +85,7 @@
       }
 
       #sidebar .sidebar-brand {
-          height: 60px;
+          height: 70px;
           background-color: #232D49;
           display: flex;
           align-items: center;
@@ -135,7 +135,7 @@
 
       /* ── Topbar ── */
       #topbar {
-          height: 60px;
+          height: 70px;
           background: #212C44;
           border-bottom: 1px solid #34347D;
           display: flex;
