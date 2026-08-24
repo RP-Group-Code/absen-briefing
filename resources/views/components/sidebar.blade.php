@@ -23,13 +23,13 @@
     </div>
 
     {{-- Mode label --}}
-    @if($mode === 'bcf')
+    @if($mode === 'briefing')
+   <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(16,185,129,.8);font-weight:700;">
+        ● BRIEFING KANCA-UKER
+    </div>
+    @elseif($mode === 'bcf')
     <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(99,102,241,.8);font-weight:700;">
         ● SISTEM BCF 2026
-    </div>
-    @elseif($mode === 'briefing')
-    <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(16,185,129,.8);font-weight:700;">
-        ● BRIEFING KANCA-UKER
     </div>
     @elseif($mode === 'eyeforce')
     <div class="nav-label" style="padding:.5rem 1.5rem .25rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(56,189,248,.9);font-weight:700;">
