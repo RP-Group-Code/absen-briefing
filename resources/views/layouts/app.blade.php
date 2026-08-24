@@ -46,7 +46,7 @@
                 <button id="sidebarToggle" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-list fs-5"></i>
                 </button>
-                <span class="text-white">{{ $title ?? 'SRIWIJAYA DASHBOARD BRIEFING' }}</span>
+                <span class="text-white">{{ $title ?? 'Portal SWJ-Tech' }}</span>
                 <div class="ms-auto d-flex align-items-center gap-3">
                     <span class="text-muted small">
                         <i class="bi bi-clock me-1"></i>

@@ -2,8 +2,8 @@
 
     {{-- Brand --}}
     <div class="sidebar-brand">
-        <i class="bi bi-calendar-check text-primary fs-5"></i>
-        <span class="brand-text">Absen Briefing</span>
+        <img src="{{ asset('LogoPOIT.png') }}" alt="Logo" style="height: 24px; margin-right: 8px;">
+        <span class="brand-text">Portal SWJ-Tech</span>
     </div>
 
     {{-- Menu --}}
@@ -11,7 +11,7 @@
         <li class="nav-item mt-2 ">
             <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2"></i>
-                <span class="nav-label">Dashboard</span>
+                <span class="nav-label">Dashboard Briefing</span>
             </a>
         </li>
         {{-- <li class="nav-item mt-2 ">
