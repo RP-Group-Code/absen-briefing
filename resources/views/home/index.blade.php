@@ -241,22 +241,6 @@
     {{-- Menu grid --}}
     <div class="portal-menu-grid">
 
-        {{-- SISTEM BCF 2026 --}}
-        <a href="{{ route('portal.bcf') }}" class="portal-card card-bcf" target="__blank">
-            <div class="portal-card-icon">
-                <i class="bi bi-file-earmark-text-fill"></i>
-            </div>
-            <div>
-                <div class="portal-card-title">SISTEM BCF 2026</div>
-                <div class="portal-card-desc mt-1">
-                    Kelola registrasi BCF, admin,<br>dan undian doorprize
-                </div>
-            </div>
-            <span class="portal-card-arrow">
-                Masuk <i class="bi bi-arrow-right"></i>
-            </span>
-        </a>
-
         {{-- BRIEFING KANCA-UKER --}}
         <a href="{{ route('portal.briefing') }}" class="portal-card card-briefing" target="__blank">
             <div class="portal-card-icon">
@@ -266,6 +250,22 @@
                 <div class="portal-card-title">BRIEFING KANCA-UKER</div>
                 <div class="portal-card-desc mt-1">
                     Data absen briefing Kanca<br>dan Unit Kerja
+                </div>
+            </div>
+            <span class="portal-card-arrow">
+                Masuk <i class="bi bi-arrow-right"></i>
+            </span>
+        </a>
+
+        {{-- SISTEM BCF 2026 --}}
+        <a href="{{ route('portal.bcf') }}" class="portal-card card-bcf" target="__blank">
+            <div class="portal-card-icon">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+            <div>
+                <div class="portal-card-title">SISTEM BCF 2026</div>
+                <div class="portal-card-desc mt-1">
+                    Kelola registrasi BCF, admin,<br>dan undian doorprize
                 </div>
             </div>
             <span class="portal-card-arrow">
