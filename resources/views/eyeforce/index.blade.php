@@ -3,13 +3,14 @@
 @section('title', 'EyeForce E-Channel')
 
 @section('content')
-    <div class="eyeforce-empty-main" aria-label="Area utama EyeForce E-Channel"></div>
+    @include('partials.coming-soon', [
+        'productName' => 'EyeForce E-Channel',
+        'icon' => 'bi-eye-fill',
+        'accent' => '#38bdf8',
+        'accentRgb' => '56, 189, 248',
+    ])
 @endsection
 
 @push('styles')
-    <style>
-        .eyeforce-empty-main {
-            min-height: calc(100vh - 118px);
-        }
-    </style>
+    @include('partials.coming-soon-styles')
 @endpush
