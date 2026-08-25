@@ -146,7 +146,7 @@
             border: 1px solid rgba(57, 198, 244, .2);
             border-radius: 999px;
             background: rgba(57, 198, 244, .08);
-            color: #d10808;
+            color: #ff2121;
             font-size: .7rem;
             font-weight: 700;
             letter-spacing: .1em;
