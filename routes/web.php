@@ -7,7 +7,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImportPegawaiController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\IndexAbsenController;
 use App\Http\Controllers\InputAbsenController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PegawaiController;
@@ -46,7 +45,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard/index', [DashboardController::class, 'index'])->name('dashboard');
     
-    Route::get('/dashboard/absen', [IndexAbsenController::class, 'index'])->name('absen.index');
+    Route::get('/dashboard/absen', [DashboardController::class, 'index'])->name('absen.index');
     Route::get('/dashboard/pegawai', [PegawaiController::class, 'index'])->name('pegawai.dashboard');
     Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update'])->name('pegawai.update');
     Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
