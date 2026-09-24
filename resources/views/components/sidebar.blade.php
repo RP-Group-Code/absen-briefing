@@ -47,7 +47,7 @@
         {{-- Dashboard: link disesuaikan dengan mode --}}
         <li class="nav-item mt-1">
             @if($mode === 'briefing')
-            <a href="{{ route('absen.dashboard') }}" class="nav-link {{ request()->routeIs('absen.dashboard') ? 'active' : '' }}" target="_blank">
+            <a href="{{ route('absen.index') }}" class="nav-link {{ request()->routeIs('absen.index') ? 'active' : '' }}" target="_blank">
 
             @elseif($mode === 'bcf')
             <a href="{{ route('bcf.undian.index') }}" class="nav-link {{ request()->routeIs('bcf.undian.index') ? 'active' : '' }}" target="_blank">
@@ -67,15 +67,14 @@
         {{-- ════ MODE: BRIEFING ════ --}}
         @if($mode === 'briefing' || $mode === 'all')
 
-        {{-- Data Pegawai (hanya mode all) --}}
-        @if($mode === 'all')
+        {{-- Master Pegawai tersedia pada mode briefing dan all --}}
         <li class="nav-item">
             <a class="nav-link d-flex align-items-center justify-content-between" href="#menuPegawai"
                 data-bs-toggle="collapse" role="button"
                 aria-expanded="{{ request()->routeIs('pegawai.*') ? 'true' : 'false' }}">
                 <span class="d-flex align-items-center gap-2">
                     <i class="bi bi-people"></i>
-                    <span class="nav-label">Data Pegawai</span>
+                    <span class="nav-label">{{ $mode === 'briefing' ? 'Master Pegawai' : 'Data Pegawai' }}</span>
                 </span>
                 <i class="bi bi-chevron-down nav-label" style="font-size:.7rem;transition:transform .2s" id="chevronPegawai"></i>
             </a>
@@ -108,7 +107,6 @@
                 </ul>
             </div>
         </li>
-        @endif
 
         {{-- Data Absen / Briefing --}}
         <li class="nav-item">
@@ -125,8 +123,8 @@
                 <ul class="nav flex-column ms-3 mt-1">
                     @if($mode !== 'briefing')
                     <li class="nav-item">
-                        <a href="{{ route('absen.dashboard') }}"
-                            class="nav-link {{ request()->routeIs('absen.dashboard*') ? 'active' : '' }}"
+                        <a href="{{ route('absen.index') }}"
+                            class="nav-link {{ request()->routeIs('absen.index') ? 'active' : '' }}"
                             style="padding:.55rem 1rem;font-size:.85rem" target="_blank">
                             <i class="bi bi-person-lines-fill" style="font-size:.9rem"></i>
                             <span class="nav-label">Data Absen</span>
