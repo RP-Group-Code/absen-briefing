@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/portal/analytics', [HomeController::class, 'analytics'])->name('portal.analytics');
 
     Route::get('/dashboard/index', [DashboardController::class, 'index'])->name('dashboard');
+    
     Route::get('/dashboard/absen', [IndexAbsenController::class, 'index'])->name('absen.index');
     Route::get('/dashboard/pegawai', [PegawaiController::class, 'index'])->name('pegawai.dashboard');
     Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update'])->name('pegawai.update');
