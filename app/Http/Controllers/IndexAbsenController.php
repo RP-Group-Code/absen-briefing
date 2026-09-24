@@ -14,7 +14,7 @@ class IndexAbsenController extends Controller
     public function index()
     {
         $data['absen'] = Absen::orderByDesc('created_at')->get();
-        return view('dashboard.absen', $data);
+        return view('dashboard.index', $data);
 
     }
 
