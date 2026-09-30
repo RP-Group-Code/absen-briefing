@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // ── Portal General ──
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [HomeController::class, 'index' ])->name('home');
     Route::get('/portal/bcf', [HomeController::class, 'bcf'])->name('portal.bcf');
     Route::get('/portal/briefing', [HomeController::class, 'briefing'])->name('portal.briefing');
     Route::get('/portal/eyeforce', [HomeController::class, 'eyeForce'])->name('portal.eyeforce');
